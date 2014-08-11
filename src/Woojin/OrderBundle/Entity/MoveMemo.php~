@@ -1,0 +1,61 @@
+<?php 
+namespace Woojin\OrderBundle\Entity;
+
+use Doctrine\ORM\Mapping as ORM;
+
+use JMS\Serializer\Annotation\ExclusionPolicy;
+use JMS\Serializer\Annotation\Exclude;
+
+/**
+ * @ORM\Entity
+ * @ORM\Table(name="MoveMemo")
+ */
+class MoveMemo
+{
+    /**
+     * @Exclude
+     * @ORM\ManyToOne(targetEntity="Move", inversedBy="memos")
+     * @ORM\JoinColumn(name="move_id", referencedColumnName="id")
+     * @var Move
+     */
+    protected $move;
+
+    /**
+     * @ORM\Id
+     * @ORM\Column(type="integer")
+     * @ORM\GeneratedValue(strategy="AUTO")
+     */
+    protected $id;
+
+    /**
+     * @ORM\Column(type="text", length=255, nullable=true)
+     */
+    protected $content;
+
+    /**
+     * @ORM\Column(type="datetime", length=50)
+     */
+    protected $create_at;
+
+    /**
+     * @ORM\Column(type="datetime", length=50)
+     */
+    protected $update_at;
+
+    /**
+     * @ORM\PrePersist
+     */
+    public function autoSetCreateAt()
+    {
+        $this->setCreateAt(new \Datetime());
+    }
+
+    /**
+     * @ORM\PrePersist
+     * @ORM\PreUpdate
+     */
+    public function autoSetUpdateAt()
+    {
+        $this->setUpdateAt(new \Datetime());
+    }
+}

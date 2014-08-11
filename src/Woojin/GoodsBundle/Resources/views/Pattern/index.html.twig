@@ -1,0 +1,37 @@
+{% verbatim %}
+<div class="row">
+	
+	<div ng-show="successMsg || errorMsg;" class="msgFix">
+		<div ng-if="successMsg;" class="alert alert-success no-margin" role="alert">{{ successMsg }}</div>
+		<div ng-if="errorMsg;" class="alert alert-danger no-margin" role="alert">{{ errorMsg }}</div>
+	</div>
+
+	<form class="form-inline" role="form">
+		<div class="form-group">
+		  <input ng-model="query.name" type="text" name="filter" class="form-control input-sm" placeholder="款式"/>
+
+		  <button ng-click="clean(); create(query);" class="btn btn-primary btn-sm">新增</button>
+  	</div>
+	</form>
+	
+	<p>&nbsp;</p>
+
+	<table class="table table-hover">
+		<tr>
+			<td ng-click="orderProp='id'; reverse=!reverse;" class="pointer">id</td>
+			<td ng-click="orderProp='name'; reverse=!reverse;" class="pointer">款式</td>
+			<td>
+				動作
+			</td>
+		</tr>
+
+		<tr ng-repeat="pattern in patterns | filter:query | orderBy:orderProp:reverse" class="listing">
+			<td>{{ pattern.id }}</td>
+			<td><input ng-focus="setTmp(pattern);" ng-blur="update(pattern);" ng-model="pattern.name" type="text" class="input-sm no-border"></td>
+			<td>
+				<button ng-click="clean(); destroy(pattern);" class="btn btn-danger btn-sm">刪除</button>
+			</td>
+		</tr>
+	</table>
+</div>
+{% endverbatim %}

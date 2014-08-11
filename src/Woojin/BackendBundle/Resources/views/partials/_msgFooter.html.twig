@@ -1,0 +1,18 @@
+{% verbatim %}
+<div ng-show="success || error;" class="msgFix">
+	<div ng-show="success;" class="alert alert-success no-margin" role="alert">
+		<button type="button" class="close" ng-click="empty();">
+			<span aria-hidden="true">&times;</span>
+			<span class="sr-only">Close</span>
+		</button>
+		{{ success }}
+	</div>
+	<div ng-show="error;" class="alert alert-danger no-margin" role="alert">
+		<button type="button" class="close" ng-click="empty();">
+			<span aria-hidden="true">&times;</span>
+			<span class="sr-only">Close</span>
+		</button>
+		{{ error }}
+	</div>
+</div>
+{% endverbatim %}

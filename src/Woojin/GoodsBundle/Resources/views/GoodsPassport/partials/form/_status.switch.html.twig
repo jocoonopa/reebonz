@@ -1,0 +1,16 @@
+{% verbatim %}
+<div class="form-group">
+	<label class="col-sm-2 control-label">狀態</label>
+
+	<div class="col-sm-10">
+		<label class="radio-inline">
+			<input type="radio" ng-show="model.status.id === 1 || model.status.id === 4;" ng-model="model.status.id" name="{{prefix}}{{ model.id }}" ng-value="1">上架<br/>
+		</label>
+		<label class="radio-inline">
+	  	<input type="radio" ng-show="model.status.id === 1 || model.status.id === 4;" ng-model="model.status.id" name="{{pefix}}{{ model.id }}" ng-value="4">下架<br/>
+	  </label>
+
+		<span ng-show="model.status.id !== 1 && model.status.id !== 4;">{{ model.status.name }}</span>
+	</div>
+</div>
+{% endverbatim %}

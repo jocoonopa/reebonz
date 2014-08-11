@@ -1,0 +1,17 @@
+{% verbatim %}
+<h4 class="pointer"
+	ng-click="switchDisplay(goods); lazyImg(goods);" 
+	ng-class="{dropup: !goods.isDisplay}" 
+>
+	<span class="caret"></span>
+	<b>
+		<small ng-show="goods.isDelete;">刪除</small>
+		<small ng-show="goods.status.name">{{ goods.status.name }}</small>
+		{{ goods.name }}
+	</b>&nbsp;&nbsp;
+	<i>{{ goods.sn }} </i>&nbsp;&nbsp;
+	<span class="pull-right small-font">一般價:{{ goods.fake_price }}元</span>&nbsp;&nbsp;
+	<span class="pull-right small-font">優惠價:{{ goods.price }}元</span>&nbsp;&nbsp;
+	<span class="pull-right small-font">成本:{{ goods.cost }}元&nbsp;&nbsp;</span>
+</h4>
+{% endverbatim %}

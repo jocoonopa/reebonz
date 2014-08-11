@@ -1,0 +1,32 @@
+<div ng-controller="GoodsImportCtrl">
+	<div class="panel-heading">
+		<h2 class="panel-title pointer" ng-click="isAddPanelVisible=!isAddPanelVisible;" ng-class="{dropup: !isAddPanelVisible}"><span class="caret"></span>&nbsp; 批次上傳</h2>
+	</div>
+
+	<div class="panel-body" ng-show="isAddPanelVisible">
+		{% verbatim %}
+		<form novalidate class="form-horizontal" role="form">
+			<div class="form-group">				
+				<div class="col-sm-12">
+					<input id="import-file" type="file" class="hidden" name="import" ng-file-select="onFileSelect($files, 'importfiles');"/>
+					<p ng-show="importfiles;">檔案名稱:{{ importfiles[0].name }}</p>
+
+					<button type="button" class="btn btn-primary" my-file-input>選擇檔案</button>
+
+					<button ng-show="importfiles;" class="btn btn-default" type="button" ng-click="$parent.cleanFile('#import-file'); importfiles=false;">取消選擇</button>
+
+					<button ng-show="importfiles;" class="btn btn-success" type="button" ng-click="import();">上傳檔案</button>
+
+					<button ng-show="importGoods.length>0;" class="btn btn-warning" type="button" ng-click="$parent.reverse('importGoods', '批次上傳');">還原上傳</button>
+
+					<button ng-show="!importfiles;" class="btn btn-info" onclick="window.location.href='/uploads/example/example.xlsx';">範例下載</button>
+				</div>
+			</div>
+		</form>
+		{% endverbatim %}
+
+		<div class="row" ng-repeat="goods in $parent.importGoods">	
+			{% include 'WoojinGoodsBundle:GoodsPassport/partials/form:_goods.html.twig' %}
+		</div>
+	</div>
+</div>

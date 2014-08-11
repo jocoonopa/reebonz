@@ -1,0 +1,12 @@
+{% verbatim %}
+<div class="form-group">
+	<label class="col-sm-2 control-label">{{label}}</label>
+
+	<div class="col-sm-10">
+		<input type="file" class="hidden" name="{{prefix}}{{model.id}}" ng-file-select="select($files, type, model);" />
+  	<button type="button" class="btn btn-default" ng-click="click(model);">取消</button>	
+  	<button my-file-input type="button" class="btn btn-primary">選取</button><br/><br/>
+		<img ng-show="model[name]" ng-src="{{model[name]}}" width="320" height="240" />
+	</div>
+</div>
+{% endverbatim %}

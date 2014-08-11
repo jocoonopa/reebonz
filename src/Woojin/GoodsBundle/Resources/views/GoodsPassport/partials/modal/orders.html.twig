@@ -1,0 +1,34 @@
+{% verbatim %}
+<script type="text/ng-template" id="myModalContent.html">
+  <div class="modal-header">
+    <h3 class="modal-title">
+      訂單資訊<span class="badge">{{ orderses.length }}</span>
+    </h3>
+  </div>
+  <div class="modal-body">
+    <div ng-repeat="orders in orderses" class="panel panel-info">
+      <div class="panel-heading">
+        <h3 class="panel-title"> 
+          <small>{{ orders.status.name }}</small>
+          <span>{{ orders.kind.name }}</span>
+          <strong ng-show="orders.custom" class="pull-right">客戶: {{ orders.custom.name }}{{ orders.custom.sex }}</strong>
+          <span class="pull-right">應付: &nbsp;&nbsp;{{ orders.required }}元&nbsp;&nbsp;&nbsp;&nbsp;</span>
+          <span class="pull-right">已付: &nbsp;&nbsp;{{ orders.paid }}元&nbsp;&nbsp;&nbsp;&nbsp;</span>
+        </h3>
+      </div>
+      <div class="panel-body">
+        <ul class="list-group">
+          <li ng-repeat="ope in orders.opes" class="list-group-item">
+            <span>於{{ formatDate(ope.create_at) }}<i ng-show="ope.pay_type">以</i>{{ ope.pay_type.name }}支付{{ ope.money }}元&nbsp;&nbsp;</span> 
+            <strong ng-show="ope.user" class="pull-right">操作人員: {{ ope.user.username }}</strong>  
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-warning" ng-click="cancel()">close</button>
+  </div>
+</script>
+
+{% endverbatim %}

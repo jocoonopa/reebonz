@@ -1,0 +1,49 @@
+.dropdown-toggle {
+	cursor: pointer;
+}
+
+.pointer {
+	cursor: pointer;
+}
+
+.no-border {
+	border: 0;
+}
+
+.queryDes {
+	position: fixed; 
+	bottom: 0; 
+	left: 0; 
+	width: 100%; 
+	z-index: 50; 
+	padding: 5px;
+	min-height: 40px;
+	background-color: #fff;
+	border: 0;
+}
+
+.queryDes button {
+	margin-top: 5px;
+}
+
+.msgFix {
+	position: fixed; 
+	bottom: 0; 
+	left: 0; 
+	width: 100%; 
+	z-index: 50; 
+	padding: 5px;
+	min-height: 40px;
+	background-color: #fff;
+	border: 0;
+}
+
+.no-margin {
+	margin: 0 !important;
+}
+
+a:hover {
+	text-decoration: none !important;
+}
+
+.nav, .pagination, .carousel, .panel-title a { cursor: pointer !important; }

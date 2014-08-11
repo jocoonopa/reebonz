@@ -1,0 +1,39 @@
+# app/config/security.yml
+security:
+    firewalls:
+        secured_area:
+            pattern:    ^/
+            anonymous: ~
+            form_login:
+                login_path:  /login
+                check_path:  /login_check
+                always_use_default_target_path: true
+                default_target_path: /backend/log
+            logout:
+                path:   /logout
+                target: /login
+
+    role_hierarchy:
+        ROLE_SENIOR_ADMIN: ROLE_NORMAL_ADMIN
+        ROLE_ACCOUNTANT: ROLE_NORMAL_ADMIN
+        ROLE_CHIEF_ADMIN: ROLE_SENIOR_ADMIN
+        ROLE_BOSS_ADMIN: ROLE_CHIEF_ADMIN
+        ROLE_SUPER_ADMIN: [ ROLE_BOSS_ADMIN,ROLE_CUSTOM, ROLE_NORMAL_ADMIN, ROLE_ACCOUNTANT ]
+    
+    access_control:
+        - { path: ^/login$, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/logout$, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/invoice$, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/order$, roles: ROLE_NORMAL_ADMIN }
+        - { path: ^/goodsPassport$, roles:ROLE_NORMAL_ADMIN}
+        - { path: ^/store$, roles: ROLE_NORMAL_ADMIN }
+        - { path: ^/user$, roles: ROLE_NORMAL_ADMIN }
+        - { path: ^/backend$, roles: ROLE_NORMAL_ADMIN }
+        - { path: ^/, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+
+    providers:
+        administrators:
+            entity: { class: WoojinUserBundle:User, property: username }
+
+    encoders:
+        Woojin\UserBundle\Entity\User: sha512

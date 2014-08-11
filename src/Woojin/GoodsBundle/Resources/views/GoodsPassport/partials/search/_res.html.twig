@@ -1,0 +1,32 @@
+<div class="panel-heading">
+  <h2 class="panel-title pointer" ng-click="isSearchPanelVisible=!isSearchPanelVisible;" ng-class="{dropup: !isSearchPanelVisible}"><span class="caret"></span>&nbsp; 搜尋結果</h2>
+</div>
+
+<div class="panel-body" ng-show="isSearchPanelVisible">
+
+	<msg-footer success="$parent.successMsg" error="$parent.errorMsg" on-empty="$parent.emptyMsg();"></msg-footer>
+
+	<div class="row" ng-repeat="goods in searchRepo">
+		{% include 'WoojinGoodsBundle:GoodsPassport/partials/form:_goods.html.twig' %}
+	</div>
+	
+	<div class="row" ng-show="totalItems>0;">
+		<form novalidate class="form-horizontal" role="form">
+			<div class="form-group">
+				<label class="col-sm-2 control-label">每頁顯示筆數</label>
+				
+				<div class="col-sm-10">
+					<select ng-model="perPage" name="per-page" class="form-control" ng-change="currentPage=1; query();">
+						<option value="10">10</option>
+						<option value="20">20</option>
+						<option value="30">30</option>
+						<option value="50">50</option>
+						<option value="100">100</option>
+					</select>
+				</div>
+			</div>
+		</form>
+	</div>
+
+	<pagination ng-show="totalItems>0;" max-size="5" rotate="false" boundary-links="true" items-per-page="perPage" total-items="totalItems" ng-model="currentPage" ng-change="pageChanged()"></pagination>
+</div>

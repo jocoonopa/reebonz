@@ -1,0 +1,81 @@
+<div class="navbar navbar-default navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <a href="#/backend" class="navbar-brand">Reebonz</a>
+      <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+
+    <div id="navbar-main" class="navbar-collapse collapse navbar-responsive-collapse">
+      <ul class="nav navbar-nav">
+
+        <li class="dropdown">
+          <a class="dropdown-toggle" data-toggle="dropdown">訂單 <b class="caret"></b></a>
+        
+          <ul class="dropdown-menu">
+            <li><a href="#/orders">訂單管理</a></li>
+            
+            <li class="divider"></li>
+            <li class="dropdown-header">刷件操作</li>
+            
+            <li><a href="#/normal">銷貨</a></li>
+            <li><a href="#/move">調貨</a></li>
+            <!-- <li><a href="#/">退貨</a></li> -->
+            <li><a href="#/">特殊活動</a></li>
+         <!--    <li><a href="#">操作</a></li><!-- 各種銷貨都在這裡-->
+              
+           <!--  <li class="divider"></li>
+
+            <li class="dropdown-header">發票</li> -->
+            <!-- <li><a href="#">自定條件查詢</a></li><!-- 附帶毛利報表匯出功能-->
+
+           <!--  <li class="divider"></li>
+
+             <li class="dropdown-header">訂單後設</li> 
+             <li><a href="#">付費方式設定</a></li>-->
+          </ul>
+        </li>
+
+        <li class="dropdown">
+          <a class="dropdown-toggle" data-toggle="dropdown">商品 <b class="caret"></b></a>
+          
+          <ul class="dropdown-menu">
+            <li><a href="#/goodsPassport">商品管理</a></li>
+
+            <li class="divider"></li>
+            
+            <li class="dropdown-header">後設</li>
+            <li><a href="#/goodsMt">材料設定</a></li>
+            <li><a href="#/brand">品牌設定</a></li>
+            <li><a href="#/pattern">款式設定</a></li>
+            <li><a href="#/goodsSource">來源設定</a></li>
+            <li><a href="#/color">顏色設定</a></li>
+            <li><a href="#/goodsLevel">新舊設定</a></li>
+            <li><a href="#/supplier">供貨商設定</a></li>
+          </ul>
+        </li>
+
+        <li class="dropdown">
+          <a class="dropdown-toggle" data-toggle="dropdown">人事 <b class="caret"></b></a>
+    
+          <ul class="dropdown-menu">
+            <li><a href="#/user">員工</a></li>
+            <li><a href="#/custom">客戶</a></li>
+          </ul>
+        </li>
+
+        <li>
+          <a href="#">活動</a>
+        </li>
+      </ul>
+
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="#">公告</a></li>
+        <li><a href="{{ path('logout') }}">登出<span class="badge">{{ app.user.username }}</span></a></li>
+      </ul>
+    </div>
+  </div>
+</div>

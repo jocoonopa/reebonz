@@ -1,0 +1,97 @@
+<div ng-controller="GoodsKeyInCtrl">
+	<div class="panel-heading">
+		<h2 class="panel-title pointer" ng-click="isAddPanelVisible=!isAddPanelVisible;" ng-class="{dropup: isAddPanelVisible}"><span class="caret"></span>&nbsp; 輸入商品資訊</h2>
+	</div>
+
+	<div class="panel-body" ng-show="!isAddPanelVisible">
+		{% verbatim %}
+		<form novalidate class="form-horizontal" role="form">
+
+			<my-form-radio model="goods" name="'in_type'" label="'進貨類型'" radios="$parent.entity.isInTypeRadios" name-prefix="is-in-type"></my-form-radio>
+
+			<my-form-radio model="goods" name="'is_web'" label="'是否在網站販售'" radios="$parent.entity.isWebRadios" name-prefix="is-web"></my-form-radio>
+
+			<my-form-input model="goods" label="'客戶email'" name="'email'"></my-form-input>
+
+			<my-form-input model="goods" label="'品名'" name="'name'"></my-form-input>
+
+		  <my-form-input model="goods" label="'Dpo'" name="'dpo'"></my-form-input>
+
+		  <my-form-input model="goods" label="'原廠型號'" name="'org_sn'"></my-form-input>
+
+		  <my-form-input model="goods" label="'品牌型號'" name="'brandSn'"></my-form-input>
+
+		  <my-form-number model="goods" label="'一般價'" name="'fake_price'" isPrice="1" isRequired="1"></my-form-number>
+
+		  <my-form-number model="goods" label="'優惠價'" name="'price'" isPrice="1" isRequired="1"></my-form-number>
+
+		  <my-form-number model="goods" label="'成本'" name="'cost'" isPrice="1" isRequired="1"></my-form-number>
+
+		  <my-form-number ng-show="goods.in_type == 1" model="goods" label="'以付寄賣商品金額'" name="'paid'" isPrice="1"></my-form-number>
+
+		  <my-form-number ng-show="goods.in_type == 1" model="goods" label="'回扣金額'" name="'feedback'" isPrice="1"></my-form-number>
+
+		  <my-form-textarea model="goods" label="'描述'" name="'des'"></my-form-textarea>
+
+			<my-form-textarea model="goods" label="'備註'" name="'memo'"></my-form-textarea>
+
+		  <my-form-date model="goods" label="'進貨時間'" name="'purchase_at'"></my-form-date>
+
+			<my-form-date model="goods" label="'到期時間'" name="'expirate_at'"></my-form-date>
+
+		  <my-form-radio model="goods" name="'allow_discount'" label="'是否允許打折'" radios="$parent.entity.isAllowDiscountRadios" name-prefix="is-allow-discount"></my-form-radio>
+
+		  <my-form-select model="goods" entitys="$parent.entity.brands" name="'brand'" label="'品牌'"></my-form-select>
+
+			<my-form-select model="goods" entitys="$parent.entity.patterns" name="'pattern'" label="'款式'"></my-form-select>
+
+			<!-- <my-form-select model="goods" entitys="$parent.entity.goodsSources" name="'source'" label="'來源'"></my-form-select> -->
+
+			<my-form-select model="goods" entitys="$parent.entity.goodsLevels" name="'level'" label="'新舊'"></my-form-select>
+			
+			<my-form-select model="goods" entitys="$parent.entity.colors" name="'color'" label="'顏色'"></my-form-select>
+
+			<my-form-select model="goods" entitys="$parent.entity.mts" name="'mt'" label="'材質'"></my-form-select>
+
+			<my-form-select model="goods" entitys="$parent.entity.suppliers" name="'supplier'" label="'供貨商'"></my-form-select>
+
+			<my-form-number model="goods" label="'數量'" name="'amount'" isPrice="1"></my-form-number>
+			
+			<div class="form-group">
+				<label class="col-sm-2 control-label">圖片</label>
+				
+				<div class="col-sm-10">
+
+				  <!-- FileReader show Picture Here !!!!-->
+				  <input id="add-img" type="file" class="hidden" name="newImg" ng-file-select="$parent.onFileSelect($files, 'files', goods);" />
+				  <button type="button" class="btn btn-default" ng-click="$parent.cleanFile('#add-img'); $parent.removeImg(goods);">取消上傳</button>	
+				  <button my-file-input type="button" class="btn btn-primary">上傳圖片</button>
+
+					<!-- 進度條，目前沒必要
+						<div class="progress" ng-show="progress >= 0" >
+						  <div class="progress-bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: {{progress}}%;">
+						    {{progress}}%
+						  </div>
+						</div> -->
+					<br/><br/>
+
+					<img ng-show="goods.imgpath" ng-src="{{goods.imgpath}}" width="320" height="240" />		  
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-2 control-label">&nbsp;&nbsp;</label>
+				
+				<div class="col-sm-10">
+					<button class="btn btn-default" type="button" ng-click="$parent.initMeta();">清空資料</button>
+					<button class="btn btn-success" type="button" ng-click="save(goods.files);">儲存資料</button>
+					<button ng-show="addGoods.length > 0;" class="btn btn-warning" type="button" ng-click="$parent.reverse('addGoods', '');">還原新增</button>
+				</div>
+			</div>
+	  </form>
+	  {% endverbatim %}
+
+	  <div class="row" ng-repeat="goods in $parent.addGoods">
+	  	{% include 'WoojinGoodsBundle:GoodsPassport/partials/form:_goods.html.twig' %}
+		</div>
+	</div>
+</div>

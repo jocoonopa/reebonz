@@ -1,0 +1,123 @@
+<?php 
+namespace Woojin\OrderBundle\Entity;
+
+use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
+
+use JMS\Serializer\Annotation\ExclusionPolicy;
+use JMS\Serializer\Annotation\Exclude;
+
+/**
+ * @ORM\Entity(repositoryClass="Woojin\OrderBundle\Entity\MoveRepository")
+ * @ORM\Table(name="Move")
+ * @ORM\HasLifecycleCallbacks()
+ */
+class Move
+{
+    /**
+     * @ORM\ManyToOne(targetEntity="Orders", inversedBy="in_moves")
+     * @ORM\JoinColumn(name="in_orders_id", referencedColumnName="id", onDelete="SET NULL")
+     * @var InOrders
+     */
+    protected $in_orders;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="Orders", inversedBy="out_moves")
+     * @ORM\JoinColumn(name="out_orders_id", referencedColumnName="id", onDelete="SET NULL")
+     * @var ResOrders
+     */
+    protected $out_orders;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="\Woojin\UserBundle\Entity\User", inversedBy="req_moves")
+     * @ORM\JoinColumn(name="req_user_id", referencedColumnName="id")
+     * @var ReqUser
+     */
+    protected $req_user;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="\Woojin\UserBundle\Entity\User", inversedBy="res_moves")
+     * @ORM\JoinColumn(name="res_user_id", referencedColumnName="id")
+     * @var ResOrders
+     */
+    protected $res_user;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="\Woojin\StoreBundle\Entity\Store", inversedBy="req_moves")
+     * @ORM\JoinColumn(name="req_store_id", referencedColumnName="id")
+     * @var ReqStore
+     */
+    protected $req_store;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="\Woojin\StoreBundle\Entity\Store", inversedBy="res_moves")
+     * @ORM\JoinColumn(name="res_store_id", referencedColumnName="id")
+     * @var ResStore
+     */
+    protected $res_store;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="\Woojin\GoodsBundle\Entity\GoodsPassport", inversedBy="out_moves")
+     * @ORM\JoinColumn(name="out_goods_passport_id", referencedColumnName="id", onDelete="SET NULL")
+     * @var OutGoodsPassport
+     */
+    protected $out_goods_passport;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="\Woojin\GoodsBundle\Entity\GoodsPassport", inversedBy="in_moves")
+     * @ORM\JoinColumn(name="in_goods_passport_id", referencedColumnName="id", onDelete="SET NULL")
+     * @var InGoodsPassport
+     */
+    protected $in_goods_passport;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="OrdersStatus", inversedBy="moves")
+     * @ORM\JoinColumn(name="orders_status_id", referencedColumnName="id")
+     * @var Status
+     */
+    protected $status;
+
+    /**
+     * @ORM\OneToMany(targetEntity="MoveMemo", mappedBy="move", cascade={"remove"})
+     * @var Memos[]
+     */
+    protected $memos;
+
+    /**
+     * @ORM\Id
+     * @ORM\Column(type="integer")
+     * @ORM\GeneratedValue(strategy="AUTO")
+     */
+    protected $id;
+
+    /**
+     * @var \DateTime
+     * 
+     * @ORM\Column(type="datetime", type="datetime")
+     */
+    protected $create_at;
+
+    /**
+     * @var \DateTime
+     *
+     * @ORM\Column(name="update_at", type="datetime")
+     */
+    protected $update_at;
+
+    /**
+     * @ORM\PrePersist
+     */
+    public function autoSetCreateAt()
+    {
+        $this->setCreateAt(new \Datetime());
+    }
+
+    /**
+     * @ORM\PrePersist
+     * @ORM\PreUpdate
+     */
+    public function autoSetUpdateAt()
+    {
+        $this->setUpdateAt(new \Datetime());
+    }
+}

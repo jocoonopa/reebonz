@@ -1,0 +1,5 @@
+<div ng-controller="BackendCtrl">
+	<h4><b>{{ app.user.getRoles[0].name }}</b>&nbsp;&nbsp;{{ app.user.username }} 歡迎您回來 !
+		<small>-上次登入:{{ lastLog.createAt | date('Y-m-d H:i:s') }}</small>
+	</h4>
+</div>

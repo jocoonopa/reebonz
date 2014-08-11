@@ -1,0 +1,142 @@
+{% verbatim %}
+<div ng-controller="UserCtrl">
+	
+	<div ng-show="successMsg || errorMsg;" class="msgFix">
+		<div ng-if="successMsg;" class="alert alert-success no-margin" role="alert">{{ successMsg }}</div>
+		<div ng-if="errorMsg;" class="alert alert-danger no-margin" role="alert">{{ errorMsg }}</div>
+	</div>
+
+	<div class="panel panel-default">
+	  <div class="panel-heading">
+	    <h2 class="panel-title pointer" ng-click="isFormVisible=!isFormVisible;" ng-class="{dropup: !isFormVisible}"><span class="caret"></span>&nbsp;新增使用者</h2>
+	  </div>
+	  <div class="panel-body" ng-show="isFormVisible">
+	    <form novalidate class="form-horizontal" role="form">	
+		  	<div class="form-group">
+					<label class="col-sm-2 control-label">權限</label>
+
+					<div class="col-sm-10">
+			    	<select ng-model="query.role.id" class="form-control" name="role" class="form-control" ng-options="role.id as role.name for role in roles"></select>
+			    </div>
+				</div>
+
+			  <div class="form-group">
+					<label class="col-sm-2 control-label">姓名</label>
+
+					<div class="col-sm-10">
+						<input ng-model="query.realname" type="text" name="filter" class="form-control" placeholder="姓名"/>
+					</div>
+				</div>
+		  
+				<div class="form-group">
+					<label class="col-sm-2 control-label">帳號</label>
+
+					<div class="col-sm-10">
+						<input ng-model="query.username" class="form-control" type="text" />
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-sm-2 control-label">Email</label>
+
+					<div class="col-sm-10">
+						<input ng-model="query.email" class="form-control" type="text" />
+					</div>
+				</div>	
+
+				<div class="form-group">
+					<label class="col-sm-2 control-label">手機</label>
+
+					<div class="col-sm-10">
+						<input ng-model="query.mobil" class="form-control" type="text" />
+					</div>
+				</div>		
+
+				<div class="form-group">
+					<label class="col-sm-2 control-label">密碼</label>
+
+					<div class="col-sm-10">
+						<input ng-model="query.password" class="form-control" type="password" />
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-sm-2 control-label">確認密碼</label>
+
+					<div class="col-sm-10">
+						<input ng-model="query.confirmPassword" class="form-control" type="password" />
+					</div>
+				</div>
+
+			  <div class="form-group">
+					<label class="col-sm-2 control-label">啟用</label>
+
+					<div class="col-sm-10">
+			    	<input type="checkbox" ng-model="query.is_active" />
+			    </div>
+				</div>
+				
+				<div class="form-group">
+					<label class="col-sm-2 control-label">所屬店</label>
+
+					<div class="col-sm-10">
+			    	<select ng-model="query.store.id" class="form-control" name="store" class="form-control" ng-options="store.id as store.name for store in stores"></select>
+			    </div>
+				</div>
+				
+				<div class="form-group">
+					<label class="col-sm-2 control-label">&nbsp;</label>
+
+					<div class="col-sm-10">					
+						<button ng-click="initData();" class="btn btn-default btn-sm">清除</button>
+						<button ng-click="clean(); save(query);" class="btn btn-primary btn-sm">儲存</button>
+					</div>
+			  </div>
+			</form>
+
+	  </div>
+	</div>
+
+	<p>&nbsp;</p>
+
+	<table class="table table-hover">
+		<tr>
+			<td>所屬店</td>
+			<td>權限</td>
+			<td ng-click="orderProp='realname'; reverse=!reverse;" class="pointer">姓名</td>
+			<td ng-click="orderProp='username'; reverse=!reverse;" class="pointer">帳號</td>
+			<td ng-click="orderProp='email'; reverse=!reverse;" class="pointer">Email</td>
+			<td ng-click="orderProp='mobil'; reverse=!reverse;" class="pointer">手機</td>
+			<td>啟用</td>
+			<td>動作</td>
+		</tr>
+
+		<tr ng-repeat="user in users | orderBy:orderProp:reverse" class="listing">
+			<td>
+				<select ng-change="update(user);" ng-model="user.store.id" ng-options="store.id as store.name for store in stores"></select>
+			</td>
+			<td>
+				<select ng-change="update(user);" ng-model="user.roles[0].id" ng-options="role.id as role.name for role in roles"></select>
+			</td>
+			<td>
+				<input ng-focus="setTmp(user);" ng-blur="update(user);" ng-model="user.realname" type="text" class="input-sm no-border">
+			</td>
+			<td>
+				<input ng-focus="setTmp(user);" ng-blur="update(user);" ng-model="user.username" type="text" class="input-sm no-border">
+			</td>
+			<td>
+				<input ng-focus="setTmp(user);" ng-blur="update(user);" ng-model="user.email" type="text" class="input-sm no-border">
+			</td>
+			<td>
+				<input ng-focus="setTmp(user);" ng-blur="update(user);" ng-model="user.mobil" type="text" class="input-sm no-border">
+			</td>
+			<td>
+				<input ng-click="user.is_active=!user.is_active; update(user);" ng-model="user.is_active" type="checkbox"/>
+			</td>
+			<td>
+				<button ng-click="clean(); destroy(user);" class="btn btn-danger btn-sm">刪除</button>
+			</td>
+		</tr>
+	</table>
+</div>
+{% endverbatim %}

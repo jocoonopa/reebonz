@@ -1,0 +1,286 @@
+{% verbatim %}
+<div class="row">
+	<div class="panel-heading">
+	  <h2 class="panel-title pointer" ng-click="isSearchPanelVisible=!isSearchPanelVisible;" ng-class="{dropup: isSearchPanelVisible}"><span class="caret"></span>&nbsp; 條件產生輸入區</h2>
+	</div>
+
+	<div class="panel-body" ng-show="!isSearchPanelVisible">
+		<div ng-show="queryDes;" class="queryDes">
+			<button class="btn btn-default btn-sm pull-right" type="button" ng-click="reset();">還原</button>
+			<button class="btn btn-success btn-sm pull-right" type="button" ng-click="query(); pageInit();">查詢</button>
+			<button class="btn btn-primary btn-sm pull-right" type="button" ng-click="export(); pageInit();">匯出</button>
+			<div ng-bind-html="queryDes" class="alert alert-info no-margin" role="alert">{{ queryDes }}</div>
+		</div>
+
+		<form novalidate class="form-horizontal" role="form">
+			<div class="form-group">
+		    <label class="col-sm-2 control-label">調貨請求狀態</label>
+		    <div class="col-sm-10">
+
+		    	<div class="input-group">
+						
+						<select ng-model="move.Mstatus" name="status" class="form-control" ng-options="status.name for status in statuses"></select>
+
+						<div class="input-group-btn">
+	            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" tabindex="-1">
+	              <span class="caret"></span>
+	              <span class="sr-only">&nbsp;</span>
+	            </button>
+	            <ul class="dropdown-menu dropdown-menu-right" role="menu">
+	              <li><a class="pointer" ng-click="addInSearchRePo('Mstatus', 'in');">是</a></li>
+	              <li><a class="pointer" ng-click="addInSearchRePo('Mstatus', 'notIn');">不是</a></li>
+	            </ul>
+	          </div>
+		    	</div>
+		    </div>
+		  </div>		
+
+			<div class="form-group">
+		    <label class="col-sm-2 control-label">進貨品名</label>
+		    <div class="col-sm-10">
+		    	<div class="input-group">
+		    		<input ng-model="move.Rname" type="text" class="form-control" />
+						
+						<div class="input-group-btn">
+	            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" tabindex="-1">
+	              <span class="caret"></span>
+	              <span class="sr-only">&nbsp;</span>
+	            </button>
+	            <ul class="dropdown-menu dropdown-menu-right" role="menu">
+	              <li><a class="pointer" ng-click="addInSearchRePo('Rname', 'in');">是</a></li>
+	              <li><a class="pointer" ng-click="addInSearchRePo('Rname', 'notIn');">不是</a></li>
+	              <li class="divider"></li>
+	              <li><a class="pointer" ng-click="addInSearchRePo('Rname', 'like');">包含</a></li>
+	            </ul>
+	          </div>
+		    	</div>
+		    </div>
+		  </div>
+
+		  <div class="form-group">
+		    <label class="col-sm-2 control-label">出貨品名</label>
+		    <div class="col-sm-10">
+		    	<div class="input-group">
+		    		<input ng-model="move.Sname" type="text" class="form-control" />
+						
+						<div class="input-group-btn">
+	            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" tabindex="-1">
+	              <span class="caret"></span>
+	              <span class="sr-only">&nbsp;</span>
+	            </button>
+	            <ul class="dropdown-menu dropdown-menu-right" role="menu">
+	              <li><a class="pointer" ng-click="addInSearchRePo('Sname', 'in');">是</a></li>
+	              <li><a class="pointer" ng-click="addInSearchRePo('Sname', 'notIn');">不是</a></li>
+	              <li class="divider"></li>
+	              <li><a class="pointer" ng-click="addInSearchRePo('Sname', 'like');">包含</a></li>
+	            </ul>
+	          </div>
+		    	</div>
+		    </div>
+		  </div>
+
+		  <div class="form-group">
+		    <label class="col-sm-2 control-label">進貨產編</label>
+		    <div class="col-sm-10">
+		    	<div class="input-group">
+		    		<input ng-model="move.Rsn" type="text" class="form-control" />
+						
+						<div class="input-group-btn">
+	            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" tabindex="-1">
+	              <span class="caret"></span>
+	              <span class="sr-only">&nbsp;</span>
+	            </button>
+	            <ul class="dropdown-menu dropdown-menu-right" role="menu">
+	              <li><a class="pointer" ng-click="addInSearchRePo('Rsn', 'in');">是</a></li>
+	              <li><a class="pointer" ng-click="addInSearchRePo('Rsn', 'notIn');">不是</a></li>
+	              <li class="divider"></li>
+	              <li><a class="pointer" ng-click="addInSearchRePo('Rsn', 'like');">包含</a></li>
+	            </ul>
+	          </div>
+		    	</div>
+		    </div>
+		  </div>
+
+		  <div class="form-group">
+		    <label class="col-sm-2 control-label">出貨產編</label>
+		    <div class="col-sm-10">
+		    	<div class="input-group">
+		    		<input ng-model="move.Ssn" type="text" class="form-control" />
+						
+						<div class="input-group-btn">
+	            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" tabindex="-1">
+	              <span class="caret"></span>
+	              <span class="sr-only">&nbsp;</span>
+	            </button>
+	            <ul class="dropdown-menu dropdown-menu-right" role="menu">
+	              <li><a class="pointer" ng-click="addInSearchRePo('Ssn', 'in');">是</a></li>
+	              <li><a class="pointer" ng-click="addInSearchRePo('Ssn', 'notIn');">不是</a></li>
+	              <li class="divider"></li>
+	              <li><a class="pointer" ng-click="addInSearchRePo('Ssn', 'like');">包含</a></li>
+	            </ul>
+	          </div>
+		    	</div>
+		    </div>
+		  </div>
+
+		  <div class="form-group">
+		  	<label class="col-sm-2 control-label">建立時間</label>
+
+		  	<div class="col-sm-10">
+	      	<div class="input-group">
+			      <input my-datepicker ng-model="move.Mcreate_at" type="text" class="form-control" placeholder="建立時間" readonly />
+
+			      <div class="input-group-btn">
+		          <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" tabindex="-1">
+		            <span class="caret"></span>
+		            <span class="sr-only">&nbsp;</span>
+		          </button>
+		          <ul class="dropdown-menu dropdown-menu-right" role="menu">
+		            <li><a class="pointer" ng-click="addInSearchRePo('Mcreate_at', 'lte');">之前</a></li>
+		            <li><a class="pointer" ng-click="addInSearchRePo('Mcreate_at', 'gte');">之後</a></li>
+		          </ul>
+		        </div>
+	        </div>
+		  	</div>
+		  </div>
+
+		  <div class="form-group">
+		  	<label class="col-sm-2 control-label">更新時間</label>
+
+		  	<div class="col-sm-10">
+	      	<div class="input-group">
+			      <input my-datepicker ng-model="move.Mupdate_at" type="text" class="form-control" placeholder="更新時間" readonly />
+
+			      <div class="input-group-btn">
+		          <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" tabindex="-1">
+		            <span class="caret"></span>
+		            <span class="sr-only">&nbsp;</span>
+		          </button>
+		          <ul class="dropdown-menu dropdown-menu-right" role="menu">
+		            <li><a class="pointer" ng-click="addInSearchRePo('Mupdate_at', 'lte');">之前</a></li>
+		            <li><a class="pointer" ng-click="addInSearchRePo('Mupdate_at', 'gte');">之後</a></li>
+		          </ul>
+		        </div>
+	        </div>
+		  	</div>
+		  </div>
+
+		  <div class="form-group">
+		    <label class="col-sm-2 control-label">調進店(發出請求)</label>
+		    <div class="col-sm-10">
+		    	
+		    	<div class="input-group">					
+						<select ng-model="move.Mreq_store" name="req_store" class="form-control" ng-options="store.name for store in stores"></select>
+
+						<div class="input-group-btn">
+	            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" tabindex="-1">
+	              <span class="caret"></span>
+	              <span class="sr-only">&nbsp;</span>
+	            </button>
+	            <ul class="dropdown-menu dropdown-menu-right" role="menu">
+	              <li><a class="pointer" ng-click="addInSearchRePo('Mreq_store', 'in');">是</a></li>
+	              <li><a class="pointer" ng-click="addInSearchRePo('Mreq_store', 'notIn');">不是</a></li>
+	            </ul>
+	          </div>
+		    	</div>
+		    </div>
+		  </div>
+
+		  <div class="form-group">
+		    <label class="col-sm-2 control-label">調出店(回應請求)</label>
+		    <div class="col-sm-10">
+		    	
+		    	<div class="input-group">					
+						<select ng-model="move.Mres_store" name="req_store" class="form-control" ng-options="store.name for store in stores"></select>
+
+						<div class="input-group-btn">
+	            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" tabindex="-1">
+	              <span class="caret"></span>
+	              <span class="sr-only">&nbsp;</span>
+	            </button>
+	            <ul class="dropdown-menu dropdown-menu-right" role="menu">
+	              <li><a class="pointer" ng-click="addInSearchRePo('Mres_store', 'in');">是</a></li>
+	              <li><a class="pointer" ng-click="addInSearchRePo('Mres_store', 'notIn');">不是</a></li>
+	            </ul>
+	          </div>
+		    	</div>
+		    </div>
+		  </div>				
+	  </form>
+	</div>
+
+	<div class="panel-heading">
+	  <h2 class="panel-title pointer" ng-click="isSearchPanelVisible=!isSearchPanelVisible;" ng-class="{dropup: !isSearchPanelVisible}"><span class="caret"></span>&nbsp; 搜尋結果</h2>
+	</div>
+
+	<div class="panel-body" ng-show="isSearchPanelVisible">
+
+		<msg-footer success="success" error="error"></msg-footer>
+
+		<div class="row" ng-repeat="move in searchRepo">
+			<h4 class="pointer"
+				ng-click="switchDisplay(move);" 
+				ng-class="{dropup: !move.isDisplay}" 
+			>
+				<span class="caret"></span>
+				<b>{{ move.out_goods_passport.name }}</b>
+				<i>{{ move.out_goods_passport.sn }}</i>
+				<span>@{{ move.out_goods_passport.store.name }}</span>
+				<b>&nbsp;&nbsp;->&nbsp;&nbsp;</b>
+				<span>
+					{{ move.req_user.username }}@{{ move.req_user.store.name }}
+				</span>
+				<span class="pull-right">
+					<strong>[{{ move.out_goods_passport.status.name }}]{{ move.status.name }}</strong>- <small>{{ move.update_at }}</small>
+					<span class="badge">{{ move.memos.length }}</span>
+				</span>
+			</h4><hr/>
+
+			<form ng-show="move.isDisplay;" novalidate class="form-horizontal" role="form">
+				
+				<div class="form-group" ng-show="move.memos;">
+					<div class="col-sm-12">
+						<blockquote ng-repeat="memo in move.memos">
+						  <p>{{ memo.content }}</p>
+						  <footer>{{ memo.create_at }}</footer>
+						</blockquote>
+					</div>
+				</div>
+
+				<my-form-input ng-show="(isOwnGoods(move) && isOnSale(move)) || (isOwnReq(move) && isMoving(move)) || ((isOwnGoods(move) || isOwnReq(move)) && isHandling(move));" model="move" label="'備註'" name="'memo'"></my-form-input>
+
+				<div class="form-group">
+					<label class="col-sm-2 control-label">&nbsp;</label>
+				
+					<div class="col-sm-10">
+						<button ng-show="isOwnGoods(move) && isOnSale(move);" confirmed-click="send(move);" ng-confirm-click="確定調出嘛?" class="btn btn-info btn-sm">調出</button>
+						<button ng-show="isOwnReq(move) && isMoving(move);" confirmed-click="receive(move);" ng-confirm-click="確定接收嘛?" class="btn btn-success btn-sm">接收</button>	
+						<button ng-show="(isOwnGoods(move) || isOwnReq(move)) && isHandling(move);" confirmed-click="cancel(move);" ng-confirm-click="確定取消嘛?" class="btn btn-default btn-sm">取消</button>
+					</div>
+				</div>
+			</form>
+		</div>
+		
+		<div class="row" ng-show="totalItems>0;">
+			<form novalidate class="form-horizontal" role="form">
+				<div class="form-group">
+					<label class="col-sm-2 control-label">每頁顯示筆數</label>
+					
+					<div class="col-sm-10">
+						<select ng-model="perPage" name="per-page" class="form-control" ng-change="currentPage=1; query();">
+							<option value="10">10</option>
+							<option value="20">20</option>
+							<option value="30">30</option>
+							<option value="50">50</option>
+							<option value="100">100</option>
+						</select>
+					</div>
+				</div>
+			</form>
+		</div>
+
+		<pagination ng-show="totalItems>0;" max-size="5" rotate="false" boundary-links="true" items-per-page="perPage" total-items="totalItems" ng-model="currentPage" ng-change="pageChanged()"></pagination>
+	</div>
+
+</div>
+{% endverbatim %}

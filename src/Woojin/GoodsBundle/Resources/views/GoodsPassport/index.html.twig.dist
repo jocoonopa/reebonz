@@ -1,0 +1,197 @@
+{{ form_start(form, {'method': 'POST'}) }}
+{{ form_errors(form) }}
+
+<div class="form-group">
+{{ 
+	form_row(form.name, {
+		'label': '品名', 
+		'label_attr': {'class': 'col-sm-2 control-label'},
+		'attr':{
+			'class': 'form-control',
+			'placeholder': '請輸入品名'
+		}
+	}) 
+}}
+</div>
+
+<div class="form-group">
+{{ 
+	form_row(form.brand, {
+		'label': '品牌', 
+		'label_attr': {'class': 'col-sm-2 control-label'},
+		'attr':{'class': 'form-control'}
+	}) 
+}}
+</div>
+
+<div class="form-group">
+{{ 
+	form_row(form.pattern, {
+		'label': '款式', 
+		'label_attr': {'class': 'col-sm-2 control-label'},
+		'attr':{'class': 'form-control'}
+	}) 
+}}
+</div>
+
+<div class="form-group">
+{{ 
+	form_row(form.goods_level, {
+		'label': '新舊程度', 
+		'label_attr': {'class': 'col-sm-2 control-label'},
+		'attr':{
+			'class': 'form-control'
+		}
+	}) 
+}}
+</div>
+
+<div class="form-group">
+{{ 
+	form_row(form.goods_source, {
+		'label': '來源', 
+		'label_attr': {'class': 'col-sm-2 control-label'},
+		'attr':{
+			'class': 'form-control'
+		}
+	}) 
+}}
+</div>
+
+<div class="form-group">
+{{ 
+	form_row(form.goods_source, {
+		'label': '來源', 
+		'label_attr': {'class': 'col-sm-2 control-label'},
+		'attr':{
+			'class': 'form-control'
+		}
+	}) 
+}}
+</div>
+
+<div class="form-group">
+{{ 
+	form_row(form.cost, {
+		'label': '成本', 
+		'label_attr': {'class': 'col-sm-2 control-label'},
+		'attr':{
+			'class': 'form-control'
+		}
+	}) 
+}}
+</div>
+
+<div class="form-group">
+{{ 
+	form_row(form.fake_price, {
+		'label': '市價', 
+		'label_attr': {'class': 'col-sm-2 control-label'},
+		'attr':{
+			'class': 'form-control'
+		}
+	}) 
+}}
+</div>
+
+<div class="form-group">
+{{ 
+	form_row(form.price, {
+		'label': '優惠價', 
+		'label_attr': {'class': 'col-sm-2 control-label'},
+		'attr':{
+			'class': 'form-control'
+		}
+	}) 
+}}
+</div>
+
+<div class="form-group">
+{{ 
+	form_row(form.color, {
+		'label': '顏色', 
+		'label_attr': {'class': 'col-sm-2 control-label'},
+		'attr':{
+			'class': 'form-control'
+		}
+	}) 
+}}
+</div>
+
+<div class="form-group">
+{{ 
+	form_row(form.supplier, {
+		'label': '供貨商', 
+		'label_attr': {'class': 'col-sm-2 control-label'},
+		'attr':{
+			'class': 'form-control'
+		}
+	}) 
+}}
+</div>
+
+<div class="form-group">
+{{ 
+	form_row(form.goods_mt, {
+		'label': '材質', 
+		'label_attr': {'class': 'col-sm-2 control-label'},
+		'attr':{
+			'class': 'form-control'
+		}
+	}) 
+}}
+</div>
+
+<div class="form-group">
+{{ 
+	form_row(form.memo, {
+		'label': '備註', 
+		'label_attr': {'class': 'col-sm-2 control-label'},
+		'attr':{
+			'class': 'form-control'
+		}
+	}) 
+}}
+</div>
+
+<div class="form-group">
+{{ 
+	form_row(form.brand_sn, {
+		'label': '型號', 
+		'label_attr': {'class': 'col-sm-2 control-label'},
+		'attr':{
+			'class': 'form-control'
+		}
+	}) 
+}}
+</div>
+
+<div class="form-group">
+{{ 
+	form_row(form.org_sn, {
+		'label': '原廠型號', 
+		'label_attr': {'class': 'col-sm-2 control-label'},
+		'attr':{
+			'class': 'form-control'
+		}
+	}) 
+}}
+</div>
+
+<div class="form-group">
+{{ 
+	form_row(form.dpo, {
+		'label': '內部系統編號', 
+		'label_attr': {'class': 'col-sm-2 control-label'},
+		'attr':{
+			'class': 'form-control'
+		}
+	}) 
+}}
+</div>
+
+
+
+{{ form_rest(form) }}
+
+{{ form_end(form) }}
