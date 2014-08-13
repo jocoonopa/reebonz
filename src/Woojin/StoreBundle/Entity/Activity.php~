@@ -3,6 +3,8 @@
 namespace Woojin\StoreBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use JMS\Serializer\Annotation\ExclusionPolicy;
+use JMS\Serializer\Annotation\Exclude;
 
 /**
  * Activity
@@ -13,6 +15,7 @@ use Doctrine\ORM\Mapping as ORM;
 class Activity
 {
   /**
+   * @Exclude
    * @ORM\OneToMany(targetEntity="\Woojin\GoodsBundle\Entity\GoodsPassport", mappedBy="activity")
    * @var GoodsPassport[]
    */
@@ -33,6 +36,27 @@ class Activity
    * @ORM\Column(name="name", type="string", length=255, unique=true)
    */
   private $name;
+
+  /**
+   * @var string
+   *
+   * @ORM\Column(name="discount", type="float", nullable=true)
+   */
+  private $discount;
+
+  /**
+   * @var string
+   *
+   * @ORM\Column(name="exceed", type="integer", nullable=true)
+   */
+  private $exceed;
+
+  /**
+   * @var string
+   *
+   * @ORM\Column(name="minus", type="integer", nullable=true)
+   */
+  private $minus;
 
   /**
    * @var \DateTime

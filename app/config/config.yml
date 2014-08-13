@@ -68,10 +68,6 @@ swiftmailer:
 nelmio_api_doc: ~
 
 services:  
-    user.factory:
-        class: Woojin\UserBundle\UserFactory
-        arguments: ['@doctrine.orm.entity_manager', '@security.context', '@service_container']
-
     custom.factory:
         class: Woojin\OrderBundle\CustomFactory
         arguments: ['@doctrine.orm.entity_manager', '@security.context']

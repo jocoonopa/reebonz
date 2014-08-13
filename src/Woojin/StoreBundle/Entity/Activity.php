@@ -3,6 +3,8 @@
 namespace Woojin\StoreBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use JMS\Serializer\Annotation\ExclusionPolicy;
+use JMS\Serializer\Annotation\Exclude;
 
 /**
  * Activity
@@ -13,6 +15,7 @@ use Doctrine\ORM\Mapping as ORM;
 class Activity
 {
   /**
+   * @Exclude
    * @ORM\OneToMany(targetEntity="\Woojin\GoodsBundle\Entity\GoodsPassport", mappedBy="activity")
    * @var GoodsPassport[]
    */
@@ -33,6 +36,27 @@ class Activity
    * @ORM\Column(name="name", type="string", length=255, unique=true)
    */
   private $name;
+
+  /**
+   * @var string
+   *
+   * @ORM\Column(name="discount", type="float", nullable=true)
+   */
+  private $discount;
+
+  /**
+   * @var string
+   *
+   * @ORM\Column(name="exceed", type="integer", nullable=true)
+   */
+  private $exceed;
+
+  /**
+   * @var string
+   *
+   * @ORM\Column(name="minus", type="integer", nullable=true)
+   */
+  private $minus;
 
   /**
    * @var \DateTime
@@ -195,5 +219,74 @@ class Activity
     public function getGoodsPassports()
     {
         return $this->goods_passports;
+    }
+
+    /**
+     * Set discount
+     *
+     * @param float $discount
+     * @return Activity
+     */
+    public function setDiscount($discount)
+    {
+        $this->discount = $discount;
+    
+        return $this;
+    }
+
+    /**
+     * Get discount
+     *
+     * @return float 
+     */
+    public function getDiscount()
+    {
+        return $this->discount;
+    }
+
+    /**
+     * Set exceed
+     *
+     * @param integer $exceed
+     * @return Activity
+     */
+    public function setExceed($exceed)
+    {
+        $this->exceed = $exceed;
+    
+        return $this;
+    }
+
+    /**
+     * Get exceed
+     *
+     * @return integer 
+     */
+    public function getExceed()
+    {
+        return $this->exceed;
+    }
+
+    /**
+     * Set minus
+     *
+     * @param integer $minus
+     * @return Activity
+     */
+    public function setMinus($minus)
+    {
+        $this->minus = $minus;
+    
+        return $this;
+    }
+
+    /**
+     * Get minus
+     *
+     * @return integer 
+     */
+    public function getMinus()
+    {
+        return $this->minus;
     }
 }

@@ -158,20 +158,33 @@ class UserController extends Controller
          * Angular 布林值傳過來會變成字串，目前不曉得怎們解決，只好很蠢的先自己硬轉乘布林了
          * @var boolean
          */
-        $isActive = ($request->request->get('is_active', 'true') === 'true') ? true : false;
-
-        $accessor->setValue($settings, '[addRole]', $this->getDoctrine()->getRepository('WoojinUserBundle:Role')->find($accessor->getValue($request->request->get('roles'), '[0][id]')));
-        $accessor->setValue($settings, '[setRealname]', $request->request->get('realname'));
-        $accessor->setValue($settings, '[setUsername]', $request->request->get('username'));
-        $accessor->setValue($settings, '[setEmail]', $request->request->get('email'));
-        $accessor->setValue($settings, '[setMobil]', $request->request->get('mobil'));
-        $accessor->setValue($settings, '[setChmod]', $request->request->get('chmod', 555));
-        $accessor->setValue($settings, '[setIsActive]', $isActive);
-        $accessor->setValue($settings, '[setCsrf]', uniqid());
-        $accessor->setValue($settings, '[setStore]', $this->getDoctrine()->getRepository('WoojinStoreBundle:Store')->find($accessor->getValue($request->request->get('store'), '[id]')));
+        $isActive = ($request->request->get('is_active', 'true') === 'true');
         
-        // 透過工廠產生新的使用者
-        $UserFactory->update($settings, $user);
+        /**
+         * Role 實體
+         * 
+         * @var \Woojin\UserBundle\Entity\Role
+         */
+        $role = $this->getDoctrine()->getRepository('WoojinUserBundle:Role')->find($accessor->getValue($request->request->get('roles'), '[0][id]'));
+
+        /**
+         * Store 實體，商品所屬店
+         * 
+         * @var \Woojin\StoreBundle\Entity\Store
+         */
+        $store = $this->getDoctrine()->getRepository('WoojinStoreBundle:Store')->find($accessor->getValue($request->request->get('store'), '[id]'));
+
+        $user
+            ->addRole($role)
+            ->setStore($store)
+            ->setRealname($request->request->get('realname'))
+            ->setUsername($request->request->get('username'))
+            ->setEmail($request->request->get('email'))
+            ->setMobil($request->request->get('mobil'))
+            ->setChmod($request->request->get('chmod', 555))
+            ->setIsActive($isActive)
+            ->setCsrf(uniqid())
+        ;
 
         // 序列化使用者實體以利回傳給前端使用使用
         $jsonUser = $serializer->serialize($user, 'json');
@@ -202,17 +215,39 @@ class UserController extends Controller
     public function createAction(Request $request)
     {
         /**
-         * 這個工廠將會替我們創建新的商品實體
-         * @var object
-         */
-        $UserFactory = $this->get('user.factory');
-
-        /**
          * 提供給工廠的參數陣列
+         * 
          * @var array
          */
         $settings = array();
 
+        /**
+         * Symfony 的屬性套件，透過它可以用物件方式讀寫陣列
+         * 
+         * @var object
+         */
+        $accessor = PropertyAccess::createPropertyAccessor();
+
+        /**
+         * serializer
+         * 
+         * @var object
+         */
+        $serializer = \JMS\Serializer\SerializerBuilder::create()->build();
+
+        /**
+         * Angular 布林值傳過來會變成字串，目前不曉得怎們解決，只好很蠢的先自己硬轉乘布林了
+         * 
+         * @var boolean
+         */
+        $isActive = ($request->request->get('is_active', 'true') === 'true');
+
+        /**
+         * Encoder
+         * @var object
+         */
+        $encoder = $this->container->get('security.encoder_factory')->getEncoder($user = new User());
+        
         /**
          * Symfony 的屬性套件，透過它可以用物件方式讀寫陣列
          * @var object
@@ -220,30 +255,38 @@ class UserController extends Controller
         $accessor = PropertyAccess::createPropertyAccessor();
 
         /**
-         * serializer
-         * @var object
+         * 加密後的密碼
+         * 
+         * @var string
          */
-        $serializer = \JMS\Serializer\SerializerBuilder::create()->build();
+        $password = $encoder->encodePassword($request->request->get('password'), $user->getSalt());
 
         /**
-         * Angular 布林值傳過來會變成字串，目前不曉得怎們解決，只好很蠢的先自己硬轉乘布林了
-         * @var boolean
+         * Role 實體
+         * 
+         * @var \Woojin\UserBundle\Entity\Role
          */
-        $isActive = ($request->request->get('is_active', 'true') === 'true') ? true : false;
+        $role = $this->getDoctrine()->getRepository('WoojinUserBundle:Role')->find($accessor->getValue($request->request->get('role'), '[id]'));
 
-        $accessor->setValue($settings, '[addRole]', $this->getDoctrine()->getRepository('WoojinUserBundle:Role')->find($accessor->getValue($request->request->get('role'), '[id]')));
-        $accessor->setValue($settings, '[setRealname]', $request->request->get('realname'));
-        $accessor->setValue($settings, '[setUsername]', $request->request->get('username'));
-        $accessor->setValue($settings, '[setEmail]', $request->request->get('email'));
-        $accessor->setValue($settings, '[setMobil]', $request->request->get('mobil'));
-        $accessor->setValue($settings, '[setChmod]', $request->request->get('chmod', 555));
-        $accessor->setValue($settings, '[setPassword]', $request->request->get('password'));
-        $accessor->setValue($settings, '[setIsActive]', $isActive);
-        $accessor->setValue($settings, '[setCsrf]', uniqid());
-        $accessor->setValue($settings, '[setStore]', $this->getDoctrine()->getRepository('WoojinStoreBundle:Store')->find($accessor->getValue($request->request->get('store'), '[id]')));
+        /**
+         * Store實體，商品所屬店
+         * 
+         * @var \Woojin\StoreBundle\Entity\Store
+         */
+        $store = $this->getDoctrine()->getRepository('WoojinStoreBundle:Store')->find($accessor->getValue($request->request->get('store'), '[id]'));
         
-        // 透過工廠產生新的使用者
-        $user = $UserFactory->create($settings);
+        $user
+            ->addRole($role)
+            ->setStore($store)
+            ->setRealname($request->request->get('realname'))
+            ->setUsername($request->request->get('username'))
+            ->setEmail($request->request->get('email'))
+            ->setMobil($request->request->get('mobil'))
+            ->setChmod($request->request->get('chmod', 555))
+            ->setPassword($password)
+            ->setIsActive($isActive)
+            ->setCsrf(uniqid())
+        ;
 
         // 序列化使用者實體以利回傳給前端使用
         $jsonUser = $serializer->serialize($user, 'json');

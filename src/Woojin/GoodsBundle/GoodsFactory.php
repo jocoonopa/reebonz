@@ -90,7 +90,7 @@ class GoodsFactory implements \Woojin\BackendBundle\EntityFactory
 					$this->genSn(
 						$goods->getStore()->getSn(), 
 						$goods->getId(), 
-						$goods->getCreateAt(),
+						$goods->getPurchaseAt(),
 						$goods->getSupplier()->getName()
 					)
 				)

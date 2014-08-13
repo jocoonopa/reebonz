@@ -734,32 +734,34 @@ class GoodsPassportController extends Controller
             ->setCellValue('R1', '進貨類型') // {0: 否,1: 是}
             ->setCellValue('S1', '對應圖片') // 請將對應的圖片丟到 /img/yy-mm-dd/ 裡
             ->setCellValue('T1', '狀態')
+            ->setCellValue('U1', '產編')
         ;
 
         // 迭代商品陣列，逐行->逐格填入對應資訊
         foreach ($goods as $key => $eachOne) {
 
             $phpExcelObject->setActiveSheetIndex(0)
-                ->setCellValue('A' . ($i+2), substr($eachOne->getSn(), 0, 1))
-                ->setCellValue('B' . ($i+2), (is_object($purchaseAt = $eachOne->getPurchaseAt())) ? $purchaseAt->format('Y-m-d') : '')
-                ->setCellValue('C' . ($i+2), (is_object($expirateAt = $eachOne->getExpirateAt())) ? $expirateAt->format('Y-m-d') : '')
-                ->setCellValue('D' . ($i+2), (is_object($supplier = $eachOne->getSupplier())) ? $supplier->getName() : '')
-                ->setCellValue('E' . ($i+2), (is_object($brand = $eachOne->getBrand())) ? $brand->getName() : '')
-                ->setCellValue('F' . ($i+2), $eachOne->getOrgSn()) // 廠商型號
-                ->setCellValue('G' . ($i+2), $eachOne->getName()) 
-                ->setCellValue('H' . ($i+2), (is_object($pattern = $eachOne->getPattern())) ? $pattern->getName() : '')
-                ->setCellValue('I' . ($i+2), (is_object($color = $eachOne->getColor())) ? $color->getName() : '')
-                ->setCellValue('J' . ($i+2), (is_object($status = $eachOne->getStatus())) ? $status->getName() : '')
-                ->setCellValue('K' . ($i+2), $eachOne->getDpo()) // 系統內部編號
-                ->setCellValue('L' . ($i+2), $eachOne->getCost())
-                ->setCellValue('M' . ($i+2), $eachOne->getFakePrice()) // 市場價
-                ->setCellValue('N' . ($i+2), $eachOne->getPrice()) // 真實顯示價格為此
-                ->setCellValue('O' . ($i+2), $eachOne->getMemo())
-                ->setCellValue('P' . ($i+2), ($eachOne->getAllowDiscount()) ? '是' : '否')// {0: 否,1: 是}
-                ->setCellValue('Q' . ($i+2), ($eachOne->getIsWeb()) ? '是' : '否' )// {0: 否,1: 是}
-                ->setCellValue('R' . ($i+2), $this->getInTypeCellValue($eachOne)) // {0: 否,1: 是}
-                ->setCellValue('S' . ($i+2), $eachOne->getImgpath()) // 請將對應的圖片丟到 /img/yy-mm-dd/ 裡
-                ->setCellValue('T' . ($i+2), $eachOne->getStatus()->getName())
+                ->setCellValue('A' . ($key + 2), substr($eachOne->getSn(), 0, 1))
+                ->setCellValue('B' . ($key + 2), (is_object($purchaseAt = $eachOne->getPurchaseAt())) ? $purchaseAt->format('Y-m-d') : '')
+                ->setCellValue('C' . ($key + 2), (is_object($expirateAt = $eachOne->getExpirateAt())) ? $expirateAt->format('Y-m-d') : '')
+                ->setCellValue('D' . ($key + 2), (is_object($supplier = $eachOne->getSupplier())) ? $supplier->getName() : '')
+                ->setCellValue('E' . ($key + 2), (is_object($brand = $eachOne->getBrand())) ? $brand->getName() : '')
+                ->setCellValue('F' . ($key + 2), $eachOne->getOrgSn()) // 廠商型號
+                ->setCellValue('G' . ($key + 2), $eachOne->getName()) 
+                ->setCellValue('H' . ($key + 2), (is_object($pattern = $eachOne->getPattern())) ? $pattern->getName() : '')
+                ->setCellValue('I' . ($key + 2), (is_object($color = $eachOne->getColor())) ? $color->getName() : '')
+                ->setCellValue('J' . ($key + 2), (is_object($status = $eachOne->getStatus())) ? $status->getName() : '')
+                ->setCellValue('K' . ($key + 2), $eachOne->getDpo()) // 系統內部編號
+                ->setCellValue('L' . ($key + 2), $eachOne->getCost())
+                ->setCellValue('M' . ($key + 2), $eachOne->getFakePrice()) // 市場價
+                ->setCellValue('N' . ($key + 2), $eachOne->getPrice()) // 真實顯示價格為此
+                ->setCellValue('O' . ($key + 2), $eachOne->getMemo())
+                ->setCellValue('P' . ($key + 2), ($eachOne->getAllowDiscount()) ? '是' : '否')// {0: 否,1: 是}
+                ->setCellValue('Q' . ($key + 2), ($eachOne->getIsWeb()) ? '是' : '否' )// {0: 否,1: 是}
+                ->setCellValue('R' . ($key + 2), $this->getInTypeCellValue($eachOne)) // {0: 否,1: 是}
+                ->setCellValue('S' . ($key + 2), $eachOne->getImgpath()) // 請將對應的圖片丟到 /img/yy-mm-dd/ 裡
+                ->setCellValue('T' . ($key + 2), $eachOne->getStatus()->getName())
+                ->setCellValue('U' . ($key + 2), $eachOne->getSn())
             ;
         }
 
@@ -980,7 +982,7 @@ class GoodsPassportController extends Controller
             $cells = $row->getCellIterator();
 
             // true: 空的格子一樣要迭代
-            $cells->setIterateOnlyExistingCells(true);
+            $cells->setIterateOnlyExistingCells(false);
 
             // 第一行是欄位名稱，用來形成 key-attribute 的 mapping
             if ($rowNum === self::ROW_START) {
@@ -1022,18 +1024,18 @@ class GoodsPassportController extends Controller
             foreach ($cells as $cellNum => $cell) {
                 // 如果是客戶信箱，要在 request 添加 email，這在 order 產生時會用到，
                 // 又因為有客戶信箱表示為寄賣商品，所以要把 settings 的 setInType 設置為 1
-                if (isset($mapping[$cellNum]) && $mapping[$cellNum] === 'email') {
-                    // request 參數 email 設置，訂單會用到此參數
-                    $request->request->set('email', $cell);
-                    
-                    // 進貨類型設置為寄賣
-                    $accessor->setValue($settings, '[setInType]', 1);
-                    
-                    continue;
+                if (isset($mapping[$cellNum])) {
+                    if ($mapping[$cellNum] === 'email') {
+                        // request 參數 email 設置，訂單會用到此參數
+                        $request->request->set('email', $cell);
+                        
+                        // 進貨類型設置為寄賣
+                        $accessor->setValue($settings, '[setInType]', 1);
+                    } else {
+                        // 設置參數陣列
+                        $accessor->setValue($settings, '[' . $mapping[$cellNum] . ']', $this->getSettingsVal($mapping[$cellNum], $cell));
+                    }
                 }
-
-                // 設置參數陣列
-                $accessor->setValue($settings, '[' . $mapping[$cellNum] . ']', $this->getSettingsVal($mapping[$cellNum], $cell));
             }
 
             // 設置商品狀態為上架，強制規定，不開放批次上傳欄位擇定商品狀態，可能會造成系統業務邏輯混亂
