@@ -40,7 +40,7 @@ class Activity
   /**
    * @var string
    *
-   * @ORM\Column(name="discount", type="float", nullable=true)
+   * @ORM\Column(name="discount", type="integer", nullable=true)
    */
   private $discount;
 
@@ -63,19 +63,19 @@ class Activity
    *
    * @ORM\Column(name="start_at", type="datetime")
    */
-  private $startAt;
+  private $start_at;
 
   /**
    * @var \DateTime
    *
    * @ORM\Column(name="end_at", type="datetime")
    */
-  private $endAt;
+  private $end_at;
 
   /**
    * @var string
    *
-   * @ORM\Column(name="description", type="text")
+   * @ORM\Column(name="description", type="text", nullable=true)
    */
   private $description;
     /**
@@ -127,7 +127,7 @@ class Activity
      */
     public function setStartAt($startAt)
     {
-        $this->startAt = $startAt;
+        $this->start_at = $startAt;
     
         return $this;
     }
@@ -139,7 +139,7 @@ class Activity
      */
     public function getStartAt()
     {
-        return $this->startAt;
+        return $this->start_at;
     }
 
     /**
@@ -150,7 +150,7 @@ class Activity
      */
     public function setEndAt($endAt)
     {
-        $this->endAt = $endAt;
+        $this->end_at = $endAt;
     
         return $this;
     }
@@ -162,7 +162,7 @@ class Activity
      */
     public function getEndAt()
     {
-        return $this->endAt;
+        return $this->end_at;
     }
 
     /**

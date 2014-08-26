@@ -83,8 +83,9 @@ class Orders
     protected $custom;
 
     /**
-     * @ORM\ManyToOne(targetEntity="Invoice", inversedBy="orders")
+     * @ORM\ManyToOne(targetEntity="Invoice", inversedBy="orders", cascade={"persist"})
      * @ORM\JoinColumn(name="invoice_id", referencedColumnName="id")
+     * 
      * @var Invoice
      */
     protected $invoice;

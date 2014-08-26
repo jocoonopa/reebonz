@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Exception\InvalidParameterException;
 use Symfony\Component\Security\Core\Exception\InsufficientAuthenticationException;
+use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 
 //Default
@@ -36,6 +37,7 @@ class GoodsPassportController extends Controller
     const ROW_START         = 1;
     const IS_ALLOW          = 1;
     const IS_NORMAL         = 0;
+    const IS_CONSIGN        = 1;
     
     const GS_ON_SALE        = 1;
     const GS_OFF_SALE       = 4;
@@ -55,6 +57,13 @@ class GoodsPassportController extends Controller
     const OS_HANDLING       = 1;
     const OS_COMPLETE       = 2;
     const OS_CANCEL         = 3;
+
+    /**
+     * 批次匯入時判斷信箱用的陣列
+     * 
+     * @var array
+     */
+    protected $emails = array();
 
     /**
      * 取得商品列表
@@ -94,8 +103,14 @@ class GoodsPassportController extends Controller
     }
 
     /**
-     * 根據搜尋條件取得商品列表，將搜尋條件以json 格式傳入，其格式如下:
-     *
+     * 根據搜尋條件取得商品列表，將搜尋條件以json 格式傳入，其格式為 
+     * {
+     *     attr: {
+     *         type: array
+     *     }
+     * }
+     * 
+     * 如下:
      * {
      *     "Gname": {
      *         "like": [品名](string)
@@ -266,24 +281,32 @@ class GoodsPassportController extends Controller
     {
         /**
          * 將搜尋條件的 json 字串轉換成搜尋陣列
+         * 
          * @var array
          */
         $conditions = json_decode($jsonCondition, true);
 
         /**
          * 排序參數
+         *
+         * #Example: 
+         * 
+         * array('attr' => xxx, 'dir' => 'ASC');
+         * 
          * @var array
          */
         $orderBy = json_decode($jsonOrderBy, true);
 
         /**
          * serializer
+         * 
          * @var object
          */
         $serializer = \JMS\Serializer\SerializerBuilder::create()->build();
 
         /**
          * 商品repo
+         * 
          * @var object
          */
         $goodsRepo = $this->getDoctrine()->getRepository('WoojinGoodsBundle:GoodsPassport');
@@ -405,6 +428,13 @@ class GoodsPassportController extends Controller
     public function updateAction(GoodsPassport $goodsPassport, Request $request)
     {
         /**
+         * Entity Manager
+         * 
+         * @var object
+         */
+        $em = $this->getDoctrine()->getManager();
+
+        /**
          * 這個工廠將會替我們創建新的商品實體
          * @var object
          */
@@ -423,10 +453,11 @@ class GoodsPassportController extends Controller
         $accessor = PropertyAccess::createPropertyAccessor();
 
         /**
-         * 目前使用者的所屬商店
+         * 目前商品的所屬商店
+         * 
          * @var object
          */
-        $store = $this->get('security.context')->getToken()->getUser()->getStore();
+        $store = $goodsPassport->getStore();
 
         /**
          * serializer
@@ -439,6 +470,7 @@ class GoodsPassportController extends Controller
         $accessor->setValue($settings, '[setDpo]', $request->request->get('dpo'));
         $accessor->setValue($settings, '[setPrice]', $request->request->get('price'));
         $accessor->setValue($settings, '[setFakePrice]', $request->request->get('fake_price'));
+        //$accessor->setValue($settings, '[setFeedback]', $request->request->get('feedback'));
         $accessor->setValue($settings, '[setCost]', $request->request->get('cost'));
         $accessor->setValue($settings, '[setOrgSn]', $request->request->get('org_sn'));
         $accessor->setValue($settings, '[setBrandSn]', $request->request->get('brand_sn'));
@@ -448,15 +480,15 @@ class GoodsPassportController extends Controller
         $accessor->setValue($settings, '[setPurchaseAt]', new \DateTime($request->request->get('purchase_at')));
         $accessor->setValue($settings, '[setExpirateAt]', new \DateTime($request->request->get('expirate_at')));
         $accessor->setValue($settings, '[setAllowDiscount]', $request->request->get('allow_discount'));
-        $accessor->setValue($settings, '[setBrand]', $this->getDoctrine()->getRepository('WoojinGoodsBundle:Brand')->find($request->request->get('brand', self::NONE_ENTITY)));
-        $accessor->setValue($settings, '[setColor]', $this->getDoctrine()->getRepository('WoojinGoodsBundle:Color')->find($request->request->get('color', self::NONE_ENTITY)));
-        $accessor->setValue($settings, '[setPattern]', $this->getDoctrine()->getRepository('WoojinGoodsBundle:Pattern')->find($request->request->get('pattern', self::NONE_ENTITY)));
-        $accessor->setValue($settings, '[setLevel]', $this->getDoctrine()->getRepository('WoojinGoodsBundle:GoodsLevel')->find($request->request->get('level', self::NONE_ENTITY)));
-        $accessor->setValue($settings, '[setSource]', $this->getDoctrine()->getRepository('WoojinGoodsBundle:GoodsSource')->find($request->request->get('source', self::NONE_ENTITY)));
-        $accessor->setValue($settings, '[setMt]', $this->getDoctrine()->getRepository('WoojinGoodsBundle:GoodsMT')->find($request->request->get('mt', self::NONE_ENTITY)));
-        $accessor->setValue($settings, '[setSupplier]', $this->getDoctrine()->getRepository('WoojinGoodsBundle:Supplier')->find($request->request->get('supplier', self::NONE_ENTITY)));
-        $accessor->setValue($settings, '[setStatus]', $this->getDoctrine()->getRepository('WoojinGoodsBundle:GoodsStatus')->find($request->request->get('status', self::GS_ON_SALE)));
-        //$accessor->setValue($settings, '[setStore]', $store); // 不可直接修改所屬店，需透過調貨
+        $accessor->setValue($settings, '[setBrand]', $em->find('WoojinGoodsBundle:Brand', $request->request->get('brand', self::NONE_ENTITY)));
+        $accessor->setValue($settings, '[setColor]', $em->find('WoojinGoodsBundle:Color', $request->request->get('color', self::NONE_ENTITY)));
+        $accessor->setValue($settings, '[setPattern]', $em->find('WoojinGoodsBundle:Pattern', $request->request->get('pattern', self::NONE_ENTITY)));
+        $accessor->setValue($settings, '[setLevel]', $em->find('WoojinGoodsBundle:GoodsLevel', $request->request->get('level', self::NONE_ENTITY)));
+        $accessor->setValue($settings, '[setSource]', $em->find('WoojinGoodsBundle:GoodsSource', $request->request->get('source', self::NONE_ENTITY)));
+        $accessor->setValue($settings, '[setMt]', $em->find('WoojinGoodsBundle:GoodsMT', $request->request->get('mt', self::NONE_ENTITY)));
+        $accessor->setValue($settings, '[setSupplier]', $em->find('WoojinGoodsBundle:Supplier', $request->request->get('supplier', self::NONE_ENTITY)));
+        $accessor->setValue($settings, '[setStatus]', $em->find('WoojinGoodsBundle:GoodsStatus', $request->request->get('status', self::GS_ON_SALE)));
+        $accessor->setValue($settings, '[setStore]', $store); // 原本是不可直接修改所屬店，需透過調貨，但Reebonz 這邊不需要這種限制
         
         // 若是404表示移除圖片，需要更新，其他的動作都交給ImgController.php，
         // 這邊會這樣處理的原因是，移除圖片本身沒有檔案上傳，所以ImgController.php 不會被呼叫，
@@ -495,6 +527,13 @@ class GoodsPassportController extends Controller
     public function createAction(Request $request)
     {
         /**
+         * Entity Manager
+         * 
+         * @var object
+         */
+        $em = $this->getDoctrine()->getManager();
+
+        /**
          * 這個工廠將會替我們創建新的商品實體
          * @var object
          */
@@ -529,6 +568,7 @@ class GoodsPassportController extends Controller
         $accessor->setValue($settings, '[setDpo]', $request->request->get('dpo'));
         $accessor->setValue($settings, '[setPrice]', $request->request->get('price'));
         $accessor->setValue($settings, '[setFakePrice]', $request->request->get('fake_price'));
+        $accessor->setValue($settings, '[setFeedback]', $request->request->get('feedback'));
         $accessor->setValue($settings, '[setCost]', $request->request->get('cost'));
         $accessor->setValue($settings, '[setOrgSn]', $request->request->get('org_sn'));
         $accessor->setValue($settings, '[setBrandSn]', $request->request->get('brand_sn'));
@@ -538,14 +578,14 @@ class GoodsPassportController extends Controller
         $accessor->setValue($settings, '[setPurchaseAt]', new \DateTime($request->request->get('purchase_at')));
         $accessor->setValue($settings, '[setExpirateAt]', new \DateTime($request->request->get('expirate_at')));
         $accessor->setValue($settings, '[setAllowDiscount]', $request->request->get('allow_discount'));
-        $accessor->setValue($settings, '[setBrand]', $this->getDoctrine()->getRepository('WoojinGoodsBundle:Brand')->find($request->request->get('brand', self::NONE_ENTITY)));
-        $accessor->setValue($settings, '[setColor]', $this->getDoctrine()->getRepository('WoojinGoodsBundle:Color')->find($request->request->get('color', self::NONE_ENTITY)));
-        $accessor->setValue($settings, '[setPattern]', $this->getDoctrine()->getRepository('WoojinGoodsBundle:Pattern')->find($request->request->get('pattern', self::NONE_ENTITY)));
-        $accessor->setValue($settings, '[setLevel]', $this->getDoctrine()->getRepository('WoojinGoodsBundle:GoodsLevel')->find($request->request->get('level', self::NONE_ENTITY)));
-        $accessor->setValue($settings, '[setSource]', $this->getDoctrine()->getRepository('WoojinGoodsBundle:GoodsSource')->find($request->request->get('source', self::NONE_ENTITY)));
-        $accessor->setValue($settings, '[setMt]', $this->getDoctrine()->getRepository('WoojinGoodsBundle:GoodsMT')->find($request->request->get('mt', self::NONE_ENTITY)));
-        $accessor->setValue($settings, '[setSupplier]', $this->getDoctrine()->getRepository('WoojinGoodsBundle:Supplier')->find($request->request->get('supplier', self::NONE_ENTITY)));
-        $accessor->setValue($settings, '[setStatus]', $this->getDoctrine()->getRepository('WoojinGoodsBundle:GoodsStatus')->find($request->request->get('status', self::GS_ON_SALE)));
+        $accessor->setValue($settings, '[setBrand]', $em->find('WoojinGoodsBundle:Brand', $request->request->get('brand', self::NONE_ENTITY)));
+        $accessor->setValue($settings, '[setColor]', $em->find('WoojinGoodsBundle:Color', $request->request->get('color', self::NONE_ENTITY)));
+        $accessor->setValue($settings, '[setPattern]', $em->find('WoojinGoodsBundle:Pattern', $request->request->get('pattern', self::NONE_ENTITY)));
+        $accessor->setValue($settings, '[setLevel]', $em->find('WoojinGoodsBundle:GoodsLevel', $request->request->get('level', self::NONE_ENTITY)));
+        $accessor->setValue($settings, '[setSource]', $em->find('WoojinGoodsBundle:GoodsSource' , $request->request->get('source', self::NONE_ENTITY)));
+        $accessor->setValue($settings, '[setMt]', $em->find('WoojinGoodsBundle:GoodsMT', $request->request->get('mt', self::NONE_ENTITY)));
+        $accessor->setValue($settings, '[setSupplier]', $em->find('WoojinGoodsBundle:Supplier', $request->request->get('supplier', self::NONE_ENTITY)));
+        $accessor->setValue($settings, '[setStatus]', $em->find('WoojinGoodsBundle:GoodsStatus', $request->request->get('status', self::GS_ON_SALE)));
         $accessor->setValue($settings, '[setStore]', $store); 
         $accessor->setValue($settings, '[setImgpath]', self::NO_IMG); 
         $accessor->setValue($settings, '[amount]', $request->request->get('amount')); 
@@ -643,6 +683,56 @@ class GoodsPassportController extends Controller
     }
 
     /**
+     * 我的懶人刪除
+     * 
+     * @Route("/batch/remove/{apiKey}/{id}/jocoonopa", name="api_goodsPassport_batch_remove", options={"expose"=true})
+     * @Method("DELETE")
+     * @ApiDoc(
+     *  resource=true,
+     *  description="懶人刪除, ~~~~",
+     *  requirements={{"name"="apiKey", "dataType"="string", "required"=true, "description"="懶人刪除, ~~~~"}},
+     *  statusCodes={
+     *    200="Returned when successful",
+     *    404={
+     *     "Returned when something else is not found"
+     *    },
+     *    500={
+     *     "Please contact author to fix it"
+     *    }
+     *  }
+     * )
+     * 
+     */
+    public function batchRemove($apiKey, $id)
+    {
+        if ($apiKey != '37103710cc') {
+            throw new \Exception ('Wrong Api Key');
+        }
+
+        try {
+            $em = $this->getDoctrine()->getManager();
+            
+            $goodsGroup = $em->getRepository('WoojinGoodsBundle:GoodsPassport')->findBy(array('supplier' => $id));
+
+            foreach ($goodsGroup as $goods) {
+                $em->remove($goods);
+            }
+
+            $em->flush();
+
+            /**
+             * 回傳訊息
+             * @var array
+             */
+            $returnMsg = array('status' => 'OK');
+
+            return new Response(json_encode($returnMsg));
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+
+    /**
      * 取得商品匯出excel
      * 
      * @Route("/export/{jsonCondition}", name="api_goodsPassport_export",options={"expose"=true})
@@ -667,6 +757,9 @@ class GoodsPassportController extends Controller
      */
     public function exportAction($jsonCondition)
     {
+        set_time_limit(0);
+        ini_set('memory_limit','512M');
+
         /**
          * 使用者
          * 
@@ -750,7 +843,7 @@ class GoodsPassportController extends Controller
                 ->setCellValue('G' . ($key + 2), $eachOne->getName()) 
                 ->setCellValue('H' . ($key + 2), (is_object($pattern = $eachOne->getPattern())) ? $pattern->getName() : '')
                 ->setCellValue('I' . ($key + 2), (is_object($color = $eachOne->getColor())) ? $color->getName() : '')
-                ->setCellValue('J' . ($key + 2), (is_object($status = $eachOne->getStatus())) ? $status->getName() : '')
+                ->setCellValue('J' . ($key + 2), (is_object($level = $eachOne->getLevel())) ? $level->getName() : '')
                 ->setCellValue('K' . ($key + 2), $eachOne->getDpo()) // 系統內部編號
                 ->setCellValue('L' . ($key + 2), $eachOne->getCost())
                 ->setCellValue('M' . ($key + 2), $eachOne->getFakePrice()) // 市場價
@@ -795,7 +888,7 @@ class GoodsPassportController extends Controller
      *  5. 根據row, cell兩層迭代上傳
      *  6. 不自動進行關連實體新增，避免後設資料混亂
      *  7. 序列化上傳的商品實體
-     *  8. 回傳
+     *  8. 回傳 json 格式字串
      * 
      * @Route("/import", name="api_goodsPassport_import",options={"expose"=true})
      * @Method("POST")
@@ -818,8 +911,19 @@ class GoodsPassportController extends Controller
      */
     public function importAction(Request $request)
     {
+        set_time_limit(0);
+        ini_set('memory_limit','512M');
+
+        /**
+         * Entity Manager
+         * 
+         * @var [object]
+         */
+        $em = $this->getDoctrine()->getManager();
+
         /**
          * 這個工廠將會替我們創建新的商品實體
+         * 
          * @var object
          */
         $GoodsFactory = $this->get('goods.factory');
@@ -928,6 +1032,7 @@ class GoodsPassportController extends Controller
 
         /**
          * Symfony 的屬性套件，透過它可以用物件方式讀寫陣列
+         * 
          * @var object
          */
         $accessor = PropertyAccess::createPropertyAccessor();
@@ -956,7 +1061,8 @@ class GoodsPassportController extends Controller
             'setPattern' => '款式*', 
             'setMt' => '材質*',
             'setColor' => '花色*',
-            'setStatus' => '商品狀況', 
+            'setSource' => '來源*',
+            'setLevel' => '商品狀況', 
             'setDpo' => 'DPO#', 
             'setCost' => '單價成本*(含稅)',
             'amount' => '數量*', 
@@ -966,7 +1072,8 @@ class GoodsPassportController extends Controller
             'setAllowDiscount' => '允許折扣', 
             'setIsWeb' => '允許網路販售',
             'setImgpath' => '對應圖片',
-            'email' => '客戶信箱'
+            'setConsigner' => '客戶信箱',
+            'setFeedBack' => '回扣'
         );
 
         /**
@@ -996,41 +1103,44 @@ class GoodsPassportController extends Controller
                     // 根據欄位內容組成 mapping
                     $accessor->setValue($mapping, '[' . $cellNum . ']', $tmpAct);                         
                 }   
-               
+
+                // 檢查mapping 有無 setAllowDiscount 方法, 若為沒有則添加
+                if (!in_array('setAllowDiscount', $mapping)) {
+                    $accessor->setValue($mapping, '[' . count($mapping) . ']', 'setAllowDiscount'); 
+                }
+
+                // 檢查mapping 有無 setInType 方法, 若為沒有則添加
+                // if (!in_array('setInType', $mapping)) {
+                //     $accessor->setValue($mapping, '[' . count($mapping) . ']', 'setInType'); 
+                // }
+
+                // 檢查mapping 有無 setIsWeb 方法, 若為沒有則添加
+                if (!in_array('setIsWeb', $mapping)) {
+                    $accessor->setValue($mapping, '[' . count($mapping) . ']', 'setIsWeb'); 
+                }
+
+                // 檢查mapping 有無 setStore 方法, 若為沒有則添加
+                if (!in_array('setStore', $mapping)) {
+                    $accessor->setValue($mapping, '[' . count($mapping) . ']', 'setStore'); 
+                }
+
                 continue;
             }
 
-            // 檢查mapping 有無 setAllowDiscount 方法, 若為沒有則添加
-            if (!$allowDiscount = array_search('setAllowDiscount', $mapping)) {
-                $accessor->setValue($mapping, '[' . count($mapping) . ']', 'setAllowDiscount'); 
-            }
-
-            // 檢查mapping 有無 setInType 方法, 若為沒有則添加
-            if (!$allowDiscount = array_search('setInType', $mapping)) {
-                $accessor->setValue($mapping, '[' . count($mapping) . ']', 'setInType'); 
-            }
-
-            // 檢查mapping 有無 setIsWeb 方法, 若為沒有則添加
-            if (!$allowDiscount = array_search('setIsWeb', $mapping)) {
-                $accessor->setValue($mapping, '[' . count($mapping) . ']', 'setIsWeb'); 
-            }
-
-            // 檢查mapping 有無 setStore 方法, 若為沒有則添加
-            if (!$allowDiscount = array_search('setStore', $mapping)) {
-                $accessor->setValue($mapping, '[' . count($mapping) . ']', 'setStore'); 
-            }
-            
             // 迭代並且進行新增資料實體的動作
             foreach ($cells as $cellNum => $cell) {
                 // 如果是客戶信箱，要在 request 添加 email，這在 order 產生時會用到，
                 // 又因為有客戶信箱表示為寄賣商品，所以要把 settings 的 setInType 設置為 1
                 if (isset($mapping[$cellNum])) {
+                    // 設置參數陣列
+                    $accessor->setValue($settings, '[' . $mapping[$cellNum] . ']', $this->getSettingsVal($mapping[$cellNum], $cell));
+
                     if ($mapping[$cellNum] === 'email') {
                         // request 參數 email 設置，訂單會用到此參數
                         $request->request->set('email', $cell);
-                        
+
                         // 進貨類型設置為寄賣
-                        $accessor->setValue($settings, '[setInType]', 1);
+                        $accessor->setValue($settings, '[setInType]', self::IS_CONSIGN);
                     } else {
                         // 設置參數陣列
                         $accessor->setValue($settings, '[' . $mapping[$cellNum] . ']', $this->getSettingsVal($mapping[$cellNum], $cell));
@@ -1046,57 +1156,91 @@ class GoodsPassportController extends Controller
                 $accessor->setValue($settings, '[setImgpath]', self::NO_IMG);
             }
 
-            // 如果沒有設置允許折扣，預設給1表示允許
-            if (!$accessor->getValue($settings, '[setAllowDiscount]')) {
+            // 如果沒有設置允許折扣，預設給1表示允許 (這邊用 === 是因為PHP會把 0 當成 !, 算是語言問題吧...)
+            if ($accessor->getValue($settings, '[setAllowDiscount]') === false || $accessor->getValue($settings, '[setAllowDiscount]') == '') {
                 $accessor->setValue($settings, '[setAllowDiscount]', self::IS_ALLOW);
             }
-
-            // 如果沒有設置允許折扣，預設給0表示允許
-            if (!$accessor->getValue($settings, '[setInType]')) {
+            
+            // 判斷是否有綁定寄賣客戶，若有為進貨寄賣，否則為一般進貨
+            if ($accessor->getValue($settings, '[setConsigner]') === false || $accessor->getValue($settings, '[setConsigner]') == '') {
                 $accessor->setValue($settings, '[setInType]', self::IS_NORMAL);
+            } else {
+                $accessor->setValue($settings, '[setInType]', self::IS_CONSIGN);
             }
 
             // 如果沒有設置允許折扣，預設給1表示允許
-            if (!$accessor->getValue($settings, '[setIsWeb]')) {
+            if ($accessor->getValue($settings, '[setIsWeb]') === false || $accessor->getValue($settings, '[setIsWeb]') == '') {
                 $accessor->setValue($settings, '[setIsWeb]', self::IS_ALLOW);
             }
 
             // 如果沒有設置商店，預設使用目前使用者的所屬店
             if (!$accessor->getValue($settings, '[setStore]')) {
                 $accessor->setValue($settings, '[setStore]', $this->getSettingsVal('setStore', $user->getStore()->getSn()));
-            }
-
-            // 將參數丟給工廠產生商品實體
-            $newGoods = $GoodsFactory->create($settings);
+            }      
 
             // 迭代加入 goodsCollection
-            foreach ($newGoods as $eachNew) {
-                array_push($goodsCollection, $eachNew);
-            }
+            // 
+            // ********** array_map example *********
+            // 
+            // array_map(function ($goods) use (&$goodsCollection) {
+            //     array_push($goodsCollection, $goods);
+            // }, $GoodsFactory->lazyCreate($settings, $em));
+            // 
+            // ***************************************
+            $newGoodses = $GoodsFactory->lazyCreate($settings, $em);
+            array_walk($newGoodses, function ($goods) use (&$goodsCollection) {
+                array_push($goodsCollection, $goods);
+            });
 
             // 清空設定參數陣列
             $settings = array();
         }
 
+        // 使用交易機制
+        $em->getConnection()->beginTransaction();
+        try {
+            $em->flush(); 
+            $em->getConnection()->commit();
+        } catch (Exception $e) {
+            $em->getConnection()->rollback();
+            throw $e;
+        }
+
+        // 重新編輯更新產編
+        // 
+        // ********** array_map example *********
+        // 
+        // array_map(function ($goods) use ($em, $GoodsFactory) {
+        //     $sn = $GoodsFactory->genSn(
+        //         $goods->getStore()->getSn(), 
+        //         $goods->getId(),
+        //         $goods->getPurchaseAt(),
+        //         $goods->getSupplier()->getName()
+        //     );
+        //     
+        //     $goods->setSn($sn);
+        //     $em->persist($goods);
+        // }, $goodsCollection);
+        // 
+        // ***************************************
+        array_walk($goodsCollection, function ($goods) use ($em, $GoodsFactory) {
+            $sn = $GoodsFactory->genSn(
+                $goods->getStore()->getSn(), 
+                $goods->getId(),
+                $goods->getPurchaseAt(),
+                $goods->getSupplier()->getName()
+            );
+
+            $goods->setSn($sn);
+            $em->persist($goods);
+        });
+
+        $em->flush();
+
         // 序列化 $goodsCollection 丟回給前端讓 angular 去 pharse
         $jsonGoods = $serializer->serialize($goodsCollection, 'json');
 
         return new Response($jsonGoods);
-    }
-
-    public function moveAction()
-    {
-
-    }
-
-    public function backAction()
-    {
-
-    }
-
-    public function sellActivityAction()
-    {
-
     }
 
     /**
@@ -1119,7 +1263,7 @@ class GoodsPassportController extends Controller
          * 
          * @var array
          */
-        $condition = array('goods_passport' => $goods->getId(), 'orders_kind' => self::OK_CONSIGN_IN);
+        $condition = array('goods_passport' => $goods->getId(), 'kind' => self::OK_CONSIGN_IN);
 
         // 判斷進貨類型為何, 若為true 則是寄賣貨物，需要找出關連的訂單和客戶
         if ($goods->getInType()) {
@@ -1130,12 +1274,20 @@ class GoodsPassportController extends Controller
              */
             $order = $this->getDoctrine()->getRepository('WoojinOrderBundle:Orders')->findOneBy($condition);
 
+            if (!$order instanceof \Woojin\OrdersBundle\Entity\Orders) {
+                return '一般';
+            }
+
             /**
              * 寄賣訂單的客戶實體
              * 
              * @var object
              */
             $custom = $order->getCustom();
+
+            if (!$custom instanceof \Woojin\OrdersBundle\Entity\Custom) {
+               return '一般';
+            }
 
             $inType = '寄賣  ' . $custom->getEmail() . '[' . $custom->getName() . $custom->getSex() . ']';
         }
@@ -1151,7 +1303,7 @@ class GoodsPassportController extends Controller
      * @return  [string|integer|object]
      */
     protected function getSettingsVal($act, $arg)
-    {
+    {   
         /**
          * 回傳值
          * 
@@ -1172,11 +1324,25 @@ class GoodsPassportController extends Controller
 
                 $return = $this->getDoctrine()->getRepository('WoojinGoodsBundle:Supplier')->findOneBy((is_numeric($arg)) ? array('id' => $arg) : array('name' => $arg));
 
+                if (!is_object($return)) {
+                    $msg = array(
+                        'error' => '供貨商' . $arg . '尚未建立!', 
+                        'resource' => 'supplier', 
+                        'name' => strval($arg)
+                    );
+
+                    exit(json_encode($msg));
+                }
+
                 break;
 
             case 'setBrand':
 
                 $return = $this->getDoctrine()->getRepository('WoojinGoodsBundle:Brand')->findOneBy((is_numeric($arg)) ? array('id' => $arg) : array('name' => $arg));
+
+                if (!is_object($return) && empty($return) && strval($arg) != '' ) {
+                    exit(json_encode(array('error' => '品牌' . $arg . '尚未建立!', 'resource' => 'brand', 'name' => strval($arg))));
+                }
 
                 break;
             
@@ -1184,11 +1350,29 @@ class GoodsPassportController extends Controller
 
                 $return = $this->getDoctrine()->getRepository('WoojinGoodsBundle:Pattern')->findOneBy((is_numeric($arg)) ? array('id' => $arg) : array('name' => $arg));
 
+                if (!is_object($return) && empty($return) && strval($arg) != '' ) {
+                    exit(json_encode(array('error' => '款式' . $arg . '尚未建立!', 'resource' => 'pattern', 'name' => strval($arg))));
+                }
+
                 break;
             
             case 'setColor':
 
                 $return = $this->getDoctrine()->getRepository('WoojinGoodsBundle:Color')->findOneBy((is_numeric($arg)) ? array('id' => $arg) : array('name' => $arg));
+
+                if (!is_object($return) && empty($return) && strval($arg) != '' ) {
+                    exit(json_encode(array('error' => '顏色' . $arg . '尚未建立!', 'resource' => 'color', 'name' => strval($arg))));
+                }
+
+                break;
+
+            case 'setLevel':
+
+                $return = $this->getDoctrine()->getRepository('WoojinGoodsBundle:GoodsLevel')->findOneBy((is_numeric($arg)) ? array('id' => $arg) : array('name' => $arg));
+
+                if (!is_object($return) && empty($return) && strval($arg) != '' ) {
+                    exit(json_encode(array('error' => '商品狀況' . $arg . '尚未建立!', 'resource' => 'goodsLevel', 'name' => strval($arg))));
+                }
 
                 break;
             
@@ -1202,6 +1386,10 @@ class GoodsPassportController extends Controller
 
                 $return = $this->getDoctrine()->getRepository('WoojinGoodsBundle:GoodsMT')->findOneBy((is_numeric($arg)) ? array('id' => $arg) : array('name' => $arg));
 
+                if (!is_object($return) && empty($return) && strval($arg) != '' ) {
+                    exit(json_encode(array('error' => '材質' . $arg . '尚未建立!', 'resource' => 'goodsMt', 'name' => strval($arg))));
+                }
+
                 break;
             
             
@@ -1209,11 +1397,29 @@ class GoodsPassportController extends Controller
 
                 $return = $this->getDoctrine()->getRepository('WoojinGoodsBundle:GoodsSource')->findOneBy((is_numeric($arg)) ? array('id' => $arg) : array('name' => $arg));
 
+                if (!is_object($return) && empty($return) && strval($arg) != '' ) {
+                    exit(json_encode(array('error' => '來源' . $arg . '尚未建立!', 'resource' => 'goodsSource', 'name' => strval($arg))));
+                }
+
                 break;
             
+            case 'setConsigner':
+
+                $return = $this->getDoctrine()->getRepository('WoojinOrderBundle:Custom')->findOneBy((is_numeric($arg)) ? array('id' => $arg) : array('email' => $arg));
+
+                if (!is_object($return) && empty($return) && strval($arg) != '' ) {
+                    exit(json_encode(array('error' => '' . $arg . '信箱不存在!')));
+                }
+
+                break;
+
             case 'setStore':
 
                 $return = $this->getDoctrine()->getRepository('WoojinStoreBundle:Store')->findOneBy((is_numeric($arg)) ? array('id' => $arg) : array('sn' => $arg));
+
+                if (!is_object($return)) {
+                    exit(json_encode(array('error' => '商店' . $arg . '尚未建立!')));
+                }
 
                 break;
 
@@ -1224,22 +1430,61 @@ class GoodsPassportController extends Controller
             case 'amount':
             case 'setFakePrice':
             case 'setPrice':
+            case 'setFeedBack':
             case 'setBrandSn':            
             case 'setDes':
             case 'setMemo':
-            case 'setAllowDiscount':
-            case 'setIsWeb':
-            case 'setInType':
             case 'setImgpath':
 
                 $return = strval($arg);
 
                 break;
-            
+
+            case 'setIsWeb':
+            case 'setAllowDiscount':
+                // 若為空是1(預設值), 否則自己
+                $tmp = ((string) $arg === '') ? 1 : strval($arg); 
+                
+                // 轉數字->字串
+                $return = ((int) strval($tmp) === 1) ? '1' : '0';
+
+                break;
+
             default:
                 break;
         }
 
         return $return;
+    }
+
+    /**
+     * 檢查email 是否有效
+     * 
+     * @param  string  $email
+     * @return boolean   
+     */
+    protected function isValidEmail($email)
+    {
+        // 過濾空白字串防止有人手殘
+        $email = trim($email);
+
+        if (in_array($this->emails, $email)) {
+            return true;
+        }
+
+        /**
+         * 客戶實體
+         * 
+         * @var \Woojin\OrderBundle\Entity\Custom
+         */
+        $custom = $this->getDoctrine()->getRepository('WoojinOrderBundle:Custom')->findOneBy(array('email' => $email));
+
+        if ($custom) {
+            array_push($this->emails, $email);
+
+            return true;
+        }
+
+        return false;
     }
 }

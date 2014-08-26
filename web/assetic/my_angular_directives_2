@@ -1,0 +1,343 @@
+'use strict';
+
+/* Directives */
+
+
+angular.module('myApp.directives', []).
+  directive('appVersion', ['version', function(version) {
+    return function(scope, elm, attrs) {
+      elm.text(version);
+    };
+  }]);
+
+myApp.directive('myScrollTop', function () {
+  return function (scope, element) {
+    element.click(function (e) {
+      e.preventDefault();
+      $('html,body').animate({scrollTop: 0}, 350);
+    }); 
+  }
+});
+
+myApp.directive('myDatepicker', function () {
+  return function (scope, element) {
+    element.datepicker({
+      format: 'yyyy-mm-dd',
+      todayBtn: 'linked',
+      language: 'zh-TW',
+      todayHighlight: true
+    });
+  }
+});
+
+myApp.directive('myA', function() {
+  return {
+    restrict: 'E',
+    link: function(scope, elem, attrs) {
+      if(attrs.ngClick || attrs.href === '' || attrs.href === '#'){
+        elem.on('click', function(e){
+          e.preventDefault();
+        });
+      }
+    }
+  };
+});
+
+myApp.directive('myFileInput', function () {
+  return {
+    restrict: 'A',
+    link: function (scope, elem) {
+      elem.on('click', function (e) {
+        $(this).siblings('input[type="file"]').click();
+      });
+    }
+  }
+});
+
+myApp.directive('myEnter', function () {
+  return function (scope, element, attrs) {
+    element.bind("keydown keypress", function (event) {
+      if(event.which === 13) {//alert('123');
+        scope.$apply(function (){
+          scope.$eval(attrs.myEnter);
+        });
+
+        event.preventDefault();
+      }
+    });
+  };
+});
+
+myApp.directive('bindOnce', function() {
+  return {
+    scope: true,
+    link: function( $scope ) {
+      setTimeout(function() {
+        $scope.$destroy();
+      }, 0);
+    }
+  }
+});
+
+myApp.directive('goodsListTitle', function () {
+  return {
+    restrict: 'E',
+    scope: {
+      goods: '='
+    },
+    controller: function ($scope) {
+      $scope.switchDisplay = function (goods) {
+        goods.isDisplay = !goods.isDisplay;
+      };
+
+      $scope.lazyImg = function (goods) {
+        goods.imgpathLazy = goods.imgpath;
+      };
+    },
+    templateUrl: Routing.generate('goods_partials_listTitle')
+  };
+});
+
+myApp.directive('myFormSave', function () {
+  return {
+    restrict: 'E',
+    scope: {
+      model: '=',
+      click: '&onClick',
+      delete: '&onDelete',
+      move: '&onMove',
+      orders: '&loadOrders'
+    },
+    templateUrl: Routing.generate('goods_partials_form', {type: 'save'})
+  };
+});
+
+myApp.directive('myFormSelect', function () {
+  return {
+    restrict: 'E',
+    scope: {
+      entitys: '=',
+      model: '=',
+      name: '=',
+      label: '='
+    },
+    templateUrl: Routing.generate('goods_partials_form', {type: 'select'})
+  };
+});
+
+myApp.directive('myFormInput', function () {
+  return {
+    restrict: 'E',
+    scope: {
+      model: '=',
+      name: '=',
+      label: '='
+    },
+    templateUrl: Routing.generate('goods_partials_form', {type: 'input'})
+  };
+});
+
+myApp.directive('myFormDate', [ '$filter', function ($filter) {
+  return {
+    restrict: 'E',
+    scope: {
+      model: '=',
+      name: '=',
+      format: '=',
+      label: '='
+    },
+    link: function (scope, elem, attrs) {
+      return scope.model[scope.name] = $filter('date')(scope.model[scope.name], (scope.format) ? scope.format: 'yyyy-MM-dd HH:mm:ss');
+    },
+    templateUrl: Routing.generate('goods_partials_form', {type: 'date'})
+  };
+}]);
+
+myApp.directive('myFormRadio', function () {
+  return {
+    restrict: 'E',
+    scope: {
+      model: '=',
+      name: '=',
+      label: '=',
+      namePrefix: '=',
+      radios: '=',
+      disabled: '='
+    },
+    templateUrl: Routing.generate('goods_partials_form', {type: 'radio'})
+  };
+});
+
+myApp.directive('myFormSpan', function () {
+  return {
+    restrict: 'E',
+    scope: {
+      model: '=',
+      name: '=',
+      label: '=',
+      spanClass: '='
+    },
+    templateUrl: Routing.generate('goods_partials_form', {type: 'span'})
+  };
+});
+
+myApp.directive('myFormStatusSwitch', function () {
+  return {
+    restrict: 'E',
+    scope: {
+      model: '=',
+      name: '=',
+      label: '=',
+      prefix: '='
+    },
+    templateUrl: Routing.generate('goods_partials_form', {type: 'status.switch'})
+  };
+});
+
+myApp.directive('myFormTextarea', function () {
+  return {
+    restrict: 'E',
+    scope: {
+      model: '=',
+      name: '=',
+      label: '='
+    },
+    templateUrl: Routing.generate('goods_partials_form', {type: 'textarea'})
+  };
+});
+
+myApp.directive('myFormImg',['$timeout', function ($timeout) {
+  return {
+    restrict: 'E',
+    scope: {
+      model: '=',
+      name: '=',
+      label: '=',
+      file: '=',
+      click: '&onClick'
+    },
+    link: function (scope, elem, attrs) {
+      elem.find('[type="file"]').on('change', function (evt) {
+        // FileList object
+        var files = evt.target.files; 
+
+        // 會被傳送到 server
+        scope.model.files = files;
+
+        for (var i = 0, f; f = files[i]; i++) {
+          // Only process image files.
+          if (!f.type.match('image.*')) {
+            continue;
+          }
+
+          var reader = new FileReader();
+
+          // Read in the image file as a data URL.
+          reader.readAsDataURL(f);
+
+          // Closure to capture the file information.
+          reader.onload = (function(theFile) {
+            return function(e) {
+              // I/O async problem prevent
+              $timeout(function() {
+                scope.model[scope.name] = e.target.result;                
+              });
+            };
+          })(f);
+        }
+      });
+    },
+    templateUrl: Routing.generate('goods_partials_form', {type: 'img'})
+  };
+}]);
+
+myApp.directive('myFormNumber', function () {
+  return {
+    restrict: 'E',
+    scope: {
+      model: '=',
+      name: '=',
+      label: '=',
+      isPrice: '=',
+      isRequired: '=',
+      change: '&onChange'
+    },
+    link: function (scope) {
+      scope.$watch('model[name]', function(newValue, oldValue) {
+        var arr = String(newValue).split("");
+
+        if (arr.length === 0) {
+          return;
+        }
+
+        if (arr.length === 1 && (arr[0] == '-' || arr[0] === '.' )) {
+          return;
+        }
+
+        if (arr.length === 2 && newValue === '-.') {
+          return;
+        }
+
+        if (isNaN(newValue)) {
+          scope.model[scope.name] = oldValue || '';
+        }
+
+        scope.model[scope.name] = (scope.isPrice) ? scope.model[scope.name] : Math.abs(scope.model[scope.name]); 
+      });
+    },
+    templateUrl: Routing.generate('goods_partials_form', {type: 'number'}),
+  };
+});
+
+myApp.directive('msgFooter', function () {
+  return {
+    restrict: 'E',
+    transclude: true,
+    scope: {
+      success: '=',
+      error: '=',
+      empty: '&onEmpty'
+    },
+    templateUrl: Routing.generate('backend_partials_msgFooter')
+  };
+});
+
+myApp.directive('ngConfirmClick', [
+  function(){
+    return {
+      link: function (scope, element, attr) {
+        var msg = attr.ngConfirmClick || "Are you sure?";
+        var clickAction = attr.confirmedClick;
+        element.bind('click',function (event) {
+          if ( window.confirm(msg) ) {
+            scope.$eval(clickAction)
+          }
+        });
+      }
+    };
+}]);
+
+myApp.directive('myOpeList', [ '$filter',
+  function ($filter) {
+    return {
+      restrict: 'E',
+      scope: {
+        orders: '='
+      },
+      controller: function ($scope) {
+        /**
+         * 格式化時間
+         * 
+         * @param  {string} date   
+         * @param  {string} format [example: 'yyyy-mm-dd']
+         * @return {string} [格式化以後的時間]
+         */
+        $scope.formatDate = function (date, format) {
+          var format = format || 'yyyy-MM-dd';
+
+          return $filter('date')(date, format);
+        };
+      },
+      templateUrl: Routing.generate('ope_partials_list')
+    };
+}]);

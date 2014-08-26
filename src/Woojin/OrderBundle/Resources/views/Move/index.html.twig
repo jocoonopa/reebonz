@@ -215,7 +215,7 @@
 
 	<div class="panel-body" ng-show="isSearchPanelVisible">
 
-		<msg-footer success="success" error="error"></msg-footer>
+		<msg-footer success="success" error="error" on-empty="emptyMsg();"></msg-footer>
 
 		<div class="row" ng-repeat="move in searchRepo">
 			<h4 class="pointer"

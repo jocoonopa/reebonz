@@ -17,12 +17,7 @@
         </h3>
       </div>
       <div class="panel-body">
-        <ul class="list-group">
-          <li ng-repeat="ope in orders.opes" class="list-group-item">
-            <span>於{{ formatDate(ope.create_at) }}<i ng-show="ope.pay_type">以</i>{{ ope.pay_type.name }}支付{{ ope.money }}元&nbsp;&nbsp;</span> 
-            <strong ng-show="ope.user" class="pull-right">操作人員: {{ ope.user.username }}</strong>  
-          </li>
-        </ul>
+        <my-ope-list orders="orders"></my-ope-list>
       </div>
     </div>
   </div>

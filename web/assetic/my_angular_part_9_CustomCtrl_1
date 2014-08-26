@@ -1,0 +1,112 @@
+'use strict';
+
+/* Controllers */
+
+backendCtrls.controller('CustomCtrl', ['$scope', '$routeParams', '$http', '$filter','Custom',
+  function ($scope, $routeParams, $http, $filter, Custom) { 
+
+  var isSuccess = function (custom) {
+    $scope.successMsg = '';
+    $scope.successMsg += custom.name + ' 新增完成';
+    $scope.errorMsg = false;
+  };
+
+  var isFailed = function () {
+    $scope.errorMsg = ($scope.custom.name) ? $scope.custom.name + '新增失敗' : '新增失敗';
+    $scope.successMsg = false;
+  };
+
+  $scope.initData = function () {
+    $scope.query = {};
+    $scope.query.store = {};
+    $scope.tmp = {}; // 檢查資料有無改動，依此結果判斷是否要和後端溝通
+
+    $scope.customs = Custom.query(function (customs) {
+      for (var key in customs) {
+        customs[key].birthday = $filter('date')(customs[key].birthday, 'yyyy-MM-dd');
+      }
+    });
+
+    $scope.query.store.id = 1;
+
+    $scope.successMsg = false;
+    $scope.errorMsg = false;
+    
+    $scope.stores = $('select[name="store"]').data('options');
+  };
+
+  $scope.save = function () {   
+    $scope.clean();
+
+    $http.post(Routing.generate("api_custom_create"), $scope.query).
+      success(function (custom) {
+        $scope.initData();
+        isSuccess(custom);
+      })
+      .error(function (e) {
+        isFailed();
+        console.log(e);
+      });
+  };
+
+  $scope.update = function (custom) {
+    if (
+      ($scope.tmp.id === custom.id) &&
+      ($scope.tmp.name === custom.name) &&
+      ($scope.tmp.memo === custom.memo) &&
+      ($scope.tmp.birthday === custom.birthday) &&
+      ($scope.tmp.sex === custom.sex) &&
+      ($scope.tmp.email === custom.email) &&
+      ($scope.tmp.mobil === custom.mobil) &&
+      ($scope.tmp.address === custom.address) &&
+      ($scope.tmp.store === custom.store) 
+    ) {
+      return;
+    }
+
+    $scope.clean();
+
+    Custom.update({ id: custom.id}, custom).
+      $promise.then(function () {
+        $scope.successMsg = custom.name + ' 修改完成!';
+        //$scope.customs = Custom.query();
+      }, function (e) {
+        $scope.errorMsg = custom.name + '修改失敗，請確認是否有名稱重複!';
+        console.log(e);
+      });
+  };
+
+  $scope.destroy = function (custom) {
+    
+    $scope.clean();
+
+    Custom.delete({ id: custom.id}).
+      $promise.then(function () {
+        $scope.successMsg = custom.name + ' 刪除完成!';
+        $scope.customs = Custom.query();
+      }, function (e) {
+        $scope.errorMsg = custom.name + '刪除失敗，請確認是否有綁定資料!';
+        console.log(e);
+      });
+  };
+
+  $scope.clean = function () {
+    $scope.successMsg = false;
+    $scope.errorMsg = false;
+  };
+
+  $scope.setTmp = function (custom) {
+    
+    $scope.tmp.id = custom.id;
+    $scope.tmp.name = custom.name;
+    $scope.tmp.memo = custom.memo;
+    $scope.tmp.birthday = custom.birthday;
+    $scope.tmp.sex = custom.sex;
+    $scope.tmp.email = custom.email;
+    $scope.tmp.mobil = custom.mobil;
+    $scope.tmp.address = custom.address;
+    $scope.tmp.store = custom.store;
+  };
+
+  $scope.initData();
+}]);

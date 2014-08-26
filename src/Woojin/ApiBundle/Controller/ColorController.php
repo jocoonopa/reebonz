@@ -128,7 +128,11 @@ class ColorController extends Controller
         $em->persist($color);
         $em->flush();
 
-        return new Response(json_encode($color));
+        $serializer = \JMS\Serializer\SerializerBuilder::create()->build();
+        
+        $jsonColor = $serializer->serialize($color, 'json');
+
+        return new Response($jsonColor);
     }
 
     /**
@@ -159,7 +163,11 @@ class ColorController extends Controller
         $em->persist($color);
         $em->flush();
 
-        return new Response(json_encode($color));
+        $serializer = \JMS\Serializer\SerializerBuilder::create()->build();
+        
+        $jsonColor = $serializer->serialize($color, 'json');
+
+        return new Response($jsonColor);
     }
 
     /**

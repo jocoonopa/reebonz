@@ -1,0 +1,158 @@
+{% verbatim %}
+<div class="row text-center">
+	<h3>
+    <small>
+      <a href="#/activity">
+        <span class="glyphicon glyphicon-arrow-left"></span>活動列表
+      </a>
+    </small>
+
+    <span>{{ activity.name }}</span>
+    <b ng-show="activity.exceed > 0 && activity.minus > 0;">[滿{{ activity.exceed }}元送{{ activity.minus }}]元</b>
+    <b ng-show="activity.discount > 0;">[{{ activity.discount }}折]</b>
+
+    <small>
+      <span ng-show="activity.start_at && activity.end_at;">
+        {{ formatDate(activity.start_at) }} ~ {{ formatDate(activity.end_at) }}
+      </span>
+      <a href="#/special">
+        <span class="glyphicon glyphicon-arrow-right"></span>活動銷貨
+      </a>
+    </small>
+	</h3>
+	<hr />
+</div>
+
+<tabset>
+  <tab heading="活動刷入/刷出">
+    <br />
+    <br />
+
+    <div class="row">
+      <form novalidate class="form-horizontal" role="form">
+
+        <div class="form-group">
+          <label class="col-sm-2 control-label">產編</label>
+
+          <div class="col-sm-10">
+            <input type="text" ng-model="$parent.barcode" my-enter="add($parent.barcode);" class="form-control" placeholder="產編" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="col-sm-2 control-label">動作</label>
+
+          <div class="col-sm-10">
+            <div class="btn-group">
+              <label class="btn btn-primary" ng-model="$parent.act" btn-radio="1" uncheckable><span class="glyphicon glyphicon-log-in"></span>刷入
+              </label>
+              <label class="btn btn-primary" ng-model="$parent.act" btn-radio="0" uncheckable>刷出<span class="glyphicon glyphicon-log-out"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div class="row" ng-show="$parent.list.length > 0;">
+      <div class="col-sm-12">
+        目前共<span class="badge">{{ $parent.list.length }}</span>件
+        <br/>
+      </div>
+
+      <table class="table">
+        <tr class="active">
+          <td>#</td>
+          <td>產編</td>
+          <td>移除</td>
+        </tr>
+        <tr ng-repeat="row in $parent.list">
+          <td>{{ $index + 1 }}</td>
+          <td>{{ row.sn }}</td>
+          <td><button ng-click="removeList($index);" class="btn btn-danger btn-sm">刪除</button></td>
+        </tr>
+      </table>
+
+      <div class="col-sm-12">
+        <button ng-click="emptyList();" class="btn btn-default"><span class="glyphicon glyphicon-unchecked"></span>清空</button>
+        <button ng-click="saveList();" class="btn btn-success"><span class="glyphicon glyphicon-floppy-saved"></span>儲存</button>
+      </div>
+    </div>
+  </tab>
+
+  <tab heading="活動商品一覽">
+    <br />
+    
+    <div class="page-header">
+      <h4>
+        共<b class="label label-primary">{{ goodses.length }}</b>件
+        ，售出<b class="label label-warning">{{ soldCount }}</b>件
+      </h4>
+    </div>
+
+    <br />
+
+    <div class="row">
+      <form novalidate class="form-horizontal" role="form">
+        <div class="form-group">
+          <label class="col-sm-2 control-label"><span class="glyphicon glyphicon-filter"></span>產編過濾</label>
+
+          <div class="col-sm-10">
+            <input type="text" ng-model="query.sn" class="form-control" placeholder="產編過濾" />
+          </div>
+        </div>
+        
+      </form>
+    </div>
+
+    <div class="row" ng-repeat="goods in goodses|filter:query ">
+      <goods-list-title goods="goods" set-lazy-img="setLazyImg(goods);"></goods-list-title><hr/>
+
+      <div ng-show="goods.isDisplay && !goods.isDelete;" class="row">
+        <dl class="dl-horizontal">
+          <dt ng-show="goods.brand;">品牌:</dt>
+          <dd>{{ goods.brand.name }}</dd>
+
+          <dt ng-show="goods.pattern;">款式:</dt>
+          <dd>{{ goods.pattern.name }}</dd>
+
+          <dt ng-show="goods.mt;">材質:</dt>
+          <dd>{{ goods.mt.name }}</dd>
+
+          <dt ng-show="goods.color;">顏色:</dt>
+          <dd>{{ goods.color.name }}</dd>
+
+          <dt ng-show="goods.supplier;">供貨商:</dt>
+          <dd>{{ goods.supplier.name }}</dd>
+
+          <dt ng-show="goods.level;">新舊:</dt>
+          <dd>{{ goods.level.name }}</dd>
+
+          <dt ng-shpw="goods.price;">市場價:</dt>
+          <dd>{{ goods.fake_price }}</dd>
+
+          <dt ng-show="goods.fake_price;">優惠價:</dt>
+          <dd>{{ goods.price }}</dd>
+
+          <dt ng-show="goods.memo;">備註:</dt>
+          <dd>{{ goods.memo }}</dd>
+
+          <dt>是否允許折扣:</dt>
+          <dd ng-show="goods.allow_discount == 1;">是</dd>
+          <dd ng-show="goods.allow_discount == 0;">否</dd>
+
+          <dt ng-show="goods.store;">所屬店</dt>
+          <dd>{{ goods.store.name }}</dd>
+
+          <dt ng-show="goods.imgpathLazy;">圖片:</dt>
+          <dd>
+            <img ng-show="goods.imgpathLazy;" ng-src="{{ goods.imgpathLazy }}" width="300" height="200" />
+          </dd>
+        </dl>
+      </div>
+    </div>
+  </tab>
+</tabset>
+
+<msg-footer success="success" error="error" on-empty="emptyMsg();"></msg-footer>
+{% endverbatim %}

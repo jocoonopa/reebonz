@@ -1,0 +1,54 @@
+{% verbatim %}
+<form novalidate class="form-horizontal" role="form">
+
+	<div class="form-group">
+		<label class="col-sm-2 control-label">活動</label>
+
+		<div class="col-sm-10">
+			<select name="activity" ng-model="myActivity" class="form-control" ng-options="activity.name for activity in activitys"></select>
+		</div>
+	</div>
+	
+	<!-- 先檢查客戶, 或是勾選無客戶在進行刷產編 -->
+	<div ng-show="custom.allowNull != 1 && choose.Gactivity.id != 0;" class="form-group" ng-class="{'has-success has-feedback': custom.isExist == 1 || custom.allowNull == 1}" >
+		<label class="col-sm-2 control-label">客戶信箱</label>
+		
+		<div class="col-sm-10">
+			<input type="email" class="form-control" placeholder="客戶信箱 ( Enter ) "ng-model="custom.email" my-enter="getCustomByMail(custom.email)" /><!-- angualr 會根據type 過濾值 -->
+		
+			<span ng-show="custom.isExist == 1" class="glyphicon glyphicon-ok form-control-feedback"></span>
+		</div>
+	</div>
+
+  <div class="form-group" ng-show="(custom.isExist == 1 || custom.allowNull == 1) && choose.Gactivity.id != 0;">
+  	<label class="col-sm-2 control-label">產編</label>
+
+  	<div class="col-sm-10">
+  		<input my-enter="get(barcode);" ng-model="barcode" type="text" class="form-control" placeholder="產編" />
+  	</div>
+  </div>
+
+  <div class="form-group" ng-show="choose.Gactivity.id != 0;">
+  	<label class="col-sm-2 control-label">Email</label>
+
+    <div class="col-sm-10">
+    	<div class="checkbox">
+    		<label>
+    			<input type="checkbox" ng-model="custom.allowNull" ng-change="setCustomToNull();"/>客戶暫無資料
+    		</label>
+			</div>
+		</div>
+  </div>
+
+	<div ng-show="goodsRepo.length > 0 && choose.Gactivity.id != 0;" class="form-group">
+		<label class="col-sm-2 control-label">操作</label>
+
+		<div class="col-sm-10">
+			<button type="button" class="btn btn-primary"  ng-click="pay();"><span class="glyphicon glyphicon-usd"></span>結帳</button>
+		</div>
+	</div>
+</form>
+
+<br>
+<br>
+{% endverbatim %}

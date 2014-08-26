@@ -42,6 +42,13 @@ class GoodsPassport
   protected $store;
 
   /**
+   * @ORM\ManyToOne(targetEntity="\Woojin\OrderBundle\Entity\Custom", inversedBy="goods_passports")
+   * @ORM\JoinColumn(name="consigner_id", referencedColumnName="id")
+   * @var Consigner
+   */
+  protected $consigner;
+
+  /**
    * @ORM\ManyToOne(targetEntity="Supplier", inversedBy="goods_passports")
    * @ORM\JoinColumn(name="supplier_id", referencedColumnName="id")
    * @var Supplier
@@ -147,9 +154,16 @@ class GoodsPassport
   /**
    * @var integer
    * 
-   * @ORM\Column(type="integer", length=10)
+   * @ORM\Column(type="integer", length=10, nullable=true)
    */
   protected $fake_price;
+
+  /**
+   * @var integer
+   * 
+   * @ORM\Column(type="integer", length=10, nullable=true)
+   */
+  protected $feedback = 0;
 
   /**
    * @var string 
@@ -421,6 +435,29 @@ class GoodsPassport
     public function getFakePrice()
     {
         return $this->fake_price;
+    }
+
+    /**
+     * Set feedback
+     *
+     * @param integer $feedback
+     * @return GoodsPassport
+     */
+    public function setFeedback($feedback)
+    {
+        $this->feedback = $feedback;
+    
+        return $this;
+    }
+
+    /**
+     * Get feedback
+     *
+     * @return integer 
+     */
+    public function getFeedback()
+    {
+        return $this->feedback;
     }
 
     /**
@@ -865,6 +902,29 @@ class GoodsPassport
     public function getStore()
     {
         return $this->store;
+    }
+
+    /**
+     * Set consigner
+     *
+     * @param \Woojin\OrderBundle\Entity\Custom $consigner
+     * @return GoodsPassport
+     */
+    public function setConsigner(\Woojin\OrderBundle\Entity\Custom $consigner = null)
+    {
+        $this->consigner = $consigner;
+    
+        return $this;
+    }
+
+    /**
+     * Get consigner
+     *
+     * @return \Woojin\OrderBundle\Entity\Custom 
+     */
+    public function getConsigner()
+    {
+        return $this->consigner;
     }
 
     /**

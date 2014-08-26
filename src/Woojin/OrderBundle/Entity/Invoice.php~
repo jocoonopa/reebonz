@@ -20,6 +20,13 @@ class Invoice
     protected $orders;
 
     /**
+     * @ORM\ManyToOne(targetEntity="\Woojin\UserBundle\Entity\User", inversedBy="invoices")
+     * @ORM\JoinColumn(name="user_id", referencedColumnName="id")
+     * @var User
+     */
+    protected $user;
+
+    /**
      * @ORM\ManyToOne(targetEntity="\Woojin\StoreBundle\Entity\Store", inversedBy="invoices")
      * @ORM\JoinColumn(name="store_id", referencedColumnName="id")
      * @var Store
@@ -54,7 +61,7 @@ class Invoice
      *
      * @ORM\Column(name="has_print", type="boolean")
      */
-    private $hasPrint;
+    private $hasPrint = false;
 
     /**
      * @var \DateTime

@@ -128,7 +128,11 @@ class GoodsLevelController extends Controller
         $em->persist($goodsLevel);
         $em->flush();
 
-        return new Response(json_encode($goodsLevel));
+        $serializer = \JMS\Serializer\SerializerBuilder::create()->build();
+        
+        $jsonGoodsLevel = $serializer->serialize($goodsLevel, 'json');
+
+        return new Response($jsonGoodsLevel);
     }
 
     /**
@@ -159,7 +163,11 @@ class GoodsLevelController extends Controller
         $em->persist($goodsLevel);
         $em->flush();
 
-        return new Response(json_encode($goodsLevel));
+        $serializer = \JMS\Serializer\SerializerBuilder::create()->build();
+        
+        $jsonGoodsLevel = $serializer->serialize($goodsLevel, 'json');
+
+        return new Response($jsonGoodsLevel);
     }
 
     /**

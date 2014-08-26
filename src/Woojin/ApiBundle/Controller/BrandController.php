@@ -128,7 +128,11 @@ class BrandController extends Controller
         $em->persist($brand);
         $em->flush();
 
-        return new Response(json_encode($brand));
+        $serializer = \JMS\Serializer\SerializerBuilder::create()->build();
+        
+        $jsonBrand = $serializer->serialize($brand, 'json');
+        
+        return new Response($jsonBrand);
     }
 
     /**
@@ -160,7 +164,11 @@ class BrandController extends Controller
         $em->persist($brand);
         $em->flush();
 
-        return new Response(json_encode($brand));
+        $serializer = \JMS\Serializer\SerializerBuilder::create()->build();
+        
+        $jsonBrand = $serializer->serialize($brand, 'json');
+        
+        return new Response($jsonBrand);
     }
 
     /**

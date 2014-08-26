@@ -17,7 +17,11 @@ class GoodsPassportRepository extends \Woojin\WoojinRepository
 	{
 		$qb = $this->getEntityManager()->createQueryBuilder();
 
-    	$qb->select('g')->from('WoojinGoodsBundle:GoodsPassport', 'g')->where($qb->expr()->in('g.id', $ids));
+    	$qb
+            ->select('g')
+            ->from('WoojinGoodsBundle:GoodsPassport', 'g')
+            ->where($qb->expr()->in('g.id', $ids))
+        ;
 
     	$goods = $qb->getQuery()->getResult();
 
@@ -37,7 +41,9 @@ class GoodsPassportRepository extends \Woojin\WoojinRepository
     {
     	$qb = $this->getEntityManager()->createQueryBuilder();
 
-    	$qb->select('g')->from('WoojinGoodsBundle:GoodsPassport', 'g')
+    	$qb
+            ->select('g')
+            ->from('WoojinGoodsBundle:GoodsPassport', 'g')
     		->leftjoin('g.orders', 'o')
     		->leftjoin('o.custom', 'c')
     		->leftjoin('o.opes', 'p')
@@ -72,7 +78,9 @@ class GoodsPassportRepository extends \Woojin\WoojinRepository
     {
 		$qb = $this->getEntityManager()->createQueryBuilder();
 
-    	$qb->select('g')->from('WoojinGoodsBundle:GoodsPassport', 'g')
+    	$qb
+            ->select('g')
+            ->from('WoojinGoodsBundle:GoodsPassport', 'g')
     		->leftjoin('g.orders', 'o')
     		->leftjoin('o.custom', 'c')
     		->leftjoin('o.opes', 'p')

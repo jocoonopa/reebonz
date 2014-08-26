@@ -22,9 +22,16 @@ class Custom
     /**
      * @Exclude
      * @ORM\OneToMany(targetEntity="Invoice", mappedBy="custom")
-     * @var Invoice[]
+     * @var Invoices[]
      */
     protected $invoices;
+
+    /**
+     * @Exclude
+     * @ORM\OneToMany(targetEntity="\Woojin\GoodsBundle\Entity\GoodsPassport", mappedBy="consigner")
+     * @var GoodsPassports[]
+     */
+    protected $goods_passports;
 
     /**
      * @ORM\ManyToOne(targetEntity="\Woojin\StoreBundle\Entity\Store", inversedBy="customs")
@@ -101,7 +108,6 @@ class Custom
     {
         $this->setUpdateAt(new \Datetime());
     }
-    
     /**
      * Constructor
      */
@@ -109,6 +115,7 @@ class Custom
     {
         $this->orders = new \Doctrine\Common\Collections\ArrayCollection();
         $this->invoices = new \Doctrine\Common\Collections\ArrayCollection();
+        $this->goods_passports = new \Doctrine\Common\Collections\ArrayCollection();
     }
     
     /**
@@ -191,26 +198,49 @@ class Custom
     }
 
     /**
-     * Set createtime
+     * Set createAt
      *
-     * @param \DateTime $createtime
+     * @param \DateTime $createAt
      * @return Custom
      */
-    public function setCreatetime($createtime)
+    public function setCreateAt($createAt)
     {
-        $this->createtime = $createtime;
+        $this->createAt = $createAt;
     
         return $this;
     }
 
     /**
-     * Get createtime
+     * Get createAt
      *
      * @return \DateTime 
      */
-    public function getCreatetime()
+    public function getCreateAt()
     {
-        return $this->createtime;
+        return $this->createAt;
+    }
+
+    /**
+     * Set updateAt
+     *
+     * @param \DateTime $updateAt
+     * @return Custom
+     */
+    public function setUpdateAt($updateAt)
+    {
+        $this->updateAt = $updateAt;
+    
+        return $this;
+    }
+
+    /**
+     * Get updateAt
+     *
+     * @return \DateTime 
+     */
+    public function getUpdateAt()
+    {
+        return $this->updateAt;
     }
 
     /**
@@ -372,6 +402,39 @@ class Custom
     }
 
     /**
+     * Add goods_passports
+     *
+     * @param \Woojin\GoodsBundle\Entity\GoodsPassport $goodsPassports
+     * @return Custom
+     */
+    public function addGoodsPassport(\Woojin\GoodsBundle\Entity\GoodsPassport $goodsPassports)
+    {
+        $this->goods_passports[] = $goodsPassports;
+    
+        return $this;
+    }
+
+    /**
+     * Remove goods_passports
+     *
+     * @param \Woojin\GoodsBundle\Entity\GoodsPassport $goodsPassports
+     */
+    public function removeGoodsPassport(\Woojin\GoodsBundle\Entity\GoodsPassport $goodsPassports)
+    {
+        $this->goods_passports->removeElement($goodsPassports);
+    }
+
+    /**
+     * Get goods_passports
+     *
+     * @return \Doctrine\Common\Collections\Collection 
+     */
+    public function getGoodsPassports()
+    {
+        return $this->goods_passports;
+    }
+
+    /**
      * Set store
      *
      * @param \Woojin\StoreBundle\Entity\Store $store
@@ -392,51 +455,5 @@ class Custom
     public function getStore()
     {
         return $this->store;
-    }
-
-    /**
-     * Set createAt
-     *
-     * @param \DateTime $createAt
-     * @return Custom
-     */
-    public function setCreateAt($createAt)
-    {
-        $this->createAt = $createAt;
-    
-        return $this;
-    }
-
-    /**
-     * Get createAt
-     *
-     * @return \DateTime 
-     */
-    public function getCreateAt()
-    {
-        return $this->createAt;
-    }
-
-    /**
-     * Set updateAt
-     *
-     * @param \DateTime $updateAt
-     * @return Custom
-     */
-    public function setUpdateAt($updateAt)
-    {
-        $this->updateAt = $updateAt;
-    
-        return $this;
-    }
-
-    /**
-     * Get updateAt
-     *
-     * @return \DateTime 
-     */
-    public function getUpdateAt()
-    {
-        return $this->updateAt;
     }
 }

@@ -128,7 +128,11 @@ class GoodsSourceController extends Controller
         $em->persist($goodsSource);
         $em->flush();
 
-        return new Response(json_encode($goodsSource));
+        $serializer = \JMS\Serializer\SerializerBuilder::create()->build();
+        
+        $jsonGoodsSource = $serializer->serialize($goodsSource, 'json');
+
+        return new Response($jsonGoodsSource);
     }
 
     /**
@@ -160,7 +164,11 @@ class GoodsSourceController extends Controller
         $em->persist($goodsSource);
         $em->flush();
 
-        return new Response(json_encode($goodsSource));
+        $serializer = \JMS\Serializer\SerializerBuilder::create()->build();
+        
+        $jsonGoodsSource = $serializer->serialize($goodsSource, 'json');
+
+        return new Response($jsonGoodsSource);
     }
 
     /**

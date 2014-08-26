@@ -1,0 +1,23 @@
+{% verbatim %}
+<ul class="list-group">
+  <li ng-repeat="ope in orders.opes" class="list-group-item">
+    <span ng-show="ope.money > 0;">
+      <i ng-show="ope.pay_type">以</i>{{ ope.pay_type.name }}支付{{ ope.money }}元&nbsp;&nbsp;
+    </span> 
+
+    <span ng-show="ope.type == 0 || ope.type == 1">於
+      <small>{{ formatDate(ope.create_at) }}</small><b>建立</b>
+    </span> 
+
+    <span ng-show="ope.type == 2;">於
+      <small>{{ formatDate(ope.create_at) }}</small><b>修改</b>
+    </span> 
+
+    <span ng-show="ope.type == 3;">於
+      <small>{{ formatDate(ope.create_at) }}</small><b>取消</b>
+    </span>
+
+    <strong ng-show="ope.user" class="pull-right">操作人員: {{ ope.user.username }}</strong>  
+  </li>
+</ul>
+{% endverbatim %}

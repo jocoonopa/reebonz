@@ -38,6 +38,47 @@ assetic:
         #    jar: %kernel.root_dir%/Resources/java/compiler.jar
         #yui_css:
         #    jar: %kernel.root_dir%/Resources/java/yuicompressor-2.4.7.jar
+    assets:
+        jquery_and_bootstrap:
+            inputs:
+                - '@WoojinBackendBundle/Resources/public/js/jquery.min.js'
+                - '@WoojinBackendBundle/Resources/public/js/bootstrap.min.js'
+        angular_and_depend:
+            inputs:
+                - '@WoojinBackendBundle/Resources/public/js/angular/angular.js'
+                - '@WoojinBackendBundle/Resources/public/js/angular/angular-route.js'
+                - '@WoojinBackendBundle/Resources/public/js/angular/angular-resource.js'
+                - '@WoojinBackendBundle/Resources/public/js/angular/angular-animate.js'
+                - '@WoojinBackendBundle/Resources/public/js/angular/angular-sanitize.js'
+        plugin:
+            inputs:
+                - '@WoojinBackendBundle/Resources/public/js/plugin/datetimepicker/js/bootstrap-datepicker.js'
+                - '@WoojinBackendBundle/Resources/public/js/plugin/datetimepicker/js/locales/bootstrap-datepicker.zh-TW.js'
+                - '@WoojinBackendBundle/Resources/public/js/angular-seed/app/bower_components/angular-block-ui/angular-block-ui.min.js'
+                - '@WoojinBackendBundle/Resources/public/js/plugin/bower_components/ng-file-upload/angular-file-upload-shim.min.js'
+                - '@WoojinBackendBundle/Resources/public/js/plugin/bower_components/ng-file-upload/angular-file-upload.min.js'
+                - '@WoojinBackendBundle/Resources/public/js/plugin/bower_components/angular-bootstrap/ui-bootstrap-tpls.min.js'
+        my_angular:
+            inputs:
+                - '@WoojinBackendBundle/Resources/public/js/angular-seed/app/js/app.js'
+                - '@WoojinBackendBundle/Resources/public/js/angular-seed/app/js/directives.js'
+                - '@WoojinBackendBundle/Resources/public/js/angular-seed/app/js/services.js'
+                - '@WoojinBackendBundle/Resources/public/js/angular-seed/app/js/controller/*'
+                - '@WoojinBackendBundle/Resources/public/js/angular-seed/app/js/controller/Activity/*'
+                - '@WoojinBackendBundle/Resources/public/js/angular-seed/app/js/controller/Backend/*'
+                - '@WoojinBackendBundle/Resources/public/js/angular-seed/app/js/controller/Brand/*'
+                - '@WoojinBackendBundle/Resources/public/js/angular-seed/app/js/controller/Color/*'
+                - '@WoojinBackendBundle/Resources/public/js/angular-seed/app/js/controller/Custom/*'
+                - '@WoojinBackendBundle/Resources/public/js/angular-seed/app/js/controller/GoodsLevel/*'
+                - '@WoojinBackendBundle/Resources/public/js/angular-seed/app/js/controller/GoodsMt/*'
+                - '@WoojinBackendBundle/Resources/public/js/angular-seed/app/js/controller/GoodsPassport/*'
+                - '@WoojinBackendBundle/Resources/public/js/angular-seed/app/js/controller/Move/*'
+                - '@WoojinBackendBundle/Resources/public/js/angular-seed/app/js/controller/Orders/*'
+                - '@WoojinBackendBundle/Resources/public/js/angular-seed/app/js/controller/Pattern/*'
+                - '@WoojinBackendBundle/Resources/public/js/angular-seed/app/js/controller/PayType/*'
+                - '@WoojinBackendBundle/Resources/public/js/angular-seed/app/js/controller/GoodsPassport/*'
+                - '@WoojinBackendBundle/Resources/public/js/angular-seed/app/js/controller/Supplier/*'
+                - '@WoojinBackendBundle/Resources/public/js/angular-seed/app/js/controller/User/*'
 
 # Doctrine Configuration
 doctrine:

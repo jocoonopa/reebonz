@@ -39,6 +39,13 @@ class User implements AdvancedUserInterface, \Serializable
 
   /**
    * @Exclude
+   * @ORM\OneToMany(targetEntity="\Woojin\OrderBundle\Entity\Invoice", mappedBy="user")
+   * @var Invoices[]
+   */
+  protected $invoices;
+
+  /**
+   * @Exclude
    * @ORM\OneToMany(targetEntity="\Woojin\StoreBundle\Entity\MetaRecord", mappedBy="user")
    * @var MetaRecord[]
    */
@@ -744,5 +751,38 @@ class User implements AdvancedUserInterface, \Serializable
     public function getResMoves()
     {
         return $this->res_moves;
+    }
+
+    /**
+     * Add invoices
+     *
+     * @param \Woojin\OrderBundle\Entity\Invoice $invoices
+     * @return User
+     */
+    public function addInvoice(\Woojin\OrderBundle\Entity\Invoice $invoices)
+    {
+        $this->invoices[] = $invoices;
+    
+        return $this;
+    }
+
+    /**
+     * Remove invoices
+     *
+     * @param \Woojin\OrderBundle\Entity\Invoice $invoices
+     */
+    public function removeInvoice(\Woojin\OrderBundle\Entity\Invoice $invoices)
+    {
+        $this->invoices->removeElement($invoices);
+    }
+
+    /**
+     * Get invoices
+     *
+     * @return \Doctrine\Common\Collections\Collection 
+     */
+    public function getInvoices()
+    {
+        return $this->invoices;
     }
 }

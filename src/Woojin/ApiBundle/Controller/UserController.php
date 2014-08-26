@@ -130,11 +130,12 @@ class UserController extends Controller
      */
     public function updateAction(User $user, Request $request)
     {
-       /**
-         * 這個工廠將會替我們創建新的商品實體
+        /**
+         * Entity Manager
+         * 
          * @var object
          */
-        $UserFactory = $this->get('user.factory');
+        $em = $this->getDoctrine()->getManager();
 
         /**
          * 提供給工廠的參數陣列
@@ -175,7 +176,6 @@ class UserController extends Controller
         $store = $this->getDoctrine()->getRepository('WoojinStoreBundle:Store')->find($accessor->getValue($request->request->get('store'), '[id]'));
 
         $user
-            ->addRole($role)
             ->setStore($store)
             ->setRealname($request->request->get('realname'))
             ->setUsername($request->request->get('username'))
@@ -185,6 +185,9 @@ class UserController extends Controller
             ->setIsActive($isActive)
             ->setCsrf(uniqid())
         ;
+
+        $em->persist($user);
+        $em->flush();
 
         // 序列化使用者實體以利回傳給前端使用使用
         $jsonUser = $serializer->serialize($user, 'json');
@@ -287,6 +290,9 @@ class UserController extends Controller
             ->setIsActive($isActive)
             ->setCsrf(uniqid())
         ;
+
+        $em->persist($user);
+        $em->flush();
 
         // 序列化使用者實體以利回傳給前端使用
         $jsonUser = $serializer->serialize($user, 'json');

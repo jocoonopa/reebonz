@@ -128,7 +128,11 @@ class GoodsMTController extends Controller
         $em->persist($goodsMT);
         $em->flush();
 
-        return new Response(json_encode($goodsMT));
+        $serializer = \JMS\Serializer\SerializerBuilder::create()->build();
+        
+        $jsonGoodsMT = $serializer->serialize($goodsMT, 'json');
+
+        return new Response($jsonGoodsMT);
     }
 
     /**

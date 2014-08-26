@@ -40,6 +40,8 @@
 
 16. 客戶搜尋出現bug ** 
 
+17. 商品狀態被配合底色?
+
 order.custom.html.twig 的 script 有陷阱，當按完page 時會刷新 <input type="hidden" name="page" /> 的值，
 這時如果先按了假設第五頁，之後再用電話查詢，query 會跑成 符合 "該電話的第五頁資料，自然就找不到東西了
 
@@ -106,27 +108,179 @@ v
 活動機制 *****
 
 * 設置 api
+
+/api/v1/activity
+
+/activity 活動CRUD管理
+
+/activity/{id}/platform (下列三者整合之頁面，by tab)
+
+/api/v1/activity/{id}/in (刷入活動)
+
+/api/v1/activity/{id}/sale (展場售出)
+
+/api/v1/activity/{id}/back (反還店內)
+
 * 設置 介面
 * 活動 api
+
+售出, 退貨等都是現有api, 活動其實沒有特別需要做新的api 處理, 
+
+對我們來說都是商品的方法, 只是某些參數屬性的不同罷了
+
 * 活動銷貨介面
-
-2.
-六大後設都改為  directive, 重複的一些方法可以寫成 service
-
-ordersController 的result 區域也寫成 directive
+-> 套入活動計價邏輯
+->template->主頁面架構用 list + form , 仿 商品
+->controller
 
 7. 發票機串接(林先生)
 
+發票用woojin方式, 別再搞事件了, 搞自己....
+
 8. meepshop 數量api
 
-9. 客戶以及使用者增加分頁機制
-
-10. 虛活動寄賣 x
-
-11. 活動設定付款方式 *****
+11. 活動設定付款方式 ***** v
 
 12. 折扣邏輯套入 *****
 
-13. 定時下架排程套入
-
 14. 批次修改上下架刪除回店 ****
+
+13. 定時下架排程套入(問公司能不能借我放排程....)
+
+Bad: No test, 完全沒有測試，angular 或 symfony  都沒，想辦法改善
+
+Bad: 拿掉事件處理，因為我們的動作會有批次的，用事件會有暴量觸發的次數，效能會太差
+
+Bad: 拿掉智障一般的工廠方法
+
+Bad: 客戶以及使用者增加分頁機制
+
+Bad: 搜尋無法抽掉某一段條件，只能整個刪除
+
+Bad: Angular 的 controller 太複雜了，而且方法重複性相當高，service, directive 運用不足
+
+Bad: 表單驗證很少，後端也沒防 csrf ( 這個感覺還好 )
+
+Bad: 引入的外部css 和 js 尚未壓縮打包
+
+Bad: 商品詳細資料的 modal @ 訂單查詢
+
+Bad: 哪些東西可以用 cache, 哪些東西可以用 cookie|localstorage, 缺乏審慎考量
+
+
+
+六:
+
+活動銷貨需要完成, 包含折扣部分的邏輯引入 v
+
+--eat--
+
+活動刷入刷出要完成, 以及一個簡單的filter v
+
+日:
+
+批次處理要完成 (not yet, 今日會處理好)
+
+查詢排序功能完成 v
+
+一:
+
+寄賣通知(尚未)
+
+調貨通知(尚未)
+
+
+二:
+
+發票機 !!!!!!!
+
+----- 2014-08-18 ------
+
+*時間改為原本的區間選法 -> 可週四後 |週五
+*現金, 刷卡, 總額  加入原本的商品excel -> 可週四後 |週五 
+*未稅成本(報表匯出有即可) / 1.05 -> 可週四後 |週五
+
+*有資料顯示的地方都要有匯出報表, 批次操作的功能 -> 可週四後 |週六
+*批次修改(上架下架刪除) -> 可週四後 |週六
+
+*可以直接再活動頁匯出報表 -> 可週四後 | 週日
+*在頁數增加匯出的button -> 可週四後 | 週日
+
+* metarecord 商品 metarecord 價格從xxx 改道 xxx ->可週四後 | 週一
+
+##################################################### 週四9:00前 要搞定的部份
+
+*結帳堆疊, 顏色分區, 總和 # v
+
+*發票功能綁定 後端ok v
+
+* 結帳時，頁面切成兩塊, 一個是目前刷件，一個是刷件歷程，已一個發票單位區分，弄成panel well 的樣式，
+已 local storage 儲存，orderBy create_at desc, 過期時間設定為一天, 附帶一個清除按鈕 v
+
+*訂單取消記錄要加強內容 , 歷程記錄寫成directive v
+
+*批次上傳的寄賣會有問題，如果打了個錯誤email 依然是寄賣進貨, 不大隊 v
+
+*滿一萬送一千, 滿兩萬送兩千, 總額按比例分配減價 # v
+
+*拆 controller.js v ( 線上用base.html.twig )
+
+*預設出現所有訂單 # v
+
+*批次上傳時不允許折扣失效 # v
+
+*付費方式已刷卡為預設值  # v
+
+*已經售出的東西再刷要顯示無庫存訊息 # v
+
+*順序A2Z , Z2A # v
+
+* list title 加上活動名稱品牌名稱 # v
+
+*商品查詢的狀態沒有load進來 v
+
+*售出取消訂單回饋訊息沒有顯示 v
+
+*來源重開 # v
+
+----- 2014-08-23 -------
+
+權限:
+
+
+
+---- site map -----
+
+Goods
+	search
+	add
+		import
+		keyin
+
+Orders
+	index
+	normal
+	special
+
+Activity
+	index
+	platform
+
+Meta
+	color
+	pattern
+	supplier
+	brand
+	goodsMt
+	goodsSource
+	level
+
+
+
+每次上傳都要做這個!!
+
+$ php app/console assetic:dump --env=prod --no-debug
+
+or 
+
+$ php app/console assetic:dump watch

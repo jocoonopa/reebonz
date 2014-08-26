@@ -15,14 +15,14 @@ class GoodsPassport
 {
   /**
    * @Exclude
-   * @ORM\OneToMany(targetEntity="\Woojin\OrderBundle\Entity\Move", mappedBy="out_goods_passport", cascade={"remove"})
+   * @ORM\OneToMany(targetEntity="\Woojin\OrderBundle\Entity\Move", mappedBy="out_goods_passport")
    * @var OutMoves[]
    */
   protected $out_moves;
 
   /**
    * @Exclude
-   * @ORM\OneToMany(targetEntity="\Woojin\OrderBundle\Entity\Move", mappedBy="in_goods_passport", cascade={"remove"})
+   * @ORM\OneToMany(targetEntity="\Woojin\OrderBundle\Entity\Move", mappedBy="in_goods_passport")
    * @var InMoves[]
    */
   protected $in_moves;
@@ -40,6 +40,13 @@ class GoodsPassport
    * @var Store
    */
   protected $store;
+
+  /**
+   * @ORM\ManyToOne(targetEntity="\Woojin\OrderBundle\Entity\Custom", inversedBy="goods_passports")
+   * @ORM\JoinColumn(name="consigner_id", referencedColumnName="id")
+   * @var Consigner
+   */
+  protected $consigner;
 
   /**
    * @ORM\ManyToOne(targetEntity="Supplier", inversedBy="goods_passports")
@@ -147,9 +154,16 @@ class GoodsPassport
   /**
    * @var integer
    * 
-   * @ORM\Column(type="integer", length=10)
+   * @ORM\Column(type="integer", length=10, nullable=true)
    */
   protected $fake_price;
+
+  /**
+   * @var integer
+   * 
+   * @ORM\Column(type="integer", length=10, nullable=true)
+   */
+  protected $feedback;
 
   /**
    * @var string 

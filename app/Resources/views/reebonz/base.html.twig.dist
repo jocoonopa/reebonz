@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-TW" ng-app="myApp">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	
+	<title>{% block title %}Reebonz商品管理系統{% endblock %}</title>
+
+	{% block head %}
+	<!--/ CSS -->
+	<!-- <link rel="stylesheet" href="/bundles/woojinbackend/css/bootstrap.yeti.min.css"> -->
+	<link rel="stylesheet" href="/bundles/woojinbackend/css/animate.css">
+	<link rel="stylesheet" href="/bundles/woojinbackend/css/backend.layout.css">
+	<link rel="stylesheet" href="/bundles/woojinbackend/css/yeti.custom.fix.css">
+	<link rel="stylesheet" href="//bootswatch.com/yeti/bootstrap.min.css">
+	<link rel="stylesheet" href="/bundles/woojinbackend/js/plugin/datetimepicker/css/datepicker3.css">
+	<link rel="stylesheet" href="/bundles/woojinbackend/js/angular-seed/app/bower_components/angular-block-ui/angular-block-ui.min.css"/>
+	<link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}" />
+	<!-- CSS /-->
+	
+	<script src="{{ asset('bundles/fosjsrouting/js/router.js') }}"></script>
+	<script src="{{ path('fos_js_routing_js', {"callback": "fos.Router.setData"}) }}"></script>
+	
+	<script src="js/reebonz_part_1.js"></script>
+	<script src="js/reebonz_part_2.js"></script>
+	<script src="js/reebonz_part_3.js"></script>
+	<script src="js/reebonz_part_4.js"></script>
+
+	{% endblock %}
+</head>
+<body>
+
+<header class="navbar navbar-static-top bs-docs-nav" id="top" role="banner">{% include ':reebonz/partials:header.html.twig' %}</header>
+<div class="container">
+	<div id="body">{% block body %}{% endblock %}</div>
+	<footer>{% include ':reebonz/partials:footer.html.twig' %}</footer>
+</div>
+
+</body>
+</html>

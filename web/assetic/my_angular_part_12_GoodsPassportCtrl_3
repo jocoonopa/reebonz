@@ -1,0 +1,241 @@
+'use strict';
+
+/* Controllers */
+
+backendCtrls.controller('GoodsPassportCtrl', [ '$scope', '$http', '$filter', '$timeout', '$upload', '$sce', '$modal', '$log', 'Brand', 'Pattern', 'Color', 'GoodsLevel', 'GoodsSource', 'Supplier', 'PayType', 'GoodsMT', 'GoodsStatus', 'Store', 'Move', 'Activity',
+ function ($scope, $http, $filter, $timeout, $upload, $sce, $modal, $log, Brand, Pattern, Color, GoodsLevel, GoodsSource, Supplier, PayType, GoodsMT, GoodsStatus, Store, Move, Activity) { 
+  
+  $scope.initMeta = function() {
+    $scope.entity = {};
+    $scope.entity.brands = Brand.query();
+    $scope.entity.patterns = Pattern.query();
+    $scope.entity.colors = Color.query();
+    $scope.entity.suppliers = Supplier.query();
+    $scope.entity.mts = GoodsMT.query();
+    $scope.entity.activitys = Activity.query();
+    $scope.entity.goodsSources = GoodsSource.query();
+    $scope.entity.goodsLevels = GoodsLevel.query();
+    $scope.entity.stores = Store.query();
+    $scope.entity.goodsStatuss = GoodsStatus.query();
+    $scope.entity.isWebRadios = [{text: '是', value: 1}, {text: '否', value: 0}];
+    $scope.entity.isAllowDiscountRadios = [{text: '是', value: 1}, {text: '否', value: 0}];
+    $scope.entity.isInTypeRadios = [{text: '一般', value: 0}, {text: '寄賣', value: 1}];
+    $scope.img404 = '/img/404.png';
+    $scope.importGoods = []; // 批次上傳後回傳的商品資料
+    $scope.addGoods = [];// 單筆上傳後回傳的商品資料( 回傳為陣列特別注意!!! )
+    $scope.successMsg = false;
+    $scope.errorMsg = false;
+    $scope.globalOrders = []; // 訂單modal要用的變數
+  };
+
+  $scope.goSell = function () {
+    window.location.href='#/normal';
+  };
+
+  $scope._formatDate = function (date, format) {
+    var format = format || 'yyyy-MM-dd';
+    return $filter('date')(date, format);
+  };
+
+  /**
+   * 檔案選擇時，馬上顯示圖片
+   */
+  $scope.onFileSelect = function ($files, type, goods) {
+    if (goods) {
+      goods[type] = $files;
+    } else {
+      $scope[type] = $files;
+    }
+    
+    // 取出第0個元素
+    var $file = $files[0];
+    
+    // 這段不是很懂... 總之就是將上傳的圖片透過 HTML5 的 API 立即顯示
+    if (window.FileReader && $file.type.indexOf('image') > -1) {
+      var fileReader = new FileReader();
+      
+      fileReader.readAsDataURL($files[0]);
+      
+      var loadFile = function(fileReader) {
+        fileReader.onload = function(e) {
+          $timeout(function() {
+            if (goods) {
+              goods.imgpath = e.target.result;
+            }
+          });
+        }
+      }(fileReader);
+    }
+  };
+
+  /**
+   * Lazy load 圖片(展開商品資料時才讀取)
+   */
+  $scope.setLazyImg = function (goods) {
+    goods.imgpathLazy = goods.imgpath;
+  };
+
+  /**
+   * 移除圖片
+   */
+  $scope.removeImg = function (goods) {
+    goods.imgpath = $scope.img404;
+    $scope.setLazyImg(goods);
+  };
+
+  $scope.isSuccess = function (msg, goods) {
+    $scope.successMsg = (goods) ?  goods.name + '(' + goods.sn + ')' + msg : '' + msg;
+    $scope.successMsg = $sce.trustAsHtml($scope.successMsg);
+    $scope.errorMsg = false;
+  };
+
+  $scope.isError = function (msg, goods) {
+    $scope.errorMsg = (goods) ? goods.name + '(' + goods.sn + ')' + msg : '' + msg;
+    $scope.errorMsg = $sce.trustAsHtml($scope.errorMsg);
+    $scope.successMsg = false;
+  };
+
+  $scope.emptyMsg = function () {
+    $scope.successMsg = false;
+    $scope.errorMsg = false;
+  }
+
+  // 清除上傳的圖片或檔案
+  $scope.cleanFile = function (selector) {
+    $(selector).val('');// 很無奈的只能先用jQuery處理了，angualr 對file 的支援好少喔
+  };
+
+  $scope.delete = function (goods) {
+    $http.delete(Routing.generate('api_goodsPassport_delete', {id: goods.id}), goods).
+      success(function (res) {
+      goods.isDelete = true;
+      $scope.isSuccess('刪除完成', goods);
+    });
+  };
+
+  $scope.splice = function (repo, elem) {
+    var index = repo.indexOf(elem);
+
+    if (index !== -1) {
+      repo.splice(index, 1);
+    }
+  };
+
+  /**
+   * 還原上傳操作
+   */
+  $scope.reverse = function (model, msg) {
+    var postId = [];
+
+    for (var key in $scope[model]) {
+      postId.push($scope[model][key].id);
+    }
+
+    // 這段api 要小心用，其實就是把商品不留痕跡的抹除，這東西太危險目前限制只在還原時使用，平常商品刪除就只能通過destroy 或下架
+    $http.delete(Routing.generate('api_goodsPassport_reverse', {jsonIds: JSON.stringify(postId)}))
+      .success(function () {      
+        $scope[model] = [];
+        $scope.isSuccess(msg + '還原完成!');
+      }).error(function () {
+        $scope.isError(msg + '還原失敗!');
+      });
+  };
+
+  $scope.put = function (index, repo) {
+    var goods = repo[index];
+
+    $http.put(Routing.generate("api_goodsPassport_update", {id: goods.id}), goods).
+      success(function (returnGoods) {
+        returnGoods.isSuccess = true;
+
+        repo[index] = returnGoods;
+        
+        $scope.setLazyImg(goods);
+        
+        $scope.isSuccess('修改成功', goods);
+      })
+      .error(function (e) {
+        returnGoods.isSuccess = false;
+
+        repo[index] = returnGoods;
+
+        $scope.isError('修改失敗', goods);
+      });
+  }
+
+  /**
+   * 更新商品資訊
+   * @param  {integer} index 
+   * @param  {array}
+   */
+  $scope.update = function (index, repo) {
+    var goods = repo[index];
+    var $files = goods.files;
+
+    if (typeof $files === 'undefined' || !$files) {
+      return $scope.put(index, repo);
+    }
+
+    for (var i = 0; i < $files.length; i++) {
+      var file = $files[i];
+      $scope.upload = $upload.upload({
+        url: Routing.generate('img_upload', {id: goods.id}),
+        method: 'POST',
+        withCredentials: true,
+        data: { myObj: $scope.myModelObj},
+        file: file, 
+      }).progress(function(evt) { // 可以監聽上傳過程，不過這邊我們用不到就是
+        //$scope.progress = parseInt(100.0 * evt.loaded / evt.total);
+      }).success(function(data, status, headers, config) {
+        goods.imgpath = data;
+        $scope.put(index, repo);
+      }).error(function (e) {
+        $scope.isError('圖片修改失敗');
+      });
+    }
+  };
+
+  $scope.move = function (goods) {
+    Move.save({id: goods.id}, function (res) {
+      if (res.msg) {
+        return $scope.isError(res.msg);
+      }
+
+      $scope.isSuccess('訂貨請求成功發送!');
+    });
+  };
+
+  $scope.preventEntityError = function (model) {
+    var r = ['brand', 'pattern', 'level', 'source', 'mt', 'supplier', 'color'];
+
+    for (var i in r) {// 防止不存在實體引起錯誤
+      if (typeof model[r[i]] === 'undefined') {
+        model[r[i]] = {id: ''};
+      }
+    }
+  };
+
+  $scope.open = function (goods) {
+    var post = {Gsn: {in: [goods.sn]}};
+
+    $http.get(Routing.generate('api_orders_filter', {jsonCondition: JSON.stringify(post)}))
+      .success(function (orderses) {
+        var modalInstance = $modal.open({
+          templateUrl: 'myModalContent.html',
+          controller: ModalInstanceCtrl,
+          size: false,
+          resolve: {
+            orderses: function () {
+              return $scope.globalOrders = orderses;
+            }
+          }
+        });
+
+        $scope.isSuccess(false);
+      }).error(function () {
+        $scope.isError('訂單讀取發生錯誤!');
+      });
+  };
+
+  $scope.initMeta();
+}]);

@@ -29,6 +29,13 @@ use Woojin\StoreBundle\Entity\Activity;
  */
 class ActivityController extends Controller
 {
+    const GS_ONSALE         = 1;
+    const GS_SOLDOUT        = 2;
+    const GS_MOVING         = 3;
+    const GS_OFFSALE        = 4;
+    const GS_OTHERSTORE     = 5;
+    const GS_ACTIVITY       = 6;
+
     /**
      * 取得活動列表
      * 
@@ -125,11 +132,12 @@ class ActivityController extends Controller
     {
         $activity
             ->setName($request->request->get('name'))
-            ->setDiscount($request->request->get('discount'))
-            ->setExceed($request->request->get('exceed'))
-            ->setMinus($request->request->get('minus'))
+            ->setDescription($request->request->get('description'))
             ->setStartAt(new \DateTime($request->request->get('start_at')))
             ->setEndAt(new \DateTime($request->request->get('end_at')))
+            ->setDiscount($request->request->get('discount', 0))
+            ->setExceed($request->request->get('exceed', 0))
+            ->setMinus($request->request->get('minus', 0))
         ;
 
         $em = $this->getDoctrine()->getManager();
@@ -168,11 +176,12 @@ class ActivityController extends Controller
         $activity = new Activity;
         $activity
             ->setName($request->request->get('name'))
-            ->setDiscount($request->request->get('discount'))
-            ->setExceed($request->request->get('exceed'))
-            ->setMinus($request->request->get('minus'))
+            ->setDescription($request->request->get('description'))
             ->setStartAt(new \DateTime($request->request->get('start_at')))
             ->setEndAt(new \DateTime($request->request->get('end_at')))
+            ->setDiscount($request->request->get('discount', 0))
+            ->setExceed($request->request->get('exceed', 0))
+            ->setMinus($request->request->get('minus', 0))
         ;
         
         $em = $this->getDoctrine()->getManager();
@@ -188,7 +197,6 @@ class ActivityController extends Controller
 
     /**
      * 刪除活動
-     * 
      * 
      * @Route("/{id}", requirements={"id" = "\d+"}, name="api_activity_delete", options={"expose"=true})
      * @ParamConverter("activity", class="WoojinStoreBundle:Activity")
@@ -224,8 +232,179 @@ class ActivityController extends Controller
             $returnMsg = array('status' => 'OK');
 
             return new Response(json_encode($returnMsg));
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
+    }
+
+    /**
+     * 刷入活動
+     * 
+     * @Route("/{id}/platform/pull", requirements={"id" = "\d+"}, name="api_activity_pull", options={"expose"=true})
+     * @ParamConverter("activity", class="WoojinStoreBundle:Activity")
+     * @Method("PUT")
+     * 
+     * @ApiDoc(
+     *  resource=true,
+     *  description="指定商品(id)刷入活動",
+     *  requirements={{"name"="id", "dataType"="integer", "required"=true, "description"="商品的 id"}},
+     *  statusCodes={
+     *    200="Returned when successful",
+     *    404={
+     *     "Returned when something else is not found"
+     *    },
+     *    500={
+     *     "Please contact author to fix it"
+     *    }
+     *  }
+     * )
+     */
+    public function pullAction(Activity $activity, Request $request)
+    {
+        /**
+         * Entity Manager
+         * 
+         * @var object
+         */
+        $em = $this->getDoctrine()->getManager();
+
+        /**
+         * 商品id陣列
+         * 
+         * @var array
+         */
+        $goodsSns = array();
+
+        array_map(function ($row) use (&$goodsSns) {
+            array_push($goodsSns, $row['sn']);
+        }, $request->request->get('goodsSns'));
+
+        /**
+         * QueryBuilder
+         * 
+         * @var object
+         */
+        $qb = $em->createQueryBuilder();
+
+        // 將商品選擇出來
+        $qb
+            ->select('g')
+            ->from('WoojinGoodsBundle:GoodsPassport', 'g')
+            ->where($qb->expr()->in('g.sn', $goodsSns))
+        ;
+
+        /**
+         * 商品實體陣列
+         * 
+         * @var array{object}
+         */
+        $goodses = $qb->getQuery()->getResult();
+
+        /**
+         * 商品狀態
+         * 
+         * @var \Woojin\GoodsBundle\Entity\GoodsStatus
+         */
+        $status = $em->getRepository('WoojinGoodsBundle:GoodsStatus')->find(self::GS_ACTIVITY);
+
+        array_map(function ($goods) use ($em, $activity, $status){
+            // update 商品屬性
+            $goods
+                ->setActivity($activity)
+                ->setStatus($status)
+            ;
+
+            $em->persist($goods);
+        }, $goodses);
+
+        $em->flush();
+
+        return new Response(json_encode(array('status' => 'ok')));
+    }
+
+    /**
+     * 刷出活動返回店中
+     * 
+     * @Route("/{id}/platform/push", requirements={"id" = "\d+"}, name="api_activity_push", options={"expose"=true})
+     * @ParamConverter("activity", class="WoojinStoreBundle:Activity")
+     * @Method("PUT")
+     * 
+     * @ApiDoc(
+     *  resource=true,
+     *  description="指定(id)商品刷出活動",
+     *  requirements={{"name"="id", "dataType"="integer", "required"=true, "description"="活動的 id"}},
+     *  statusCodes={
+     *    200="Returned when successful",
+     *    404={
+     *     "Returned when something else is not found"
+     *    },
+     *    500={
+     *     "Please contact author to fix it"
+     *    }
+     *  }
+     * )
+     */
+    public function pushAction(Activity $activity, Request $request)
+    {
+        /**
+         * Entity Manager
+         * 
+         * @var object
+         */
+        $em = $this->getDoctrine()->getManager();
+
+        /**
+         * 商品id陣列
+         * 
+         * @var array
+         */
+        $goodsSns = array();
+        
+        array_map(function ($row) use (&$goodsSns) {
+            array_push($goodsSns, $row['sn']);
+        }, $request->request->get('goodsSns'));
+
+        /**
+         * QueryBuilder
+         * 
+         * @var object
+         */
+        $qb = $em->createQueryBuilder();
+
+        // 將商品選擇出來
+        $qb
+            ->select('g')
+            ->from('WoojinGoodsBundle:GoodsPassport', 'g')
+            ->where($qb->expr()->in('g.sn', $goodsSns))
+        ;
+
+        /**
+         * 商品實體陣列
+         * 
+         * @var array{object}
+         */
+        $goodses = $qb->getQuery()->getResult();
+
+        /**
+         * 商品狀態
+         * 
+         * @var \Woojin\GoodsBundle\Entity\GoodsStatus
+         */
+        $status = $em->getRepository('WoojinGoodsBundle:GoodsStatus')->find(self::GS_ONSALE);
+
+        // 逐一update活動為目標活動
+        array_map(function ($goods) use ($em, $status) {
+            // update 商品屬性
+            $goods
+                ->setActivity(null)
+                ->setStatus($status)
+            ;
+
+            $em->persist($goods);
+        }, $goodses);
+
+        $em->flush();
+
+        return new Response(json_encode(array('status' => 'ok')));
     }
 }

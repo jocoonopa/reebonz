@@ -1,0 +1,24 @@
+<div class="row">
+	
+	<div class="panel-heading">
+		<h2 class="panel-title pointer" ng-click="isBrushPanelVisible=!isBrushPanelVisible;" ng-class="{dropup: !isBrushPanelVisible}"><span class="caret"></span>&nbsp; 刷件銷貨</h2>
+	</div>
+
+	<div class="panel-body" ng-show="isBrushPanelVisible">
+		{% include 'WoojinOrderBundle:Order/partials/special:head.html.twig' %}
+  	{% include 'WoojinOrderBundle:Order/partials/special:condition.html.twig' %}
+  	{% include 'WoojinOrderBundle:Order/partials/special:list.html.twig' %}
+	</div>
+
+	<div class="panel-heading">
+		<h2 class="panel-title pointer" ng-click="isRecordPanelVisible=!isRecordPanelVisible;" ng-class="{dropup: !isRecordPanelVisible}"><span class="caret"></span>&nbsp; 本日記錄</h2>
+	</div>
+
+	<div class="panel-body" ng-show="isRecordPanelVisible">
+		{% include 'WoojinOrderBundle:Order/partials/special:res.html.twig' %}
+	</div>
+
+	<msg-footer success="successMsg" error="errorMsg" on-empty="emptyMsg();"></msg-footer>
+</div>
+
+

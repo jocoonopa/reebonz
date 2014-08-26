@@ -2,9 +2,20 @@
 	<label class="col-sm-2 control-label">&nbsp;</label>
 
 	<div class="col-sm-10">
-		<button confirmed-click="delete();" ng-confirm-click="確定刪除嘛?" class="btn btn-danger">刪除</button>
-		<button ng-show="model.status.id === 1;" confirmed-click="move();" ng-confirm-click="確定送出調貨請求嘛?" class="btn btn-warning">調貨</button>	
-		<button ng-click="click();" class="btn btn-success">儲存</button>
-		<button class="btn btn-default" ng-click="orders();">訂單顯示</button>
+		<button confirmed-click="delete();" ng-confirm-click="確定刪除嘛?" class="btn btn-danger pull-right">
+			<span class="glyphicon glyphicon-remove-circle"></span>刪除
+		</button>
+		
+		<button ng-show="model.status.id === 1;" confirmed-click="move();" ng-confirm-click="確定送出調貨請求嘛?" class="btn btn-warning pull-right">
+			<span class="glyphicon glyphicon-send"></span>調貨
+		</button>	
+
+		<button class="btn btn-default pull-left" ng-click="orders();">
+			<span class="glyphicon glyphicon-eye-open"></span>訂單顯示
+		</button>
+		
+		<button ng-click="click();" class="btn btn-success pull-left">
+			<span class="glyphicon glyphicon-floppy-saved"></span>儲存
+		</button>		
 	</div>
 </div>

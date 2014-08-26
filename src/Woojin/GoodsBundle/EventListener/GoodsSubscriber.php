@@ -92,6 +92,7 @@ class GoodsSubscriber implements EventSubscriber
     
     /**
      * Entity Manager
+     * 
      * @var object
      */
     $em = $args->getEntityManager();
@@ -137,6 +138,11 @@ class GoodsSubscriber implements EventSubscriber
       return;
     }
 
+    // 如果是刷入刷出活動，不做任何動作
+    if ($request->request->get('activity_in_out')) {
+      return;
+    }
+
     if (!$goods->getInType()) {
       // 新增一般進貨訂單及操作動作記錄
 
@@ -155,9 +161,9 @@ class GoodsSubscriber implements EventSubscriber
       $accessor->setValue($settings, '[setStatus]', $dc->getRepository('WoojinOrderBundle:OrdersStatus')->find(self::OS_COMPLETE));
       $accessor->setValue($settings, '[setKind]', $dc->getRepository('WoojinOrderBundle:OrdersKind')->find(self::OK_CONSIGN_IN));
       $accessor->setValue($settings, '[setPayType]', $dc->getRepository('WoojinOrderBundle:PayType')->find(self::PT_CASH));
-      $accessor->setValue($settings, '[setCustom]', $dc->getRepository('WoojinOrderBundle:Custom')->findOneBy(array('email'=> $request->request->get('email'))));
+      $accessor->setValue($settings, '[setCustom]', $goods->getConsigner());
       $accessor->setValue($settings, '[setRequired]', $goods->getCost());
-      $accessor->setValue($settings, '[setPaid]', $request->request->get('paid', 0));
+      $accessor->setValue($settings, '[setPaid]', $goods->getCost());
 
       $orderConsignIn = $OrderFactory->create($settings);
 
@@ -167,8 +173,8 @@ class GoodsSubscriber implements EventSubscriber
       $accessor->setValue($settings, '[setStatus]', $dc->getRepository('WoojinOrderBundle:OrdersStatus')->find(self::OS_HANDLING));
       $accessor->setValue($settings, '[setKind]', $dc->getRepository('WoojinOrderBundle:OrdersKind')->find(self::OK_FEEDBACK));
       $accessor->setValue($settings, '[setPayType]', $dc->getRepository('WoojinOrderBundle:PayType')->find(self::PT_CASH));
-      $accessor->setValue($settings, '[setCustom]', $dc->getRepository('WoojinOrderBundle:Custom')->findOneBy(array('email'=> $request->request->get('email'))));
-      $accessor->setValue($settings, '[setRequired]', $request->request->get('feedback', 0));
+      $accessor->setValue($settings, '[setCustom]', $goods->getConsigner());
+      $accessor->setValue($settings, '[setRequired]', $goods->getFeedback());
       $accessor->setValue($settings, '[setPaid]', 0);
       $accessor->setValue($settings, '[setParent]', $orderConsignIn);
 

@@ -1,0 +1,66 @@
+'use strict';
+
+/* Controllers */
+
+backendCtrls.controller('PatternCtrl', ['$scope', '$routeParams', '$http', 'Pattern',
+	function ($scope, $routeParams, $http, Pattern) { 
+
+  $scope.init = function () {
+    $scope.patterns = Pattern.query();
+    $scope.successMsg = false;
+    $scope.errorMsg = false;
+    $scope.tmp = {}; // 檢查資料有無改動，依此結果判斷是否要和後端溝通
+    $scope.query = {};
+    $scope.query.name = '';
+  };
+
+  $scope.create = function (query) {
+  	Pattern.save(query).
+	  	$promise.then(function () {
+	  		$scope.successMsg = query.name + ' 新增完成!';
+	  		$scope.patterns = Pattern.query();
+	  		$scope.query.name = '';
+	  	}, function (error) {
+	  		$scope.errorMsg = query.name + '新增失敗，請確認是否有名稱重複!';
+	  	});
+  };
+
+  $scope.update = function (pattern) {
+
+  	if (pattern.name === $scope.tmp.name) {
+  		return;
+  	}
+
+  	Pattern.update({ id: pattern.id}, pattern).
+  		$promise.then(function () {
+  			$scope.successMsg = pattern.name + ' 修改完成!';
+  			//$scope.patterns = Pattern.query();
+  			$scope.query.name = '';
+  		}, function () {
+  			$scope.errorMsg = pattern.name + '修改失敗，請確認是否有名稱重複!';
+  		});
+  };
+
+  $scope.destroy = function (pattern) {
+  	Pattern.delete({ id: pattern.id}).
+  		$promise.then(function () {
+  			$scope.successMsg = pattern.name + ' 刪除完成!';
+  			$scope.patterns = Pattern.query();
+  			$scope.query.name = '';
+  		}, function (e) {
+  			$scope.errorMsg = pattern.name + '刪除失敗，請確認是否有綁定資料!';
+  		});
+  };
+
+  $scope.clean = function () {
+  	$scope.successMsg = false;
+  	$scope.errorMsg = false;
+  };
+
+  $scope.setTmp = function (pattern) {
+  	$scope.tmp.id = pattern.id;
+  	$scope.tmp.name = pattern.name;
+  };
+
+  $scope.init();
+}]);

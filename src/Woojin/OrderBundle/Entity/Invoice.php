@@ -4,6 +4,9 @@ namespace Woojin\OrderBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 
+use JMS\Serializer\Annotation\ExclusionPolicy;
+use JMS\Serializer\Annotation\Exclude;
+
 /**
  * Invoice
  *
@@ -14,10 +17,18 @@ use Doctrine\ORM\Mapping as ORM;
 class Invoice
 {
     /**
-     * @ORM\OneToMany(targetEntity="\Woojin\OrderBundle\Entity\Orders", mappedBy="invoice")
+     * @Exclude
+     * @ORM\OneToMany(targetEntity="\Woojin\OrderBundle\Entity\Orders", mappedBy="invoice", cascade={"persist"})
      * @var Orders[]
      */
     protected $orders;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="\Woojin\UserBundle\Entity\User", inversedBy="invoices")
+     * @ORM\JoinColumn(name="user_id", referencedColumnName="id")
+     * @var User
+     */
+    protected $user;
 
     /**
      * @ORM\ManyToOne(targetEntity="\Woojin\StoreBundle\Entity\Store", inversedBy="invoices")
@@ -54,7 +65,7 @@ class Invoice
      *
      * @ORM\Column(name="has_print", type="boolean")
      */
-    private $hasPrint;
+    private $hasPrint = false;
 
     /**
      * @var \DateTime
@@ -273,5 +284,28 @@ class Invoice
     public function getCustom()
     {
         return $this->custom;
+    }
+
+    /**
+     * Set user
+     *
+     * @param \Woojin\UserBundle\Entity\User $user
+     * @return Invoice
+     */
+    public function setUser(\Woojin\UserBundle\Entity\User $user = null)
+    {
+        $this->user = $user;
+    
+        return $this;
+    }
+
+    /**
+     * Get user
+     *
+     * @return \Woojin\UserBundle\Entity\User 
+     */
+    public function getUser()
+    {
+        return $this->user;
     }
 }

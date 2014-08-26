@@ -33,7 +33,7 @@ class OrderController extends Controller
 	}
 
 	/**
-	 * @Route("/special", name="orders_special")
+	 * @Route("/special", name="orders_special", options={"expose"=true})
 	 * @Template()
 	 * @Method("GET")
 	 */

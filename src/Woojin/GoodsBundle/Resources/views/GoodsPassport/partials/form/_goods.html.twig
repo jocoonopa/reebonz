@@ -1,63 +1,71 @@
-<goods-list-title goods="goods" set-lazy-img="setLazyImg(goods);"></goods-list-title><hr/>
+{% verbatim %}
+<my-form-radio model="goods" name="'in_type'" label="'進貨類型'" radios="entity.isInTypeRadios" name-prefix="is-in-type" disabled="true"></my-form-radio>
 
-<div ng-show="goods.isDisplay && goods.isDelete;" class="alert alert-danger" role="alert">已經刪除</div>
+<my-form-radio model="goods" name="'is_web'" label="'是否在網站販售'" radios="entity.isWebRadios" name-prefix="is-web"></my-form-radio>
 
-<form ng-show="goods.isDisplay && !goods.isDelete;" novalidate class="form-horizontal" role="form">
-	
-	<my-form-radio model="goods" name="'in_type'" label="'進貨類型'" radios="entity.isInTypeRadios" name-prefix="is-in-type" disabled="true"></my-form-radio>
+<my-form-radio model="goods" name="'allow_discount'" label="'是否允許打折'" radios="entity.isAllowDiscountRadios" name-prefix="is-allow-discount"></my-form-radio>
 
-	<my-form-radio model="goods" name="'is_web'" label="'是否在網站販售'" radios="entity.isWebRadios" name-prefix="is-web"></my-form-radio>
+<my-form-number model="goods" label="'一般價'" name="'fake_price'" isPrice="1" isRequired="1"></my-form-number>
 
-	<my-form-radio model="goods" name="'allow_discount'" label="'是否允許打折'" radios="entity.isAllowDiscountRadios" name-prefix="is-allow-discount"></my-form-radio>
+<my-form-number model="goods" label="'優惠價'" name="'price'" isPrice="1" isRequired="1"></my-form-number>
 
-  <my-form-number model="goods" label="'一般價'" name="'fake_price'" isPrice="1" isRequired="1"></my-form-number>
-  
-  <my-form-number model="goods" label="'優惠價'" name="'price'" isPrice="1" isRequired="1"></my-form-number>
-  
-  <my-form-number model="goods" label="'成本'" name="'cost'" isPrice="1" isRequired="1"></my-form-number>
-  
-  <my-form-input model="goods" label="'品名'" name="'name'"></my-form-input>
+<my-form-number model="goods" label="'成本'" name="'cost'" isPrice="1" isRequired="1"></my-form-number>
 
-  <my-form-input model="goods" label="'Dpo'" name="'dpo'"></my-form-input>
-  
-  <my-form-input model="goods" label="'原廠型號'" name="'org_sn'"></my-form-input>
-	
-	<my-form-input model="goods" label="'品牌型號'" name="'brand_sn'"></my-form-input>
+<my-form-input model="goods" label="'品名'" name="'name'"></my-form-input>
 
-	<my-form-date model="goods" label="'進貨時間'" name="'purchase_at'"></my-form-date>
+<my-form-input model="goods" label="'Dpo'" name="'dpo'"></my-form-input>
 
-	<my-form-date model="goods" label="'到期時間'" name="'expirate_at'"></my-form-date>
+<my-form-input model="goods" label="'原廠型號'" name="'org_sn'"></my-form-input>
 
-	<my-form-span model="goods" label="'建立時間'" name="'create_at'"></my-form-span>
-	
-	<my-form-span model="goods" label="'更新時間'" name="'update_at'"></my-form-span>
+<my-form-input model="goods" label="'品牌型號'" name="'brand_sn'"></my-form-input>
 
-	<my-form-textarea model="goods" label="'描述'" name="'des'"></my-form-textarea>
+<my-form-date model="goods" label="'進貨時間'" name="'purchase_at'"></my-form-date>
 
-	<my-form-textarea model="goods" label="'備註'" name="'memo'"></my-form-textarea>
+<my-form-date model="goods" label="'到期時間'" name="'expirate_at'"></my-form-date>
 
-	<my-form-status-switch model="goods" prefix="res-status"></my-form-status-switch>
+<!-- <my-form-date model="goods" label="'建立時間'" name="'create_at'"></my-form-date> -->
 
-	<my-form-select model="goods" entitys="entity.brands" name="'brand'" label="'品牌'"></my-form-select>
+<!-- <my-form-date model="goods" label="'更新時間'" name="'update_at'"></my-form-date> -->
 
-	<my-form-select model="goods" entitys="entity.patterns" name="'pattern'" label="'款式'"></my-form-select>
+<div class="form-group">
+	<label class="col-sm-2 control-label">建立時間</label>
 
-	<my-form-select model="goods" entitys="entity.goodsSources" name="'source'" label="'來源'"></my-form-select>
+	<div class="col-sm-10">
+		{{ _formatDate(goods.create_at) }}
+	</div>
+</div>
 
-	<my-form-select model="goods" entitys="entity.goodsLevels" name="'level'" label="'新舊'"></my-form-select>
-	
-	<my-form-select model="goods" entitys="entity.colors" name="'color'" label="'顏色'"></my-form-select>
+<div class="form-group">
+	<label class="col-sm-2 control-label">更新時間</label>
 
-	<my-form-select model="goods" entitys="entity.suppliers" name="'supplier'" label="'供貨商'"></my-form-select>
+	<div class="col-sm-10">
+		{{ _formatDate(goods.update_at) }}
+	</div>
+</div>
 
-	<my-form-select model="goods" entitys="entity.mts" name="'mt'" label="'材質'"></my-form-select>
+<my-form-textarea model="goods" label="'描述'" name="'des'"></my-form-textarea>
 
-	<my-form-span model="goods.activity" label="'活動'" name="'name'"></my-form-span>
+<my-form-textarea model="goods" label="'備註'" name="'memo'"></my-form-textarea>
 
-	<my-form-span model="goods.store" label="'所屬店'" name="'name'"></my-form-span>
+<my-form-status-switch model="goods" prefix="res-status"></my-form-status-switch>
 
-	<my-form-img model="goods" label="'圖片'" name="'imgpathLazy'" prefix="res-img" on-click="$parent.removeImg(goods);"></my-form-img>
+<my-form-select model="goods" entitys="entity.brands" name="'brand'" label="'品牌'"></my-form-select>
 
-	<my-form-save model="goods" on-click="$parent.update(goods);" on-delete="$parent.delete(goods);" on-move="$parent.move(goods);" load-orders="$parent.open(goods);"></my-form-save>	
+<my-form-select model="goods" entitys="entity.patterns" name="'pattern'" label="'款式'"></my-form-select>
 
-</form>
+<my-form-select model="goods" entitys="entity.goodsSources" name="'source'" label="'來源'"></my-form-select>
+
+<my-form-select model="goods" entitys="entity.goodsLevels" name="'level'" label="'商品狀況'"></my-form-select>
+
+<my-form-select model="goods" entitys="entity.colors" name="'color'" label="'顏色'"></my-form-select>
+
+<my-form-select model="goods" entitys="entity.suppliers" name="'supplier'" label="'供貨商'"></my-form-select>
+
+<my-form-select model="goods" entitys="entity.mts" name="'mt'" label="'材質'"></my-form-select>
+
+<my-form-span model="goods.activity" label="'活動'" name="'name'"></my-form-span>
+
+<my-form-span model="goods.store" label="'所屬店'" name="'name'"></my-form-span>
+
+<my-form-img model="goods" label="'圖片'" name="'imgpathLazy'" prefix="res-img" on-click="$parent.removeImg(goods);"></my-form-img>
+{% endverbatim %}

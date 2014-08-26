@@ -1,0 +1,80 @@
+{% verbatim %}
+<div class="panel panel-success" ng-repeat="invoice in invoices | orderBy:'id':true" ng-if="invoice.id;">
+	<div class="panel-heading">
+		<b>[{{invoice.store.name}}]</b>
+		<i>{{ invoice.sn }}</i>
+		<strong ng-show="invoice.custom">{{ invoice.custom.name }}{{ invoice.custom.sex }}</strong>
+		<small>-{{ formatDate(invoice.create_at, 'yyyy-mm-dd H:mm:ss') }}</small>
+		<span class="pull-right">{{invoice.user.username }}&nbsp;&nbsp;&nbsp;&nbsp;</span>
+		<b class="pull-right">總金額{{ invoice.total }}元&nbsp;&nbsp;&nbsp;&nbsp;</b>
+	</div>
+
+	<div class="panel-body">
+		<div class="row" ng-repeat="orders in invoice.orders">
+			<h4 class="pointer"
+				ng-click="switchDisplay(orders);" 
+				ng-class="{dropup: !orders.isDisplay}" 
+			>
+				<span class="caret"></span>
+					<span>{{ orders.kind.name }} 
+						<small><mark>{{ orders.status.name }}</mark></small>
+						&nbsp;&nbsp;
+					</span>
+
+					<span ng-show="orders.goods_passport.activity" class="label label-warning">{{ orders.goods_passport.activity.name }}</span>
+					
+					<b>{{ orders.goods_passport.name }}&nbsp;&nbsp;</b>
+
+					<span ng-show="orders.goods_passport.brand" class="label label-default">{{ orders.goods_passport.brand.name }}</span>&nbsp;&nbsp;
+					
+					<i>{{ orders.goods_passport.sn }}&nbsp;&nbsp;</i>
+					
+					<span>{{ orders.custom.name }}</span>
+					
+					<span class="pull-right small-font" bind-once>|&nbsp;應付:&nbsp;{{ orders.required }}元&nbsp;&nbsp;</span>
+					
+					<span class="pull-right small-font" bind-once>|&nbsp;已付:&nbsp;{{ orders.paid }}元&nbsp;&nbsp;</span>
+					
+					<span class="pull-right small-font" bind-once ng-show="orders.goods_passport.discount && orders.goods_passport.discount != 10;">[{{ orders.goods_passport.discount }}折]&nbsp;&nbsp;</span>
+			</h4><hr/>
+			
+			<tabset justified="true" ng-show="orders.isDisplay">
+		    <tab heading="補款">
+					
+					<div ng-show="orders.status.id == 3;" class="alert alert-danger" role="alert">訂單已經取消</div>
+
+		    	<form ng-show="orders.status.id != 3;" novalidate class="form-horizontal" role="form">
+			    	<br />
+			    	<br />
+						
+						<my-form-textarea model="orders" label="'訂單備註'" name="'memo'"></my-form-textarea>
+			    	<my-form-span model="orders" label="'應付'" name="'required'"></my-form-span>
+						<my-form-span model="orders" label="'已付'" name="'paid'"></my-form-span>
+						<my-form-number ng-show="orders.status.id == 1;" model="orders" label="'補付'" name="'diff'" isPrice="1" isRequired="1"></my-form-number>
+						<my-form-select model="orders" entitys="payTypes" name="'pay_type'" label="'付費方式'"></my-form-select>
+						
+						<my-form-input model="orders" name="'content'" label="'操作備註'"></my-form-input>
+
+						<div class="form-group">
+							<label class="col-sm-2 control-label">&nbsp;</label>
+
+							<div class="col-sm-10">
+								<button ng-show="orders.status.id != 3;" confirmed-click="_cancel(orders);" ng-confirm-click="確定取消此訂單嘛?" class="btn btn-danger"><span class="glyphicon glyphicon-remove-circle"></span>取消訂單</button>
+								<button ng-show="orders.status.id == 1;" ng-click="update(orders);" class="btn btn-success">
+									<span class="glyphicon glyphicon-ok-circle"></span>確認補付金額
+								</button>
+							</div>	
+						</div>
+					</form>
+
+					<hr/>
+		    </tab>
+
+		    <tab heading="歷程記錄">
+		    	<my-ope-list orders="orders"></my-ope-list>
+		    </tab>
+		  </tabset>
+		</div>
+	</div>
+</div>
+{% endverbatim %}

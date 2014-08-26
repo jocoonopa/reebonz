@@ -7,7 +7,15 @@
 	<msg-footer success="$parent.successMsg" error="$parent.errorMsg" on-empty="$parent.emptyMsg();"></msg-footer>
 
 	<div class="row" ng-repeat="goods in searchRepo">
-		{% include 'WoojinGoodsBundle:GoodsPassport/partials/form:_goods.html.twig' %}
+		<goods-list-title goods="goods" set-lazy-img="setLazyImg(goods);"></goods-list-title><hr/>
+
+		<div ng-show="goods.isDisplay && goods.isDelete;" class="alert alert-danger" role="alert">已經刪除</div>
+		
+		<form ng-show="goods.isDisplay && !goods.isDelete;" novalidate class="form-horizontal" role="form">
+			{% include 'WoojinGoodsBundle:GoodsPassport/partials/form:_goods.html.twig' %}
+
+			<my-form-save model="goods" on-click="$parent.update($index, searchRepo);" on-delete="$parent.delete(goods);" on-move="$parent.move(goods);" load-orders="$parent.open(goods);"></my-form-save>	
+		</form>
 	</div>
 	
 	<div class="row" ng-show="totalItems>0;">
@@ -28,5 +36,5 @@
 		</form>
 	</div>
 
-	<pagination ng-show="totalItems>0;" max-size="5" rotate="false" boundary-links="true" items-per-page="perPage" total-items="totalItems" ng-model="currentPage" ng-change="pageChanged()"></pagination>
+	<pagination ng-show="totalItems>0;" max-size="10" rotate="false" boundary-links="true" items-per-page="perPage" total-items="totalItems" ng-model="currentPage" ng-change="pageChanged()"></pagination>
 </div>

@@ -1,5 +1,85 @@
 {% verbatim %}
-<div class="row">
-活動設定頁
+<msg-footer success="success" error="error" on-empty="emptyMsg();"></msg-footer>
+
+<div class="panel-heading">
+  <h2 class="panel-title pointer" ng-click="isSearchPanelVisible=!isSearchPanelVisible;" ng-class="{dropup: !isSearchPanelVisible}"><span class="caret"></span>&nbsp; 新增活動</h2>
+</div>
+
+<div class="panel-body" ng-show="isSearchPanelVisible">
+	<form novalidate class="form-horizontal" role="form">
+		<my-form-input model="newActivity" label="'活動名稱'" name="'name'"></my-form-input>
+
+		<my-form-textarea model="newActivity" label="'活動簡介'" name="'description'"></my-form-textarea>
+
+		<my-form-number model="newActivity" label="'滿'" name="'exceed'" isPrice="1"></my-form-number>
+
+		<my-form-number model="newActivity" label="'送'" name="'minus'" isPrice="1"></my-form-number>
+
+		<my-form-number model="newActivity" label="'折扣'" name="'discount'"></my-form-number>
+
+		<my-form-date model="newActivity" label="'開始時間'" name="'start_at'"></my-form-date>
+
+		<my-form-date model="newActivity" label="'結束時間'" name="'end_at'"></my-form-date>
+
+		<div class="form-group">
+			<label class="col-sm-2">&nbsp;</label>
+
+			<div class="col-sm-10">
+				<button ng-click="create(newActivity);" class="btn btn-success"><span class="glyphicon glyphicon-floppy-saved"></span>儲存</button>
+				<button ng-click="reset(newActivity);" class="btn btn-default"><span class="glyphicon glyphicon-unchecked"></span>清空</button>
+			</div>
+		</div>
+	</form>	
+</div>
+
+<div class="row" ng-repeat="activity in activitys">
+	<h4 class="pointer"
+		ng-click="switchDisplay(activity);" 
+		ng-class="{dropup: !activity.isDisplay}" 
+	>
+		<span class="caret"></span>
+			<small ng-show="activity.isDelete;">刪除</small>
+			<b>{{ activity.name }}</b>
+
+			<span ng-show="isDiscount(activity);" class="small-font">[{{ activity.discount }}折]</span>
+			<span ng-show="isGiftWithPurchase(activity);" class="small-font">[滿{{ activity.exceed }}元送{{ activity.minus }}元]</span>
+
+			<small ng-show="activity.start_at && activity.end_at;">-{{ formatDate(activity.start_at) }} ~ {{ formatDate(activity.end_at) }}</small>
+		<a class="pull-right" ng-click="preventBubble($event);" href="#/activity/{{ activity.id }}/platform">
+			<span class="glyphicon glyphicon-arrow-right"></span>前往活動
+		</a>
+
+	</h4>
+	<hr/>
+
+	<div ng-show="activity.isDisplay && activity.isDelete;" class="alert alert-danger" role="alert">已經刪除</div>
+
+	<form ng-show="activity.isDisplay && !activity.isDelete;" novalidate class="form-horizontal" role="form">
+		<my-form-input model="activity" label="'活動名稱'" name="'name'"></my-form-input>
+
+		<my-form-textarea model="activity" label="'活動簡介'" name="'description'"></my-form-textarea>
+
+		<my-form-number model="activity" label="'滿'" name="'exceed'" isPrice="1"></my-form-number>
+
+		<my-form-number model="activity" label="'送'" name="'minus'" isPrice="1"></my-form-number>
+
+		<my-form-number model="activity" label="'折扣'" name="'discount'"></my-form-number>
+
+		<my-form-date model="activity" label="'開始時間'" name="'start_at'"></my-form-date>
+
+		<my-form-date model="activity" label="'結束時間'" name="'end_at'"></my-form-date>
+
+		<div class="form-group">
+			<div class="col-sm-2">&nbsp;</div>
+			<div class="col-sm-10">
+				<button ng-click="update(activity);" class="btn btn-primary"><span class="glyphicon glyphicon-floppy-saved"></span>儲存</button>
+
+				<button ng-click="show(activity);" class="btn btn-default"><span class="glyphicon glyphicon-retweet"></span>還原</button>
+				
+				<button ng-click="destroy(activity);" class="btn btn-danger"><span class="glyphicon glyphicon-remove-circle"></span>刪除</button>
+			</div>
+		</div>
+
+	</form>
 </div>
 {% endverbatim %}

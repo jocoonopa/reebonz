@@ -11,22 +11,43 @@
 					<input id="import-file" type="file" class="hidden" name="import" ng-file-select="onFileSelect($files, 'importfiles');"/>
 					<p ng-show="importfiles;">檔案名稱:{{ importfiles[0].name }}</p>
 
-					<button type="button" class="btn btn-primary" my-file-input>選擇檔案</button>
+					<button type="button" class="btn btn-primary" my-file-input>
+						<span class="glyphicon glyphicon-folder-open"></span>&nbsp;選擇檔案
+					</button>
 
-					<button ng-show="importfiles;" class="btn btn-default" type="button" ng-click="$parent.cleanFile('#import-file'); importfiles=false;">取消選擇</button>
+					<button ng-show="importfiles;" class="btn btn-default" type="button" ng-click="$parent.cleanFile('#import-file'); importfiles=false;">
+						<span class="glyphicon glyphicon-floppy-remove"></span>取消選擇
+					</button>
 
-					<button ng-show="importfiles;" class="btn btn-success" type="button" ng-click="import();">上傳檔案</button>
+					<button ng-show="importfiles;" class="btn btn-success" type="button" ng-click="import();"><span class="glyphicon glyphicon-cloud-upload"></span>上傳檔案
+					</button>
 
-					<button ng-show="importGoods.length>0;" class="btn btn-warning" type="button" ng-click="$parent.reverse('importGoods', '批次上傳');">還原上傳</button>
+					<button ng-show="importGoods.length>0;" class="btn btn-warning" type="button" ng-click="$parent.reverse('importGoods', '批次上傳');">
+						<span class="glyphicon glyphicon-retweet"></span>還原上傳
+					</button>
 
-					<button ng-show="!importfiles;" class="btn btn-info" onclick="window.location.href='/uploads/example/example.xlsx';">範例下載</button>
+					<button ng-show="!importfiles;" class="btn btn-info" onclick="window.location.href='/uploads/example/example.xlsx';"><span class="glyphicon glyphicon-cloud-download"></span>範例下載</button>
+
+					<button ng-show="errorEntity" ng-click="addEntity();" class="btn btn-success btn-sm bottom_right">立即新增!</button>
 				</div>
 			</div>
 		</form>
 		{% endverbatim %}
+		
+		<div class="row" ng-show="$parent.importGoods.length > 0">
+			{% verbatim %}<span class="badge">{{ $parent.importGoods.length }}</span>件{% endverbatim %}
+		</div>
 
-		<div class="row" ng-repeat="goods in $parent.importGoods">	
-			{% include 'WoojinGoodsBundle:GoodsPassport/partials/form:_goods.html.twig' %}
+		<div class="row" ng-repeat="goods in $parent.importGoods">				
+			<goods-list-title goods="goods" set-lazy-img="setLazyImg(goods);"></goods-list-title><hr/>
+
+			<div ng-show="goods.isDisplay && goods.isDelete;" class="alert alert-danger" role="alert">已經刪除</div>
+			
+			<form ng-show="goods.isDisplay && !goods.isDelete;" novalidate class="form-horizontal" role="form">
+				{% include 'WoojinGoodsBundle:GoodsPassport/partials/form:_goods.html.twig' %}
+
+				<my-form-save model="goods" on-click="$parent.update($index, importGoods);" on-delete="$parent.delete(goods);" on-move="$parent.move(goods);" load-orders="$parent.open(goods);"></my-form-save>	
+			</form>
 		</div>
 	</div>
 </div>

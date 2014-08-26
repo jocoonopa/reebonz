@@ -4,14 +4,27 @@
 	ng-class="{dropup: !goods.isDisplay}" 
 >
 	<span class="caret"></span>
+	
 	<b>
 		<small ng-show="goods.isDelete;">刪除</small>
-		<small ng-show="goods.status.name">{{ goods.status.name }}</small>
-		{{ goods.name }}
-	</b>&nbsp;&nbsp;
+		
+		<small ng-show="goods.status.name">
+			<mark>{{ goods.status.name }}</mark>
+		</small>
+	</b>
+	
+	<span ng-show="goods.activity" class="label label-warning">{{ goods.activity.name }}</span>
+	
+	<b ng-class="{success_bgc: goods.isSuccess, error_bgc: goods.isError}">{{ goods.name }}</b>
+	
+	<span ng-show="goods.brand" class="label label-default">{{ goods.brand.name }}</span>&nbsp;&nbsp;
+	
 	<i>{{ goods.sn }} </i>&nbsp;&nbsp;
-	<span class="pull-right small-font">一般價:{{ goods.fake_price }}元</span>&nbsp;&nbsp;
-	<span class="pull-right small-font">優惠價:{{ goods.price }}元</span>&nbsp;&nbsp;
-	<span class="pull-right small-font">成本:{{ goods.cost }}元&nbsp;&nbsp;</span>
+	
+	<span ng-show="goods.fake_price && goods.fake_price > 0;" class="pull-right small-font">|&nbsp;一般價:{{ goods.fake_price }}元</span>&nbsp;&nbsp;
+	
+	<span class="pull-right small-font">|&nbsp;優惠價:{{ goods.price }}元</span>&nbsp;&nbsp;
+	
+	<span class="pull-right small-font">|&nbsp;成本:{{ goods.cost }}元&nbsp;&nbsp;</span>
 </h4>
 {% endverbatim %}

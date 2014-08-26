@@ -39,6 +39,13 @@ class User implements AdvancedUserInterface, \Serializable
 
   /**
    * @Exclude
+   * @ORM\OneToMany(targetEntity="\Woojin\OrderBundle\Entity\Invoice", mappedBy="user")
+   * @var Invoices[]
+   */
+  protected $invoices;
+
+  /**
+   * @Exclude
    * @ORM\OneToMany(targetEntity="\Woojin\StoreBundle\Entity\MetaRecord", mappedBy="user")
    * @var MetaRecord[]
    */
@@ -90,11 +97,13 @@ class User implements AdvancedUserInterface, \Serializable
   private $username;
 
   /**
+   * @Exclude
    * @ORM\Column(type="string", length=255)
    */
   private $salt;
 
   /**
+   * @Exclude
    * @ORM\Column(type="string", length=255)
    */
   private $password;
@@ -125,6 +134,7 @@ class User implements AdvancedUserInterface, \Serializable
   private $stopAt;
 
   /**
+   * @Exclude
    * @ORM\Column(type="integer", length=60)
    */
   private $chmod;
@@ -135,6 +145,7 @@ class User implements AdvancedUserInterface, \Serializable
   private $isActive;
 
   /**
+   * @Exclude
    * @ORM\Column(type="string", nullable=true)
    */
   private $csrf;
@@ -674,5 +685,71 @@ class User implements AdvancedUserInterface, \Serializable
     public function getRealname()
     {
         return $this->realname;
+    }
+
+    /**
+     * Add req_moves
+     *
+     * @param \Woojin\OrderBundle\Entity\Move $reqMoves
+     * @return User
+     */
+    public function addReqMove(\Woojin\OrderBundle\Entity\Move $reqMoves)
+    {
+        $this->req_moves[] = $reqMoves;
+    
+        return $this;
+    }
+
+    /**
+     * Remove req_moves
+     *
+     * @param \Woojin\OrderBundle\Entity\Move $reqMoves
+     */
+    public function removeReqMove(\Woojin\OrderBundle\Entity\Move $reqMoves)
+    {
+        $this->req_moves->removeElement($reqMoves);
+    }
+
+    /**
+     * Get req_moves
+     *
+     * @return \Doctrine\Common\Collections\Collection 
+     */
+    public function getReqMoves()
+    {
+        return $this->req_moves;
+    }
+
+    /**
+     * Add res_moves
+     *
+     * @param \Woojin\OrderBundle\Entity\Move $resMoves
+     * @return User
+     */
+    public function addResMove(\Woojin\OrderBundle\Entity\Move $resMoves)
+    {
+        $this->res_moves[] = $resMoves;
+    
+        return $this;
+    }
+
+    /**
+     * Remove res_moves
+     *
+     * @param \Woojin\OrderBundle\Entity\Move $resMoves
+     */
+    public function removeResMove(\Woojin\OrderBundle\Entity\Move $resMoves)
+    {
+        $this->res_moves->removeElement($resMoves);
+    }
+
+    /**
+     * Get res_moves
+     *
+     * @return \Doctrine\Common\Collections\Collection 
+     */
+    public function getResMoves()
+    {
+        return $this->res_moves;
     }
 }

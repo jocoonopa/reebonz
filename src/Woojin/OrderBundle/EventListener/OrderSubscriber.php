@@ -123,14 +123,6 @@ class OrderSubscriber implements EventSubscriber
       return;
     }
 
-    // 若是販售類型訂單且尚未有所屬發票，則執行指派發票動作
-    if (
-      $order->getKind()->getType() === self::OK_TYPE_OUTSTORE &&
-      $order->getInvoice() instanceof Invoice
-    ) {
-      $this->assignInvoice($order, $em);
-    }
-
     /**
      * 操作記錄工廠參數設置
      * @var array
@@ -191,7 +183,7 @@ class OrderSubscriber implements EventSubscriber
      * 
      * @var \Woojin\OrderBundle\Entity\payType
      */
-    $payType = $em->getRepository('WoojinOrderBundle:PayType')->find($request->request->get('pay_type', 0));
+    $payType = $em->find('WoojinOrderBundle:PayType', $request->request->get('pay_type', 0));
 
     /**
      * 操作記錄工廠
@@ -242,38 +234,5 @@ class OrderSubscriber implements EventSubscriber
     );
 
     $OpeFactory->create($settings);
-  }
-
-  protected function assignInvoice($order, $em)
-  {       
-    /**
-     * 屬於該訂單客人且尚未列印的發票實體
-     * @var object
-     */
-    $invoice = $em->getRepository('WoojinOrderBundle:Invoice')
-      ->findOneBy(array(
-        'custom' => $order->getCustom(), 
-        'hasPrint'=> 0
-      ));
-
-    // 如果目前沒有發票，則創立一張
-    if (!$invoice) {
-      $invoice = new Invoice;
-      $invoice
-        ->setCustom( $order->getCustom() )
-        ->setStore( $this->container->get('security.context')->getToken()->getUser()->getStore() )
-        ->setHasPrint(false)
-      ;
-
-      $em->persist($invoice);
-    }
-
-    // 綁定定單所屬發票
-    $order->setInvoice($invoice);
-
-    $em->persist($order);
-    $em->flush();
-
-    return $this;
   }
 }

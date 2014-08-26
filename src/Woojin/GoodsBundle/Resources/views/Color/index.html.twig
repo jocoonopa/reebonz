@@ -8,9 +8,13 @@
 
 	<form class="form-inline" role="form">
 		<div class="form-group">
-		  <input ng-model="query.name" type="text" name="filter" class="form-control input-sm" placeholder="顏色"/>
-
-		  <button ng-click="clean(); create(query);" class="btn btn-primary btn-sm">新增</button>
+		  <div class="input-group">
+        <!-- <span class="input-group-addon">$</span> -->
+        <input ng-model="query.name" type="text" name="filter" class="form-control input-sm" placeholder="顏色" />
+        <span class="input-group-btn">
+          <button ng-click="clean(); create(query);" class="btn btn-primary btn-sm" type="button">新增</button>
+        </span>
+      </div>
   	</div>
 	</form>
 	

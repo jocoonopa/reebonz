@@ -1,0 +1,64 @@
+'use strict';
+
+backendCtrls.controller('BrandCtrl', ['$scope', '$routeParams', '$http', 'Brand',
+	function ($scope, $routeParams, $http, Brand) { 
+
+  $scope.init = function () {
+    $scope.brands = Brand.query();
+    $scope.successMsg = false;
+    $scope.errorMsg = false;
+    $scope.tmp = {}; // 檢查資料有無改動，依此結果判斷是否要和後端溝通
+    $scope.query = {};
+    $scope.query.name = '';
+  };
+
+  $scope.create = function (query) {
+  	Brand.save(query).
+	  	$promise.then(function () {
+	  		$scope.successMsg = query.name + ' 新增完成!';
+	  		$scope.brands = Brand.query();
+	  		$scope.query.name = '';
+	  	}, function (error) {
+	  		$scope.errorMsg = query.name + '新增失敗，請確認是否有名稱重複!';
+	  	});
+  };
+
+  $scope.update = function (brand) {
+
+  	if (brand.name === $scope.tmp.name) {
+  		return;
+  	}
+
+  	Brand.update({ id: brand.id}, brand).
+  		$promise.then(function () {
+  			$scope.successMsg = brand.name + ' 修改完成!';
+  			//$scope.brands = Brand.query();
+  			$scope.query.name = '';
+  		}, function () {
+  			$scope.errorMsg = brand.name + '修改失敗，請確認是否有名稱重複!';
+  		});
+  };
+
+  $scope.destroy = function (brand) {
+  	Brand.delete({ id: brand.id}).
+  		$promise.then(function () {
+  			$scope.successMsg = brand.name + ' 刪除完成!';
+  			$scope.brands = Brand.query();
+  			$scope.query.name = '';
+  		}, function (e) {
+  			$scope.errorMsg = brand.name + '刪除失敗，請確認是否有綁定資料!';
+  		});
+  };
+
+  $scope.clean = function () {
+  	$scope.successMsg = false;
+  	$scope.errorMsg = false;
+  };
+
+  $scope.setTmp = function (brand) {
+  	$scope.tmp.id = brand.id;
+  	$scope.tmp.name = brand.name;
+  };
+
+  $scope.init();
+}]);

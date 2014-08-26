@@ -128,7 +128,11 @@ class PatternController extends Controller
         $em->persist($pattern);
         $em->flush();
 
-        return new Response(json_encode($pattern));
+        $serializer = \JMS\Serializer\SerializerBuilder::create()->build();
+        
+        $jsonPattern = $serializer->serialize($pattern, 'json');
+
+        return new Response($jsonPattern);
     }
 
     /**
@@ -159,7 +163,11 @@ class PatternController extends Controller
         $em->persist($pattern);
         $em->flush();
 
-        return new Response(json_encode($pattern));
+        $serializer = \JMS\Serializer\SerializerBuilder::create()->build();
+        
+        $jsonPattern = $serializer->serialize($pattern, 'json');
+
+        return new Response($jsonPattern);
     }
 
     /**

@@ -128,7 +128,11 @@ class SupplierController extends Controller
         $em->persist($supplier);
         $em->flush();
 
-        return new Response(json_encode($supplier));
+        $serializer = \JMS\Serializer\SerializerBuilder::create()->build();
+        
+        $jsonSupplier = $serializer->serialize($supplier, 'json');
+
+        return new Response($jsonSupplier);
     }
 
     /**
@@ -159,7 +163,11 @@ class SupplierController extends Controller
         $em->persist($supplier);
         $em->flush();
 
-        return new Response(json_encode($supplier));
+        $serializer = \JMS\Serializer\SerializerBuilder::create()->build();
+        
+        $jsonSupplier = $serializer->serialize($supplier, 'json');
+
+        return new Response($jsonSupplier);
     }
 
     /**

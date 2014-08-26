@@ -38,10 +38,13 @@ class OrdersRepository extends \Woojin\WoojinRepository
     {
     	$qb = $this->getEntityManager()->createQueryBuilder();
 
-    	$qb->select('o')->from('WoojinOrderBundle:Orders', 'o')
+    	$qb
+            ->select(array('o', 'i') )
+            ->from('WoojinOrderBundle:Orders', 'o')
     		->leftjoin('o.goods_passport', 'g')
     		->leftjoin('o.custom', 'c')
     		->leftjoin('o.opes', 'p')
+            ->leftjoin('o.invoice', 'i')
     	;
         
         // 根據傳入的條件陣列執行$qb 的方法

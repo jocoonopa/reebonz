@@ -14,40 +14,21 @@
 	<link rel="stylesheet" href="/bundles/woojinbackend/css/backend.layout.css">
 	<link rel="stylesheet" href="/bundles/woojinbackend/css/yeti.custom.fix.css">
 	<link rel="stylesheet" href="//bootswatch.com/yeti/bootstrap.min.css">
-	<link rel="stylesheet" href="/bundles/woojinstore/plugin/datetimepicker/css/datepicker3.css">
+	<link rel="stylesheet" href="/bundles/woojinbackend/js/plugin/datetimepicker/css/datepicker3.css">
 	<link rel="stylesheet" href="/bundles/woojinbackend/js/angular-seed/app/bower_components/angular-block-ui/angular-block-ui.min.css"/>
 	<link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}" />
 	<!-- CSS /-->
 	
-	<!--/ jQuery -->
-	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-	<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.1/js/bootstrap.min.js"></script>
-	<script src="/bundles/woojinstore/plugin/datetimepicker/js/bootstrap-datepicker.js"></script>
-	<script src="/bundles/woojinstore/plugin/datetimepicker/js/locales/bootstrap-datepicker.zh-TW.js"></script>
-	<script src="/bundles/woojinbackend/js/plugin/jquery.blockui.js"></script>
-	<!-- jQuery /-->
-
 	<script src="{{ asset('bundles/fosjsrouting/js/router.js') }}"></script>
 	<script src="{{ path('fos_js_routing_js', {"callback": "fos.Router.setData"}) }}"></script>
-
-	<!--/ Angular depend -->	
-	<script src="/bundles/woojinstore/js/angular/angular.js"></script>
-	<script src="/bundles/woojinbackend/js/angular-seed/app/bower_components/angular-block-ui/angular-block-ui.min.js"></script>
-	<script src="/bundles/woojinbackend/js/plugin/bower_components/ng-file-upload/angular-file-upload-shim.min.js"></script> 
-	<script src="/bundles/woojinbackend/js/plugin/bower_components/ng-file-upload/angular-file-upload.min.js"></script> 
-	<script src="/bundles/woojinbackend/js/plugin/bower_components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script> 
-	<script src="/bundles/woojinstore/js/angular/angular-route.js"></script>
-	<script src="/bundles/woojinstore/js/angular/angular-resource.js"></script>
-	<script src="/bundles/woojinstore/js/angular/angular-animate.js"></script>
-	<script src="/bundles/woojinstore/js/angular/angular-sanitize.js"></script>
-
-	<!--/ Custom Angular File -->
-	<script src="/bundles/woojinbackend/js/angular-seed/app/js/app.js"></script>
-	<script src="/bundles/woojinbackend/js/angular-seed/app/js/controllers.js"></script>
-	<script src="/bundles/woojinbackend/js/angular-seed/app/js/services.js"></script>
-	<script src="/bundles/woojinbackend/js/angular-seed/app/js/directives.js"></script>
-	<!-- Custom Angular File /-->
-	<!-- Angular depend /-->	
+	
+	{% javascripts
+    '@jquery_and_bootstrap'
+    '@angular_and_depend'
+    '@plugin'
+    '@my_angular' output='js/reebonz.js' %}
+    <script src="{{ asset_url }}"></script>
+	{% endjavascripts %}
 
 	{% endblock %}
 </head>

@@ -1,0 +1,182 @@
+'use strict';
+
+/* Controllers */
+
+backendCtrls.controller('ActivityPlatformCtrl', ['$scope', '$routeParams', '$filter', '$http', 'Activity',
+  function ($scope, $routeParams, $filter, $http, Activity) {
+    var GS_ONSALE = 1;
+    var GS_ACTIVITY = 6;
+
+    var condition = {
+      Gactivity: {
+        in: [$routeParams.id]
+      }
+    };
+
+    var orderBy = {
+      attr: 'update_at',
+      dir: 'DESC'
+    };
+
+    var initPost = function (barcode) {
+      var post = {
+        Gstatus: {
+          in: [GS_ONSALE, GS_ACTIVITY]
+        }
+      };
+
+      if (barcode) {
+        post.Gsn = {};
+        post.Gsn.in = [barcode];
+      }
+
+      return post;
+    };
+
+    var setSuccess = function (msg) {
+      $scope.success = msg;
+      $scope.error = null;
+    };
+
+    var setError = function (msg) {
+      $scope.success = null;
+      $scope.error = msg;
+    };
+
+    var _push = function () {
+      var goodsSns = [];
+
+      for (var key in $scope.list) {
+        goodsSns.push($scope.list[key]);
+      }
+
+      $http.put(Routing.generate('api_activity_push', {id: $routeParams.id}), {goodsSns: goodsSns})
+        .success(function (res) {
+          if (res.status === 'ok') {
+            $scope.init();
+            setSuccess('刷出活動完成!');
+          }
+        }).error(function (res) {
+          setError('刷出活動發生錯誤!');
+        });
+    };
+
+    var pull = function () {
+      var goodsSns = [];
+
+      for (var key in $scope.list) {
+        goodsSns.push($scope.list[key]);
+      }
+
+      $http.put(Routing.generate('api_activity_pull', {id: $routeParams.id}), {goodsSns: goodsSns})
+        .success(function (res) {
+          if (res.status === 'ok') {
+            $scope.init();
+            setSuccess('刷入活動完成!');
+          }
+        }).error(function (res) {
+          setError('刷入活動發生錯誤!');
+        });
+    };
+
+    var get = function (barcode) {
+      for (var key in $scope.list) {
+        if ($scope.list[key].sn === barcode) {
+          return;
+        }
+      }
+
+      var post = initPost(barcode);
+
+      $http.get(Routing.generate('api_goodsPassport_filter', {jsonCondition: JSON.stringify(post)}))
+        .success(function (goodsGroup) {
+          if (goodsGroup.length === 0) {
+            setError(barcode + '資料無法取得，請確認該商品是否為上架或活動狀態!');
+            return;
+          }
+
+          var goods = goodsGroup[0];
+
+          $scope.list.push({sn: goods.sn});
+          $scope.barcode = null;
+
+          setSuccess(goods.sn + '資料取得成功!');
+        })
+        .error(function (e) {
+          console.log('error');
+          setError(barcode + '資料取得發生錯誤!');
+        }); 
+    };
+
+    $scope.emptyMsg = function () {
+      $scope.success = null;
+      $scope.error = null;
+    };
+
+    $scope.formatDate = function (date, format) {
+      var format = format || 'yyyy-MM-dd';
+      return $filter('date')(date, format);
+    };
+
+    $scope.init = function () {
+      $scope.activity = Activity.get({id: $routeParams.id });
+      $scope.soldCount = 0;
+      $scope.barcode = null;
+      $scope.act = 1;
+      $scope.list = [];
+      $scope._query();
+      $scope.query = {sn: ''};
+      $scope.success = null;
+      $scope.error = null;
+    };
+
+    $scope.emptyMsg = function () {
+      $scope.success = null;
+      $scope.error = null;
+    };
+
+    $scope._query = function () {
+      $http.get(Routing.generate('api_goodsPassport_filter', {jsonCondition: JSON.stringify(condition), jsonOrderBy: JSON.stringify(orderBy), page: 1, perPage: 10000}))
+      .success(function (data) {
+        $scope.goodses = data;
+
+        for (var key in $scope.goodses) {
+          if ($scope.goodses[key].status.id === 2 ) {
+            $scope.soldCount ++;
+          }
+        }
+      });
+    };
+
+    $scope.saveList = function () {
+      switch ($scope.act)
+      {
+        case 0:
+          _push();
+          break;
+
+        case 1:
+          pull();
+          break;
+
+        default:
+          break;
+      }
+    };
+
+    $scope.removeList = function (index) {
+      $scope.list.splice(index, 1);
+    };
+
+    $scope.emptyList = function () {
+      var r = confirm('確定清空嘛?');
+      
+      return (r) ? $scope.list = [] : false;
+    }
+
+    $scope.add = function () {
+      get($scope.barcode);
+    };
+
+    $scope.init();
+}]);

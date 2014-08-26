@@ -1,0 +1,396 @@
+'use strict';
+
+/* Controllers */
+
+/**
+ * 調貨後端流程:
+ * 1. ApiBundle/OrderController 調貨的action, 產生兩筆訂單， 首先產生調出貨
+ * 2. 調出貨觸發事件->產生調進貨訂單以及調進貨商品->prevent 商品監聽者產生進貨訂單
+ *
+ * 操作流程:
+ * 1. 搜尋商品, 對該商品發出調貨請求，此時訂單狀態和商品狀態都沒有改變
+ * 2. 調貨請求存入 MoveReq， 狀態為待處理, WebWorker 每隔三分鐘搜尋該實體一次並刷新通知
+ * ( 
+ * MoveRequest: {
+ *  status: orderStatus, 
+ *  req_store(發起請求店): store,
+ *  res_store(接收請求店): store,
+ *  res_user(回應請求人): user,
+ *  req_user(請求發起人): user,
+ *  goods_passport(商品): goods_passport,
+ *  out_orders(調出貨訂單): orders,
+ *  in_orders(掉進貨訂單): orders,
+ *  create_at(建立時間): date,
+ *  update_at(更新時間): date,
+ *  memo: 備註(string)
+ * })
+ * 3a. 允諾該請求, 則啟動調貨後端流程，該請求狀態改為complete
+ * 3b. 取消改請求，該請求取消，並附上原因
+ *
+ * 實作步驟:
+ *
+ * 1. Entity Move create, 關連設定和db schema 更新 v
+ * 2. MoveRepository.php create 
+ * 3. ApiBundle/MoveController 業務邏輯實作，基本CRUD
+ * 4. ApiBundle/OrderController 調貨的業務邏輯實作
+ * 5. GoodsSubscriber prevent 產生進貨訂單
+ * 6. Angular 的 MoveCtrl 實作完成,內涵為查詢修改刪除介面( 新增應於商品查詢處實作v )
+ * 7. Angular 的 HeaderCtrl 實作，內涵為請求以及寄賣完成的推播通知( 寄賣之後才會做 )
+ */
+backendCtrls.controller('MoveCtrl', [ '$scope', '$http', '$filter', 'Move', 'OrdersStatus', 'Store',
+  function ($scope, $http, $filter, Move, OrdersStatus, Store) {
+
+  var OS_HANDLING = 1;
+  var GS_ON_SALE = 1;
+
+  /**
+   * 初始化資料
+   */
+  $scope.init = function () {
+    $scope.success = false;
+    $scope.error = false;
+    $scope.queryDes = false;
+    $scope.totalItems = 0;
+    $scope.currentPage = 1;
+    $scope.perPage = 10;
+
+    // 取得目前使用者
+    $http.get(Routing.generate('api_user_current')).success(function (user) {
+      $scope.user = user;
+    });
+
+    $scope.statuses = OrdersStatus.query();
+    $scope.stores = Store.query();
+    $scope.queryDes = '';
+    $scope.move = {};
+    $scope.repo = {};
+    // 取得 mapping 設定
+    $http.get('/bundles/woojinbackend/js/angular-seed/app/js/mapping.json').
+      success(function (res) {
+        /**
+         * 查詢描述英中對應陣列
+         * @type {Object}
+         */
+        $scope.mapping = res;
+      });
+  };
+
+  $scope.setSuccess = function (msg) {
+    $scope.success = msg;
+    $scope.error = false;
+  };
+
+  $scope.setError = function (msg) {
+    $scope.success = false;
+    $scope.error = msg;
+  };
+
+  /**
+   * 判斷是否為本店商品
+   * 
+   * @param  {object}  move
+   * @return {Boolean}     
+   */
+  $scope.isOwnGoods = function (move) {
+    return ($scope.user.store.id === move.out_goods_passport.store.id);
+  };
+
+  /**
+   * 判斷是否為本店發出的請求
+   * 
+   * @param  {object}  move
+   * @return {Boolean}     
+   */
+  $scope.isOwnReq = function (move) {
+    return ($scope.user.store.id === move.req_store.id);
+  };
+
+  /**
+   * 判斷該請求商品是否為上架狀態
+   * 
+   * @param  {object}  move
+   * @return {Boolean}     
+   */
+  $scope.isOnSale = function (move) {
+    return (move.out_goods_passport.status.id === GS_ON_SALE);
+  };
+
+  /**
+   * 判斷該調貨請求狀態是否為正在處理中
+   * 
+   * @param  {object}  move
+   * @return {Boolean}     
+   */
+  $scope.isHandling = function (move) {
+    return (move.status.id === OS_HANDLING);
+  };
+
+  /**
+   * 查詢條件以及結果清空
+   */
+  $scope.reset = function () {
+    $scope.repo = {};
+    $scope.move = {};
+    $scope.queryDes = false;
+  };
+
+  /**
+   * 確認調出貨，此時
+   * 
+   * 1. 產生調出貨訂單和調進貨訂單，( 後端判斷商品狀態為上架且為本店商品才可執行以下動作 )，兩個訂單的狀態都為處理中
+   * 2. 產品狀態改為調貨中
+   * 3. 調貨請求綁訂調進貨以及調出貨訂單，回應者，備註更新
+   * 4. 自動取消其他店對該商品的調貨請求
+   *
+   * @param  {object} move
+   */
+  $scope.send = function (move) {
+    Move.update({id: move.id}, {act: 'send', memo: move.memo}, 
+      function (newMove) {
+      $scope.refresh($scope.searchRepo, move, newMove);
+      $scope.setSuccess('出貨確認完成!');
+    }, function (e) {
+      console.log(e);
+      $scope.setError('出貨確認失敗!');
+    });
+  };
+
+  /**
+   * 確認到貨
+   *
+   * 1. 調出貨訂單和調進貨訂單完成 ( 後端判斷商品狀態為調貨中且請求發起所屬店為本店 )
+   * 2. 產品狀態改為它店
+   * 3. 備註更新
+   * 
+   * @param  {object} move
+   */
+  $scope.recieve = function (move) {
+    Move.update({id: move.id}, {act: 'recieve', memo: move.memo}, 
+      function (newMove) {
+      $scope.refresh($scope.searchRepo, move, newMove);
+      $scope.setSuccess('到貨確認完成!');
+    }, function (e) {
+      console.log(e);
+      $scope.setError('到貨確認失敗!');
+    });
+  };
+
+  /**
+   * 取消請求
+   * 
+   * 調進方:
+   * 1. 調貨請求取消 ( 調貨請求狀態必須為處理中且為本店請求且商品狀態為上架才可取消 )
+   * 2. 備註更新
+   * 
+   * 調出方:
+   * 1. 若存在調出貨訂單和調進貨訂單，其狀態改為取消 ( 調貨請求狀態必須為處理中且商品為本店才可執行以下動作 )
+   * 2. 產品狀態改為本店
+   * 3. 備註更新
+   * 
+   * @param  {object} move
+   */
+  $scope.cancel = function (move) {
+    Move.update({id: move.id}, {act: 'cancel', memo: move.memo}, 
+      function (newMove) {
+      $scope.refresh($scope.searchRepo, move, newMove);
+      $scope.setSuccess('已取消!');
+    }, function (e) {
+      console.log(e);
+      $scope.setError('取消失敗!');
+    });
+  };
+
+  /**
+   * 對該調貨請求處理完後，刷新其資料
+   * 
+   * @param  {object} move
+   * @param  {object} elem
+   * @param  {object} newElem
+   */
+  $scope.refresh = function (repo, elem, newElem) {
+    var index = repo.indexOf(elem);
+
+    if (index !== -1) {
+      repo[index] = newElem;
+    }
+  };
+
+  /**
+   * 根據條件取得查詢結果
+   */
+  $scope.query = function () {
+    $http.get(
+      Routing.generate(
+        "api_move_filter", 
+        {
+          jsonCondition: JSON.stringify($scope.repo), 
+          page: $scope.currentPage, 
+          perPage: $scope.perPage
+        }
+      )).
+      success(function (moves) {
+        for (var key in moves) {
+          $scope.preventEntityError(moves[key]);
+          $scope.formatDate(moves[key]);
+          $scope.switchPanelAndRes();
+        }
+
+        $scope.searchRepo = moves;
+      }).
+      error(function (e) {
+        console.log(e);
+        $scope.setError('Woops! 查詢發生錯誤！');
+      });
+  };
+
+  /**
+   * 結果區域及輸入區域切換顯示
+   */
+  $scope.switchPanelAndRes = function () {
+    $scope.isSearchPanelVisible = true;
+    $scope.isSearchResVisible = false;
+  };
+
+  $scope.formatDate = function (move) {
+    // 格式化時間
+    move.create_at = $filter('date')(move.create_at, 'yyyy-MM-dd');
+    move.update_at = $filter('date')(move.update_at, 'yyyy-MM-dd');
+  };
+
+  $scope.preventEntityError = function (model) {
+    var r = ['brand', 'pattern', 'level', 'source', 'mt', 'supplier', 'color', 'req_store', 'res_store', 'in_goods_passport', 'out_goods_passport'];
+
+    for (var i in r) {// 防止不存在實體引起錯誤
+      if (typeof model[r[i]] === 'undefined') {
+        model[r[i]] = {id: ''};
+      }
+    }
+  };
+
+  /**
+   * 初始化頁籤
+   */
+  $scope.pageInit = function () {
+    $http.get(Routing.generate("api_move_filter_count", {jsonCondition: JSON.stringify($scope.repo)})).
+      success(function (total) {
+        $scope.totalItems = total;
+      });
+  };
+
+  /**
+   * 換頁時觸發動作，這邊是執行 query() 方法取得資料
+   */
+  $scope.pageChanged = function() {
+    $scope.query();
+  };
+
+  /**
+   * 加入搜尋條件陣列
+   * 
+   * @param {string} attr [資料屬性]
+   * @param {string type [邏輯類型{ notin, in, like ....}]
+   */
+  $scope.addInSearchRePo = function (attr, type) {
+    if (!$scope.move[attr]) {
+      return;
+    }
+
+    if (!$scope.repo[attr]) {
+      $scope.repo[attr] = {};
+    }
+
+    if (!$scope.repo[attr][type]) {
+      $scope.repo[attr][type] = [];
+    }
+
+    $scope.repo[attr][type].push($scope.move[attr]);
+    $scope.move[attr] = '';
+    $scope.buildQueryDes();
+  };
+
+  /**
+   * 隱藏/顯示 切換
+   */
+  $scope.switchDisplay = function (move) {
+    move.isDisplay = !move.isDisplay;
+  };
+
+  /**
+   * 設置相等查詢條件
+   * 
+   * @param {string} attr [屬性]
+   * @param {string} type [邏輯類別]
+   */
+  $scope.setEqRepo = function (attr, type) {
+    if (!$scope.move[attr]) {
+      $scope.repo[attr] = false;
+
+      return $scope.buildQueryDes();
+    }
+
+    if (!$scope.repo[attr]) {
+      $scope.repo[attr] = {};
+    }
+
+    if (!$scope.repo[attr][type]) {
+      $scope.repo[attr][type] = '';
+    }
+
+    $scope.repo[attr][type] = $scope.move[attr];
+
+    return $scope.buildQueryDes();
+  };
+
+  /**
+   * 產生查詢的文字描述
+   */
+  $scope.buildQueryDes = function () {
+    var tailStr = '且';
+    iterateRepo(tailStr);
+
+    $scope.queryDes = $scope.queryDes.substring(0, $scope.queryDes.length - tailStr.length);
+  };
+
+  var iterateRepo = function (tailStr) {
+    $scope.queryDes = '';
+
+    for (var attr in $scope.repo) {
+      if (!$scope.repo[attr]) {
+        continue;
+      }
+
+      $scope.queryDes += $scope.mapping.attr[attr];
+
+      iterateRepoAttr(attr, tailStr);
+    };
+  };
+
+  var iterateRepoAttr = function (attr, tailStr) {
+    for (var type in $scope.repo[attr]) {
+      $scope.queryDes += $scope.mapping.type[type];
+
+      if (!Array.isArray($scope.repo[attr][type])) {
+        $scope.queryDes += $scope.repo[attr][type].name;
+        $scope.queryDes += tailStr;
+
+        continue;
+      }
+
+      iterateRepoType(attr, type);
+
+      $scope.queryDes += tailStr;
+    }
+  };
+
+  var iterateRepoType = function (attr, type) {
+    for (var i = 0; i < $scope.repo[attr][type].length; i ++) {
+      if (typeof $scope.repo[attr][type][i] === 'object') {
+        $scope.queryDes += $scope.repo[attr][type][i].name + ((i === $scope.repo[attr][type].length - 1) ? '': '或');          
+      } else {
+        $scope.queryDes += $scope.repo[attr][type][i] + ((i === $scope.repo[attr][type].length - 1) ? '':'或');
+      }
+    }
+  };
+
+  $scope.init();
+}]);

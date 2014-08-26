@@ -1,0 +1,145 @@
+'use strict';
+
+/* App Module */
+
+var myApp = angular.module('myApp', [
+  'ngRoute',
+  'ngAnimate',
+  'ngSanitize', // for ngBindhtml
+  'backendServices',
+  'backendCtrls',
+  'blockUI',
+  'angularFileUpload',
+  'ui.bootstrap'
+]);
+
+myApp.config(['$httpProvider', function ($httpProvider) {
+
+  // Use x-www-form-urlencoded Content-Type
+  $httpProvider.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded;charset=utf-8';
+
+  /**
+   * The workhorse; converts an object to x-www-form-urlencoded serialization.
+   * @param {Object} obj
+   * @return {String}
+   */ 
+  var param = function(obj) {
+    var query = '', name, value, fullSubName, subName, subValue, innerObj, i;
+
+    for(name in obj) {
+      value = obj[name];
+
+      if(value instanceof Array) {
+        for(i=0; i<value.length; ++i) {
+          subValue = value[i];
+          fullSubName = name + '[' + i + ']';
+          innerObj = {};
+          innerObj[fullSubName] = subValue;
+          query += param(innerObj) + '&';
+        }
+      }
+      else if(value instanceof Object) {
+        for(subName in value) {
+          subValue = value[subName];
+          fullSubName = name + '[' + subName + ']';
+          innerObj = {};
+          innerObj[fullSubName] = subValue;
+          query += param(innerObj) + '&';
+        }
+      }
+      else if(value !== undefined && value !== null)
+        query += encodeURIComponent(name) + '=' + encodeURIComponent(value) + '&';
+    }
+
+    return query.length ? query.substr(0, query.length - 1) : query;
+  };
+
+  // Override $http service's default transformRequest
+  $httpProvider.defaults.transformRequest = [function(data) {
+    return angular.isObject(data) && String(data) !== '[object File]' ? param(data) : data;
+  }];
+}]).
+config(['$routeProvider', function ($routeProvider) {
+  $routeProvider.
+    when('/backend', {
+      templateUrl: Routing.generate('backend_index_body'),
+      controller: 'BackendCtrl'
+    }).
+    when('/brand', {
+      templateUrl: Routing.generate('brand_index'),
+      controller: 'BrandCtrl'
+    }).
+    when('/pattern', {
+      templateUrl: Routing.generate('pattern_index'),
+      controller: 'PatternCtrl'
+    }).
+    when('/goodsLevel', {
+      templateUrl: Routing.generate('goodsLevel_index'),
+      controller: 'GoodsLevelCtrl'
+    }).
+    when('/goodsSource', {
+      templateUrl: Routing.generate('goodsSource_index'),
+      controller: 'GoodsSourceCtrl'
+    }).
+    when('/goodsMt', {
+      templateUrl: Routing.generate('goodsMT_index'),
+      controller: 'GoodsMtCtrl'
+    }).
+    when('/color', {
+      templateUrl: Routing.generate('color_index'),
+      controller: 'ColorCtrl'
+    }).
+    when('/supplier', {
+      templateUrl: Routing.generate('supplier_index'),
+      controller: 'SupplierCtrl'
+    }).
+    when('/goodsPassport', {
+      templateUrl: Routing.generate('goodsPassport_index'),
+      controller: 'GoodsPassportCtrl'
+    }).
+    when('/user', {
+      templateUrl: Routing.generate('user_index'),
+      controller: 'UserCtrl'
+    }).
+    when('/custom', {
+      templateUrl: Routing.generate('custom_index'),
+      controller: 'CustomCtrl'
+    }).
+    when('/normal', {
+      templateUrl: Routing.generate('orders_normal'),
+      controller: 'OrdersNormalCtrl'
+    }).
+    when('/move', {
+      templateUrl: Routing.generate('move_index'),
+      controller: 'MoveCtrl'
+    }).
+    when('/special', {
+      templateUrl: Routing.generate('orders_special'),
+      controller: 'OrdersSpecialCtrl'
+    }).
+    when('/orders', {
+      templateUrl: Routing.generate('orders_index'),
+      controller: 'OrdersCtrl'
+    }).
+    when('/activity', {
+      templateUrl: Routing.generate('activity_index'),
+      controller: 'ActivityCtrl'
+    }).
+    when('/activity/:id/platform', {
+      templateUrl: function (params) { 
+        return Routing.generate('activity_platform', {id: params.id });
+      },
+      controller: 'ActivityPlatformCtrl'
+    }).
+    // when('/pay_type', {
+    //   templateUrl: Routing.generate('payType_index'),
+    //   controller: 'PayTypeCtrl'
+    // }).
+    // when('/exchange_rate', {
+    //   templateUrl: Routing.generate('exchangeRate_index'),
+    //   controller: 'ExchangeRateCtrl'
+    // }).
+    otherwise({
+      redirectTo: '/backend'
+    });
+}]);

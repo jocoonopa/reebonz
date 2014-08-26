@@ -1,0 +1,66 @@
+'use strict';
+
+/* Controllers */
+
+backendCtrls.controller('ColorCtrl', ['$scope', '$routeParams', '$http', 'Color',
+  function ($scope, $routeParams, $http, Color) { 
+
+  $scope.init = function () {
+    $scope.colors = Color.query();
+    $scope.successMsg = false;
+    $scope.errorMsg = false;
+    $scope.tmp = {}; // 檢查資料有無改動，依此結果判斷是否要和後端溝通
+    $scope.query = {};
+    $scope.query.name = '';
+  };
+
+  $scope.create = function (query) {
+    Color.save(query).
+      $promise.then(function () {
+        $scope.successMsg = query.name + ' 新增完成!';
+        $scope.colors = Color.query();
+        $scope.query.name = '';
+      }, function (error) {
+        $scope.errorMsg = query.name + '新增失敗，請確認是否有名稱重複!';
+      });
+  };
+
+  $scope.update = function (color) {
+
+    if (color.name === $scope.tmp.name) {
+      return;
+    }
+
+    Color.update({ id: color.id}, color).
+      $promise.then(function () {
+        $scope.successMsg = color.name + ' 修改完成!';
+        //$scope.colors = Color.query();
+        $scope.query.name = '';
+      }, function () {
+        $scope.errorMsg = color.name + '修改失敗，請確認是否有名稱重複!';
+      });
+  };
+
+  $scope.destroy = function (color) {
+    Color.delete({ id: color.id}).
+      $promise.then(function () {
+        $scope.successMsg = color.name + ' 刪除完成!';
+        $scope.colors = Color.query();
+        $scope.query.name = '';
+      }, function (e) {
+        $scope.errorMsg = color.name + '刪除失敗，請確認是否有綁定資料!';
+      });
+  };
+
+  $scope.clean = function () {
+    $scope.successMsg = false;
+    $scope.errorMsg = false;
+  };
+
+  $scope.setTmp = function (color) {
+    $scope.tmp.id = color.id;
+    $scope.tmp.name = color.name;
+  };
+
+  $scope.init();
+}]);

@@ -1,0 +1,3 @@
+'user strict';
+
+backendCtrls.controller('BackendCtrl', [ function () {}]);

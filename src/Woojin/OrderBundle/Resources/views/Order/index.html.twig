@@ -249,7 +249,24 @@
 	          </div>
 		    	</div>
 		    </div>
-		  </div>						
+		  </div>	
+			
+			<hr />
+
+		  <div class="form-group">
+				<label class="col-sm-2 control-label">排序條件</label>
+				
+				<div class="col-sm-5">
+					<select name="orderAttr" class="form-control" ng-model="orderBy" ng-options="orderBy.name for orderBy in orderBys"></select>
+				</div>
+
+				<div class="col-sm-5">
+					<div class="btn-group">
+		        <label class="btn btn-default" ng-model="orderDir" btn-radio="'ASC'" uncheckable>A>Z</label>
+		        <label class="btn btn-default" ng-model="orderDir" btn-radio="'DESC'" uncheckable>Z>A</label>
+		    	</div>
+				</div>
+			</div>					
 	  </form>
 	</div>
 
@@ -259,7 +276,7 @@
 
 	<div class="panel-body" ng-show="isSearchPanelVisible">
 		<!--/ 有空改寫成一個 directive!!!! -->
-		<msg-footer success="successMsg" error="errorMsg"></msg-footer>
+		<msg-footer success="successMsg" error="errorMsg" on-empty="emptyMsg();"></msg-footer>
 
 		<div class="row" ng-repeat="orders in ordersRepo">
 			<h4 class="pointer"
@@ -268,14 +285,24 @@
 			>
 				<span class="caret"></span>
 				<span bind-once>{{ orders.kind.name }} 
-					<small>{{ orders.status.name }}</small>
+					<small><mark>{{ orders.status.name }}</mark></small>
 					&nbsp;&nbsp;
 				</span>
+
+				<span ng-show="orders.goods_passport.activity" class="label label-warning">{{ orders.goods_passport.activity.name }}</span>
+				
 				<b>{{ orders.goods_passport.name }}&nbsp;&nbsp;</b>
+
+				<span ng-show="orders.goods_passport.brand" class="label label-default">{{ orders.goods_passport.brand.name }}</span>&nbsp;&nbsp;
+				
 				<i bind-once>{{ orders.goods_passport.sn }}&nbsp;&nbsp;</i>
+				
 				<span>{{ orders.custom.name }}</span>
-				<span class="pull-right small-font" bind-once>應付:&nbsp;{{ orders.required }}&nbsp;&nbsp;</span>
-				<span class="pull-right small-font" bind-once>已付:&nbsp;{{ orders.paid }}&nbsp;&nbsp;</span>
+				
+				<span class="pull-right small-font" bind-once>|&nbsp;應付:&nbsp;{{ orders.required }}元&nbsp;&nbsp;</span>
+				
+				<span class="pull-right small-font" bind-once>|&nbsp;已付:&nbsp;{{ orders.paid }}元&nbsp;&nbsp;</span>
+				
 				<span class="pull-right small-font" bind-once ng-show="orders.goods_passport.discount && orders.goods_passport.discount != 10;">[{{ orders.goods_passport.discount }}折]&nbsp;&nbsp;</span>
 			</h4><hr/>
 			
@@ -297,8 +324,9 @@
 							<label class="col-sm-2 control-label">&nbsp;</label>
 
 							<div class="col-sm-10">
-								<button ng-show="orders.status.id != 3;" confirmed-click="cancel($index);" ng-confirm-click="確定取消此訂單嘛?" class="btn btn-danger">取消訂單</button>
-								<button ng-show="orders.status.id == 1;" ng-click="update($index);" class="btn btn-success">確認補款</button>
+								<button ng-show="orders.status.id != 3;" confirmed-click="cancel($index);" ng-confirm-click="確定取消此訂單嘛?" class="btn btn-danger">
+									<span class="glyphicon glyphicon-remove-circle"></span>取消訂單</button>
+								<button ng-show="orders.status.id == 1;" ng-click="update($index);" class="btn btn-success"><span class="glyphicon glyphicon-ok-circle"></span>確認補款</button>
 							</div>	
 						</div>
 					</form>
@@ -307,27 +335,7 @@
 		    </tab>
 
 		    <tab heading="歷程記錄">
-		    	<br />
-		    	<br />
-
-					<div class="panel panel-info" ng-repeat="ope in orders.opes">
-					  <div class="panel-heading">
-					    <h3 class="panel-title">
-					    	<span>{{ ope.user.username }}</span>
-					    	<small>-{{ formatDate(ope.create_at) }}</small>
-					    </h3>
-					  </div>
-
-					  <!-- OK!! 有些沒有資料是因為一開始建檔沒建好 -->
-					  <div class="panel-body">
-					  	
-					    <b>{{ ope.pay_type.name }}</b>{{ ope.money }}元 
-							
-							<span ng-show="ope.content.length > 0;" class="pull-right">{{ ope.content }}</span>
-					  </div>
-					</div>
-
-					<hr/>
+		    	<my-ope-list orders="orders"></my-ope-list>
 		    </tab>
 		  </tabset>
 		</div>
@@ -351,7 +359,7 @@
 			</form>
 		</div>
 
-		<pagination ng-show="totalItems>0;" max-size="5" rotate="false" boundary-links="true" items-per-page="perPage" total-items="totalItems" ng-model="currentPage" ng-change="pageChanged()"></pagination>
+		<pagination ng-show="totalItems>0;" max-size="10" rotate="false" boundary-links="true" items-per-page="perPage" total-items="totalItems" ng-model="currentPage" ng-change="pageChanged()"></pagination>
 	</div>
 
 </div>

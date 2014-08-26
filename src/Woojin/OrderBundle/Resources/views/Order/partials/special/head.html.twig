@@ -1,0 +1,26 @@
+{% verbatim %}
+<div class="panel panel-default">
+  <div class="panel-heading">
+  	{{ myActivity.name }}
+  	<a class="pull-right" href="#/activity/{{ myActivity.id }}/platform">
+  		<span class="glyphicon glyphicon-arrow-right"></span>前往活動
+  	</a>
+  </div>
+  
+  <div class="panel-body">
+    <dl class="dl-horizontal">
+    	<dt ng-show="myActivity.discount > 0;">折扣:</dt>
+    	<dd ng-show="myActivity.discount > 0;">{{ myActivity.discount }}折</dd>
+
+    	<dt ng-show="myActivity.exceed > 0 && myActivity.minus > 0;">滿額送:</dt>
+    	<dd ng-show="myActivity.exceed > 0 && myActivity.minus > 0;">滿{{ myActivity.exceed }}送{{ myActivity.minus }}</dd>
+
+    	<dt ng-show="myActivity.description;">簡介:</dt>
+    	<dd>{{ myActivity.description }}</dd>
+
+    	<dt ng-show="myActivity.start_at && myActivity.end_at">起迄時間:</dt>
+    	<dd>{{ formatDate(myActivity.start_at) }} ~ {{ formatDate(myActivity.end_at) }}</dd>
+    </dl>
+  </div>
+</div>
+{% endverbatim %}

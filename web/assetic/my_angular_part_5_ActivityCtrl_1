@@ -1,0 +1,122 @@
+'use strict';
+
+/* Controllers */
+
+backendCtrls.controller('ActivityCtrl', ['$scope', '$routeParams', '$filter', '$http', 'Activity',
+  function ($scope, $routeParams, $filter, $http, Activity) { 
+    var GS_ONSALE = 1;
+    var GS_ACTIVITY = 6;
+
+    var init = function () {
+      $scope.activitys = Activity.query();
+      $scope.newActivity = {};
+      setNull($scope.newActivity);
+    };
+
+    /**
+     * 取得目前的時間，並且格式化為 yyyy-mm-dd
+     * 
+     * @return {string}
+     */
+    var getToday = function () {
+      var today = new Date();
+
+      return today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+    };
+
+    var setNull = function (activity) {
+      activity.exceed = 0;
+      activity.minus = 0;
+      activity.name = '';
+      activity.description = '';
+      activity.discount = 0;
+      activity.start_at = getToday();
+      activity.end_at = getToday();
+    };
+
+    var isSuccess = function (msg) {
+      $scope.success = msg;
+      $scope.error = false;
+    };
+
+    var isError = function (msg) {
+      $scope.success = false;
+      $scope.error = msg;
+    };
+
+    $scope.emptyMsg = function () {
+      $scope.success = null;
+      $scope.error = null;
+    };
+
+    $scope.formatDate = function (date, format) {
+      var format = format || 'yyyy-MM-dd';
+      return $filter('date')(date, format).substring(0, 10);
+    };
+
+    $scope.isDiscount = function (activity) {
+      return (activity.discount > 0);
+    };
+
+    $scope.isGiftWithPurchase = function (activity) {
+      return (activity.exceed > 0 &&  activity.minus > 0);
+    };
+
+    $scope.switchDisplay = function (activity) {
+      activity.isDisplay = !activity.isDisplay;
+    };
+
+    $scope.preventBubble = function ($event) {
+      if ($event.stopPropagation) {
+        $event.stopPropagation();
+      }
+    };
+
+    $scope.show = function (activity) {
+      Activity.get({id: activity.id}).
+        $promise.then(function (res) {
+          activity = res;
+        }, function () {
+          isError('取得活動資料失敗!');
+        });
+    };
+
+    $scope.create = function (activity) {
+      Activity.save(activity).
+        $promise.then(function (activity) {
+          isSuccess(activity.name + '新增完成!');
+          $scope.activitys.push(activity);
+        }, function () {
+          isError(activity.name + '新增失敗!');
+        });
+    };
+
+    $scope.update = function (activity) {
+      Activity.update({id: activity.id}, activity).
+        $promise.then(function (res) {
+          isSuccess(activity.name + '修改完成!');
+          activity = '';
+        }, function () {
+          isError(activity.name + '修改失敗!');
+        });
+    };
+
+    $scope.destroy = function (activity) {
+      Activity.delete({id: activity.id}, activity).
+        $promise.then(function (res) {
+          activity.isDelete = true;
+          isSuccess(activity.name + '刪除完成');
+        }, function () {
+          isError(activity.name + '刪除失敗，請檢查是否有相關商品');
+        });
+    };
+
+    $scope.reset = function (activity) {
+      setNull(activity);
+
+      activity.start_at = getToday();
+      activity.end_at = getToday();
+    };
+
+    init();
+}]);

@@ -1,0 +1,92 @@
+'use strict';
+
+/* Controllers */
+
+backendCtrls.controller('GoodsImportCtrl', ['$scope', '$routeParams', '$http', '$timeout', '$upload', '$filter',
+  function ($scope, $routeParams, $http, $timeout, $upload, $filter) {
+  /**
+   * 檔案選擇時，馬上顯示圖片
+   */
+  $scope.onFileSelect = function ($files, type) {
+    $scope[type] = $files;
+    
+    // 取出第0個元素
+    var $file = $files[0];
+    
+    // 這段不是很懂... 總之就是將上傳的圖片透過 HTML5 的 API 立即顯示
+    if (window.FileReader && $file.type.indexOf('image') > -1) {
+      var fileReader = new FileReader();
+      
+      fileReader.readAsDataURL($files[0]);
+      
+      var loadFile = function(fileReader) {
+        fileReader.onload = function(e) {
+          $timeout(function() {
+            if (goods) {
+              goods.imgpath = e.target.result;
+            }
+          });
+        }
+      }(fileReader);
+    }
+  };
+
+  /**
+   * 批次上傳商品(匯入 excel )
+   */
+  $scope.import = function () {
+    if (!$scope.importfiles) {
+      return;
+    }
+
+    for (var i = 0; i < $scope.importfiles.length; i++) {
+      var file = $scope.importfiles[i];
+
+      $scope.upload = $upload.upload({
+        url: Routing.generate('api_goodsPassport_import'),
+        method: 'POST',
+        withCredentials: true,
+        data: { myObj: $scope.myModelObj}, // 這行坦白說我不知道意思@@
+        file: file, 
+      }).success(function(data, status, headers, config) {
+        if (data.error) {
+          var msg = data.error;
+
+          $scope.errorEntity = {};
+          $scope.errorEntity.resource = data.resource;
+          $scope.errorEntity.name = data.name;
+          
+          return $scope.isError(msg);
+        }
+
+        $scope.errorEntity = false;
+
+        for (var key in data) {
+          // 防止空實體造成錯誤
+          $scope.preventEntityError(data[key]);
+
+          // 將取得的資料放入scope
+          $scope.importGoods.push(data[key]);
+        }
+        // 清除要上傳的檔案
+        $scope.cleanFile('#import-file');
+
+        $scope.isSuccess('批次上傳成功');
+      }).error(function (e) {
+        $scope.errorEntity = false;
+        $scope.isError('批次上傳失敗');
+      });
+    }
+  };
+
+  $scope.addEntity = function () {
+    $http.post(Routing.generate('api_' + $scope.errorEntity.resource + '_create'), {name: $scope.errorEntity.name})
+      .success(function (res) {
+        $scope.isSuccess(res.name + '新增完成!');
+        $scope.errorEntity = {};
+      })
+      .error(function () {
+        $scope.isError($scope.errorEntity.name + '新增失敗!');
+      });
+  };
+}]);
