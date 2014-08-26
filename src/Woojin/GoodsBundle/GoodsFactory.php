@@ -5,15 +5,16 @@ namespace Woojin\GoodsBundle;
 use Woojin\GoodsBundle\Entity\GoodsPassport;
 use Symfony\Component\Security\Core\SecurityContext;
 use Symfony\Component\PropertyAccess\PropertyAccess;
+use Doctrine\Common\Persistence\ManagerRegistry;
 
 class GoodsFactory implements \Woojin\BackendBundle\EntityFactory
 {
-    protected $em;
+    protected $registry;
     protected $context;
 
-    public function __construct(\Doctrine\ORM\EntityManager $em, SecurityContext $context)
+    public function __construct(ManagerRegistry $registry, SecurityContext $context)
     {
-        $this->em = $em;
+        $this->registry = $registry;
         $this->context = $context;
     }
 
@@ -47,8 +48,11 @@ class GoodsFactory implements \Woojin\BackendBundle\EntityFactory
      */
     public function create($settings)
     {
+        $em = $this->registry->getManager();
+
         /**
          * 商品實體陣列
+         * 
          * @var array(object)
          */
         $goodsCollection = array();
@@ -62,50 +66,19 @@ class GoodsFactory implements \Woojin\BackendBundle\EntityFactory
         // 先除去數量元素，以防接下來的迴圈處理發生錯誤
         unset($settings['amount']);
 
-        // 使用交易機制以防萬一
-        $this->em->getConnection()->beginTransaction();
+        // 使用交易機制
+        $em->getConnection()->beginTransaction();
 
         try {
-            // 根據數量執行等次數的迴圈，每次產生一個新的商品實體，
-            // 所以此迴圈正常來說會產生 $amount 個新的商品，
-            // 並且分別綁定上不同的訂單和操作記錄
-            for ($i = 0; $i < $amount; $i ++) {
-                // 每次迴圈開始就new 一個商品實體並放入商品實體陣列
-                array_push($goodsCollection, new GoodsPassport);
+            $goodsCollection = $this->genGoodsVialoopWithAmount($amount, $settings, $em);
 
-                // 根據傳入的設定進行屬性設置
-                foreach ($settings as $key => $val) {
-                    $goodsCollection[$i]->$key($val);
-                }
+            $em->flush();
 
-                // 將結果保存，迴圈結束後再一次執行
-                $this->em->persist($goodsCollection[$i]);
-            }
+            // commit
+            $em->getConnection()->commit();
+        } catch (\Exception $e) {
+            $em->getConnection()->rollback();
 
-            $this->em->flush();
-
-            // 迭代陣列元素，為每個剛新增的商品實體設置產編和繼承id
-            foreach ($goodsCollection as $goods) {
-                // 產編根據 店碼+廠商代碼三碼+年末碼+月二碼+日二碼+流水號五碼 組成
-                $goods->setSn(
-                    $this->genSn(
-                        $goods->getStore()->getSn(), 
-                        $goods->getId(), 
-                        $goods->getPurchaseAt(),
-                        $goods->getSupplier()->getName()
-                    )
-                )
-                ->setInheritId($goods->getId());
-
-                // 將結果保存，迭代結束後一次執行
-                $this->em->persist($goods);
-            }
-
-            $this->em->flush();
-
-            $this->em->getConnection()->commit();
-        } catch (Exception $e) {
-            $this->em->getConnection()->rollback();
             throw $e;
         }    
 
@@ -143,8 +116,10 @@ class GoodsFactory implements \Woojin\BackendBundle\EntityFactory
      */
     public function update($settings, $goods)
     {
-        // 使用交易機制以防萬一
-        $this->em->getConnection()->beginTransaction();
+        $em = $this->registry->getManager(); 
+
+        // 使用交易機制
+        $em->getConnection()->beginTransaction();
 
         try {
             // 根據傳入的設定進行屬性設置
@@ -152,24 +127,15 @@ class GoodsFactory implements \Woojin\BackendBundle\EntityFactory
                 $goods->$key($val);
             }
 
-            $goods
-                ->setSn( 
-                    $this->genSn(
-                        $goods->getStore()->getSn(), 
-                        $goods->getId(), 
-                        $goods->getCreateAt(),
-                        $goods->getSupplier()->getName()
-                    )
-                )
-                ->setInheritId($goods->getId())
-            ;
-
             // 將結果保存，迭代結束後一次執行
-            $this->em->persist($goods);
-            $this->em->flush();
-            $this->em->getConnection()->commit();
-        } catch (Exception $e) {
-          $this->em->getConnection()->rollback();
+            $em->persist($goods);
+            $em->flush();
+
+            // commit
+            $em->getConnection()->commit();
+        } catch (\Exception $e) {
+          $em->getConnection()->rollback();
+
           throw $e;
         }    
 
@@ -198,13 +164,6 @@ class GoodsFactory implements \Woojin\BackendBundle\EntityFactory
         $accessor = PropertyAccess::createPropertyAccessor();
 
         /**
-         * 商品實體陣列
-         * 
-         * @var array(object)
-         */
-        $goodsCollection = array();
-
-        /**
          * 製造實體個數
          * 
          * @var integer
@@ -214,17 +173,33 @@ class GoodsFactory implements \Woojin\BackendBundle\EntityFactory
         // 先除去數量元素，以防接下來的迴圈處理發生錯誤
         unset($settings['amount']);
 
-        // 根據數量執行等次數的迴圈，每次產生一個新的商品實體，
-        // 所以此迴圈正常來說會產生 $amount 個新的商品，
-        // 並且分別綁定上不同的訂單和操作記錄
-        for ($i = 0; $i < $amount; $i ++) {
-            // 每次迴圈開始就new 一個商品實體並放入商品實體陣列
-            array_push($goodsCollection, new GoodsPassport);
+        return $this->genGoodsVialoopWithAmount($amount, $settings, $em);
+    }
 
-            // 根據傳入的設定進行屬性設置
-            foreach ($settings as $key => $val) {
-                $goodsCollection[$i]->$key($val);
-            }
+    /**
+     * 根據數量執行等次數的迴圈，每次產生一個新的商品實體，
+     * 所以此迴圈正常來說會產生 $amount 個新的商品，
+     * 並且分別綁定上不同的訂單和操作記錄
+     * 
+     * @param  [integer] $amount [需要產生的數量]
+     * @param  [array] $settings [各屬性的設定值]
+     * @param  [object] $em [entity manager]
+     * @return [array] $goodsCollection
+     */
+    protected function genGoodsVialoopWithAmount($amount, $settings, $em)
+    {
+        /**
+         * 商品實體陣列
+         * 
+         * @var array(object)
+         */
+        $goodsCollection = array();
+
+        for ($i = 0; $i < $amount; $i ++) {
+            $this
+                ->pushInCollection($goodsCollection)
+                ->setBySettings($settings, $goodsCollection, $i)
+            ;
 
             // 將結果保存，迴圈結束後再一次執行
             $em->persist($goodsCollection[$i]);
@@ -234,16 +209,30 @@ class GoodsFactory implements \Woojin\BackendBundle\EntityFactory
     }
 
     /**
-     * 產編根據 店碼+廠商代碼三碼+年末碼+月二碼+日二碼+流水號五碼 組成
+     * 每次迴圈開始就new 一個商品實體並放入商品實體陣列
      * 
-     * @param  [string] $storeSn [店碼]
-     * @param  [integer] $id [流水號]
-     * @param  [datetime] $createAt [建立時間]
-     * @param  [string] $supName [供貨商代碼]
-     * @return [string]        
+     * @param  [array] $goodsCollection [商品物件的容器陣列]
      */
-    public function genSn($storeSn, $id, $createAt, $supName)
+    protected function pushInCollection(&$goodsCollection)
     {
-        return $storeSn . substr($createAt->format('Ymd'), 3) . $supName . str_pad($id, 5, 0, STR_PAD_LEFT);
+        array_push($goodsCollection, new GoodsPassport);
+
+        return $this;
+    }
+
+    /**
+     * 根據傳入的設定進行屬性設置
+     * 
+     * @param [array] $settings [各屬性的設定值]
+     * @param [array] $goodsCollection [商品物件的容器陣列]
+     * @param [integer] $i [陣列索引]
+     */
+    protected function setBySettings($settings, &$goodsCollection, $index)
+    {
+        foreach ($settings as $key => $val) {
+            $goodsCollection[$index]->$key($val);
+        }
+
+        return $this;
     }
 }

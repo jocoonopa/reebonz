@@ -330,7 +330,7 @@ class MoveController extends Controller
                  * 
                  * @var \Woojin\GoodsBundle\Entity\GoodsPassport
                  */
-                $sendGoods = $move->getGoodsPassport();
+                $sendGoods = $move->getOutGoodsPassport();
                 $sendGoods->setStatus($onSaleStatus);
 
                 /**
@@ -404,8 +404,8 @@ class MoveController extends Controller
 
                 // 請求狀態綁訂關連訂單, 商品以及回應者
                 $move
-                    ->setInOrders($recieveOrders)
-                    ->setOutOrders($sendOrders)
+                    ->setInOrders($recieveOrder)
+                    ->setOutOrders($sendOrder)
                     ->setInGoodsPassport($recieveGoods)
                     ->setResUser($user)
                 ;
@@ -427,10 +427,9 @@ class MoveController extends Controller
                 }
 
                 $em->persist($sendGoods);
-                $em->persist($sendOrders);
+                $em->persist($sendOrder);
                 $em->persist($recieveGoods);
-                $em->persist($recieveOrders);
-                $em->persist($moveMemo);
+                $em->persist($recieveOrder);
 
                 $em->flush();
 
@@ -447,6 +446,13 @@ class MoveController extends Controller
                 if (!$this->isOkToRecieve($move, $user)) {
                     return new Response(json_encode(array('error' => '不符合收貨條件!')));
                 }
+
+                /**
+                 * 訂單狀態：取消
+                 * 
+                 * @var \Woojin\OrderBundle\Entity\OrdersStatus
+                 */
+                $cancelStatus = $em->getRepository('WoojinOrderBundle:OrdersStatus')->find(self::OS_CANCEL);
 
                 /**
                  * 訂單狀態：處理中
@@ -512,6 +518,7 @@ class MoveController extends Controller
                 $cancelMoves = $qb->getQuery()->getResult();
                 foreach ($cancelMoves as $cancelMove) {
                     $cancelMove->setStatus($cancelStatus);
+
                     $em->persist($cancelMove);
                 }
 
@@ -741,7 +748,7 @@ class MoveController extends Controller
             $returnMsg = array('status' => 'OK', 'method' => 'delete');
 
             return new Response(json_encode($returnMsg));
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
     }

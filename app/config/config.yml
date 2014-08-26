@@ -123,7 +123,7 @@ services:
 
     goods.factory:
         class: Woojin\GoodsBundle\GoodsFactory
-        arguments: ['@doctrine.orm.entity_manager', '@security.context']
+        arguments: ['@doctrine', '@security.context']
 
     user_service:
         class: Woojin\UserBundle\WoojinUserBundle

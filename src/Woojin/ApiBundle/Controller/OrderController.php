@@ -78,13 +78,6 @@ class OrderController extends Controller
     public function createNormalAction(Request $request)
     {
         /**
-         * 這個工廠將會替我們創建新的訂單實體
-         * 
-         * @var object
-         */
-        $OrderFactory = $this->get('order.factory');
-
-        /**
          * Post 過來的商品實體
          * 
          * @var array{object}
@@ -134,13 +127,6 @@ class OrderController extends Controller
         $invoice = $this->genInvoice($user, $custom);
 
         /**
-         * 提供給工廠的參數陣列
-         * 
-         * @var array
-         */
-        $settings = array();
-
-        /**
          * serializer
          * 
          * @var object
@@ -170,23 +156,9 @@ class OrderController extends Controller
 
         foreach ($goodsGroup as $eachGoods) {
             /**
-             * 回傳的資料物件，會有三個屬性, goods[object], opes[array{object}], orders[object]
-             * 
-             * @var array
-             */
-            $data = array();
-
-            /**
-             * 產生的銷貨訂單
-             * 
-             * @var object
-             */
-            $orders;
-
-            /**
              * 逐一透過 post 的商品id取得商品實體
              * 
-             * @var object
+             * @var \Woojin\GoodsBundle\Entity\GoodsPassport
              */
             $goods = $this->getDoctrine()->getRepository('WoojinGoodsBundle:GoodsPassport')->find($accessor->getValue($eachGoods, '[id]'));
             
@@ -198,8 +170,22 @@ class OrderController extends Controller
              */
             $ordersStatusId = ($accessor->getValue($eachGoods, '[orders][required]') === $accessor->getValue($eachGoods, '[orders][paid]')) ? self::OS_COMPLETE : self::OS_HANDLING;
 
-            // 新建立銷貨訂單實體
+            /**
+             * 產生的銷貨訂單
+             * 
+             * @var \Woojin\OrderBundle\Entity\Orders
+             */
             $orders = new Orders;
+
+            // 設置狀態屬性為下架, 折扣為post 過來的值
+            $goods
+                ->setStatus($status)
+                ->setDiscount(is_null($discount = $accessor->getValue($eachGoods, '[discount]')) ? 10 : $discount)
+            ;
+
+            $em->persist($goods);
+
+            // 設置訂單屬性
             $orders
                 ->setGoodsPassport($goods)
                 ->setStatus($em->find('WoojinOrderBundle:OrdersStatus', $ordersStatusId))
@@ -211,12 +197,6 @@ class OrderController extends Controller
                 ->setMemo($accessor->getValue($eachGoods, '[orders][memo]'))
                 ->setInvoice($invoice)
             ;
-
-            // 設置狀態屬性為下架, 折扣為post 過來的值
-            $goods->setStatus($status);
-            $goods->setDiscount(is_null($discount = $accessor->getValue($eachGoods, '[discount]')) ? 10 : $discount);
-
-            $em->persist($goods);
 
             // 加入回傳商品陣列
             array_push($ordersRepo, $orders);
@@ -266,12 +246,6 @@ class OrderController extends Controller
     public function createSpecialAction (Request $request)
     {
         /**
-         * 這個工廠將會替我們創建新的訂單實體
-         * @var object
-         */
-        $OrderFactory = $this->get('order.factory');
-
-        /**
          * Post 過來的商品實體
          * 
          * @var array{object}
@@ -321,12 +295,6 @@ class OrderController extends Controller
         $invoice = $this->genInvoice($user, $custom);
 
         /**
-         * 提供給工廠的參數陣列
-         * @var array
-         */
-        $settings = array();
-
-        /**
          * serializer
          * @var object
          */
@@ -355,20 +323,6 @@ class OrderController extends Controller
 
         foreach ($goodsGroup as $eachGoods) {
             /**
-             * 回傳的資料物件，會有三個屬性, goods[object], opes[array{object}], orders[object]
-             * 
-             * @var array
-             */
-            $data = array();
-
-            /**
-             * 產生的銷貨訂單
-             * 
-             * @var object
-             */
-            $orders;
-
-            /**
              * 逐一透過 post 的商品id取得商品實體
              * 
              * @var object
@@ -383,8 +337,22 @@ class OrderController extends Controller
              */
             $ordersStatusId = ($accessor->getValue($eachGoods, '[orders][required]') === $accessor->getValue($eachGoods, '[orders][paid]')) ? self::OS_COMPLETE : self::OS_HANDLING;
 
-            // 新建立銷貨訂單實體
+            /**
+             * 產生的銷貨訂單
+             * 
+             * @var object
+             */
             $orders = new Orders;
+
+            // 設置狀態屬性為下架, 折扣為post 過來的值
+            $goods
+                ->setStatus($status)
+                ->setDiscount(is_null($discount = $accessor->getValue($eachGoods, '[discount]')) ? 10 : $discount)
+            ;
+
+            $em->persist($goods);
+
+            // 設置訂單屬性
             $orders
                 ->setInvoice($invoice)
                 ->setGoodsPassport($goods)
@@ -396,12 +364,6 @@ class OrderController extends Controller
                 ->setPaid($accessor->getValue($eachGoods, '[orders][paid]'))
                 ->setMemo($accessor->getValue($eachGoods, '[orders][memo]'))
             ;
-
-            // 設置狀態屬性為下架, 折扣為post 過來的值
-            $goods->setStatus($status);
-            $goods->setDiscount(is_null($discount = $accessor->getValue($eachGoods, '[discount]')) ? 10 : $discount);
-
-            $em->persist($goods);
 
             // 加入回傳商品陣列
             array_push($ordersRepo, $orders);
@@ -473,14 +435,13 @@ class OrderController extends Controller
      * } 
      *  
      * @Route(
-     *     "/filter/{jsonCondition}/{jsonOrderBy}/{page}/{perPage}/{_format}", 
+     *     "/filter/{jsonCondition}/{jsonOrderBy}/{page}/{perPage}", 
      *     requirements={"page"="\d+", "perPage"="\d+"},
      *     defaults={
      *         "jsonCondition"="{}",
      *         "jsonOrderBy"="{}",
      *         "page"=1,
-     *         "perPage"=100,
-     *         "_format"="html"
+     *         "perPage"=100
      *     },
      *     name="api_orders_filter",
      *     options={"expose"=true}
@@ -503,7 +464,7 @@ class OrderController extends Controller
      *  }
      * )
      */
-    public function filterAction($jsonCondition, $jsonOrderBy, $page, $perPage, $_format)
+    public function filterAction($jsonCondition, $jsonOrderBy, $page, $perPage)
     {
         /**
          * 將搜尋條件的 json 字串轉換成搜尋陣列
@@ -723,7 +684,7 @@ class OrderController extends Controller
      *  }
      * )
      */
-    public function cancelAction (Orders $orders, Request $request)
+    public function cancelAction (Orders $orders)
     {
         /**
          * Entity Manager
@@ -779,8 +740,6 @@ class OrderController extends Controller
 
                 return new Response(json_encode(array('success' => '刪除完成，相關商品同時刪除!')));
 
-                break;
-
             case self::OK_OUT:
             case self::OK_WEB_OUT:
             case self::OK_SAME_BS:
@@ -800,8 +759,6 @@ class OrderController extends Controller
                 $em->flush();
 
                 return new Response($orders->getId());
-
-                break;
 
             case self::OK_SPECIAL_SELL:
                 /**
@@ -824,11 +781,8 @@ class OrderController extends Controller
 
                 return new Response($orders->getId());
 
-                break;
-
             default:
                 return new Response(json_encode(array('error' => '訂單種類不在白名單內')));
-                break;
         }
     }
 

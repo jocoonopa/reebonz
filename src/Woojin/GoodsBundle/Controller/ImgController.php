@@ -51,7 +51,7 @@ class ImgController extends Controller
          * 
          * @var string
          */
-        $ext = pathinfo($files->getClientOriginalName(), PATHINFO_EXTENSION);
+        //$ext = pathinfo($files->getClientOriginalName(), PATHINFO_EXTENSION);
 
         /**
          * 檔案名稱
@@ -189,15 +189,5 @@ class ImgController extends Controller
             // 回傳圖片路徑
             return new Response($imgpath);
         }
-    }
-
-    /**
-     * @Route("/change/{id}", requirements={"id" = "\d+"}, name="img_change", options={"expose"=true})
-     * @ParamConverter("goodsPassport", class="WoojinGoodsBundle:GoodsPassport")
-     * @Method("PUT")
-     */
-    public function changeAction(Request $request, GoodsPassport $goodsPassport)
-    {
-
     }
 }

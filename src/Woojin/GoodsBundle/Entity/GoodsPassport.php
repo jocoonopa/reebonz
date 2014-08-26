@@ -279,6 +279,45 @@ class GoodsPassport
   {
     $this->setUpdateAt(new \Datetime());
   }
+
+  /**
+   * @ORM\PrePersist
+   */
+  public function autoSetInheritId()
+  {
+    $this->setInheritId($this->getId());
+  }
+
+  /**
+   * @ORM\PrePersist
+   * @ORM\PreUpdate
+   */
+  public function autoSetSnWithReebonzWay() 
+  {
+    $this->setSn($this->getReebonzSn());
+  }
+
+  /**
+   * 取得 REEBONZ 規則的產編
+   * 
+   * @return string
+   */
+  protected function getReebonzSn()
+  {
+    /**
+     * Reebonz way sn
+     * 
+     * @var string
+     */
+    $sn = null;
+
+    $sn = $this->getStore()->getSn();
+    $sn.= substr($this->getPurchaseAt()->format('Ymd'), 3);
+    $sn.= $this->getSupplier()->getName();
+    $sn.= str_pad($this->getId(), 5, 0, STR_PAD_LEFT);
+
+    return $sn;
+  }
     /**
      * Constructor
      */

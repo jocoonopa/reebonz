@@ -89,19 +89,6 @@ class GoodsSubscriber implements EventSubscriber
      * @var object
      */
     $request = $this->container->get('request');
-    
-    /**
-     * Entity Manager
-     * 
-     * @var object
-     */
-    $em = $args->getEntityManager();
-    
-    /**
-     * 目前的使用者
-     * @var object
-     */
-    $user = $this->container->get('security.context')->getToken()->getUser();
 
     /**
      * 訂單工廠
@@ -153,7 +140,7 @@ class GoodsSubscriber implements EventSubscriber
       $accessor->setValue($settings, '[setRequired]', $goods->getCost());
       $accessor->setValue($settings, '[setPaid]', $goods->getCost());
 
-      $order = $OrderFactory->create($settings);
+      $OrderFactory->create($settings);
 
     } else {
       // 新增寄賣訂單及操作動作記錄

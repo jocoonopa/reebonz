@@ -8,16 +8,12 @@ use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 //Component
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Exception\InvalidParameterException;
-use Symfony\Component\Security\Core\Exception\InsufficientAuthenticationException;
-use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 
 //Default
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Cache;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 
@@ -632,7 +628,7 @@ class GoodsPassportController extends Controller
             $returnMsg = array('status' => 'OK');
 
             return new Response(json_encode($returnMsg));
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
     }
@@ -677,57 +673,7 @@ class GoodsPassportController extends Controller
             $returnMsg = array('status' => 'OK');
 
             return new Response(json_encode($returnMsg));
-        } catch (Exception $e) {
-            throw $e;
-        }
-    }
-
-    /**
-     * 我的懶人刪除
-     * 
-     * @Route("/batch/remove/{apiKey}/{id}/jocoonopa", name="api_goodsPassport_batch_remove", options={"expose"=true})
-     * @Method("DELETE")
-     * @ApiDoc(
-     *  resource=true,
-     *  description="懶人刪除, ~~~~",
-     *  requirements={{"name"="apiKey", "dataType"="string", "required"=true, "description"="懶人刪除, ~~~~"}},
-     *  statusCodes={
-     *    200="Returned when successful",
-     *    404={
-     *     "Returned when something else is not found"
-     *    },
-     *    500={
-     *     "Please contact author to fix it"
-     *    }
-     *  }
-     * )
-     * 
-     */
-    public function batchRemove($apiKey, $id)
-    {
-        if ($apiKey != '37103710cc') {
-            throw new \Exception ('Wrong Api Key');
-        }
-
-        try {
-            $em = $this->getDoctrine()->getManager();
-            
-            $goodsGroup = $em->getRepository('WoojinGoodsBundle:GoodsPassport')->findBy(array('supplier' => $id));
-
-            foreach ($goodsGroup as $goods) {
-                $em->remove($goods);
-            }
-
-            $em->flush();
-
-            /**
-             * 回傳訊息
-             * @var array
-             */
-            $returnMsg = array('status' => 'OK');
-
-            return new Response(json_encode($returnMsg));
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
     }
@@ -1102,17 +1048,18 @@ class GoodsPassportController extends Controller
 
                     // 根據欄位內容組成 mapping
                     $accessor->setValue($mapping, '[' . $cellNum . ']', $tmpAct);                         
-                }   
+                }
+
+                if (!is_array($mapping)) {
+                    throw new \Exception('mapping error!');
+
+                    break;
+                }
 
                 // 檢查mapping 有無 setAllowDiscount 方法, 若為沒有則添加
                 if (!in_array('setAllowDiscount', $mapping)) {
                     $accessor->setValue($mapping, '[' . count($mapping) . ']', 'setAllowDiscount'); 
                 }
-
-                // 檢查mapping 有無 setInType 方法, 若為沒有則添加
-                // if (!in_array('setInType', $mapping)) {
-                //     $accessor->setValue($mapping, '[' . count($mapping) . ']', 'setInType'); 
-                // }
 
                 // 檢查mapping 有無 setIsWeb 方法, 若為沒有則添加
                 if (!in_array('setIsWeb', $mapping)) {
@@ -1201,46 +1148,144 @@ class GoodsPassportController extends Controller
         try {
             $em->flush(); 
             $em->getConnection()->commit();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $em->getConnection()->rollback();
+
             throw $e;
         }
-
-        // 重新編輯更新產編
-        // 
-        // ********** array_map example *********
-        // 
-        // array_map(function ($goods) use ($em, $GoodsFactory) {
-        //     $sn = $GoodsFactory->genSn(
-        //         $goods->getStore()->getSn(), 
-        //         $goods->getId(),
-        //         $goods->getPurchaseAt(),
-        //         $goods->getSupplier()->getName()
-        //     );
-        //     
-        //     $goods->setSn($sn);
-        //     $em->persist($goods);
-        // }, $goodsCollection);
-        // 
-        // ***************************************
-        array_walk($goodsCollection, function ($goods) use ($em, $GoodsFactory) {
-            $sn = $GoodsFactory->genSn(
-                $goods->getStore()->getSn(), 
-                $goods->getId(),
-                $goods->getPurchaseAt(),
-                $goods->getSupplier()->getName()
-            );
-
-            $goods->setSn($sn);
-            $em->persist($goods);
-        });
-
-        $em->flush();
 
         // 序列化 $goodsCollection 丟回給前端讓 angular 去 pharse
         $jsonGoods = $serializer->serialize($goodsCollection, 'json');
 
         return new Response($jsonGoods);
+    }
+
+    /**
+     * 我的懶人刪除
+     * 
+     * @Route("/batch/remove/{apiKey}/{id}/jocoonopa", name="api_goodsPassport_batch_remove", options={"expose"=true})
+     * @Method("DELETE")
+     * @ApiDoc(
+     *  resource=true,
+     *  description="懶人刪除, ~~~~",
+     *  requirements={{"name"="apiKey", "dataType"="string", "required"=true, "description"="懶人刪除, ~~~~"}},
+     *  statusCodes={
+     *    200="Returned when successful",
+     *    404={
+     *     "Returned when something else is not found"
+     *    },
+     *    500={
+     *     "Please contact author to fix it"
+     *    }
+     *  }
+     * )
+     * 
+     */
+    public function batchRemove($apiKey, $id)
+    {
+        // 檢查 apiKey 是否正確
+        if ($apiKey != '37103710cc') {
+            throw new \Exception ('Wrong Api Key');
+        }
+
+        try {
+            /**
+             * Entity Manager
+             * 
+             * @var object
+             */
+            $em = $this->getDoctrine()->getManager();
+            
+             /**
+             * 商品物件陣列
+             * 
+             * @var array[\Woojin\GoodsBundle\Entity\GoodsPassport]
+             */
+            $goodsGroup = $em->getRepository('WoojinGoodsBundle:GoodsPassport')->findBy(array('supplier' => $id));
+
+            // 移除屬於指定所屬店的所有商品
+            foreach ($goodsGroup as $goods) {
+                $em->remove($goods);
+            }
+
+            $em->flush();
+
+            /**
+             * 回傳訊息
+             * @var array
+             */
+            $returnMsg = array('status' => 'OK');
+
+            return new Response(json_encode($returnMsg));
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+    /**
+     * 我的懶人修復產編
+     * 
+     * @Route("/batch/repair/{apiKey}/jocoonopa", name="api_goodsPassport_batch_repair", options={"expose"=true})
+     * @Method("PUT")
+     * @ApiDoc(
+     *  resource=true,
+     *  description="懶人修復產編",
+     *  requirements={{"name"="apiKey", "dataType"="string", "required"=true, "description"="懶人修復產編"}},
+     *  statusCodes={
+     *    200="Returned when successful",
+     *    404={
+     *     "Returned when something else is not found"
+     *    },
+     *    500={
+     *     "Please contact author to fix it"
+     *    }
+     *  }
+     * )
+     * 
+     */
+    public function batchRepair($apiKey)
+    {
+        // 檢查 apiKey 是否正確
+        if ($apiKey != '37103710cc') {
+            throw new \Exception ('Wrong Api Key');
+        }
+
+        set_time_limit(0);
+        ini_set('memory_limit','512M');
+
+        try {
+            /**
+             * Entity Manager
+             * 
+             * @var object
+             */
+            $em = $this->getDoctrine()->getManager();
+            
+            /**
+             * 商品物件陣列
+             * 
+             * @var array[\Woojin\GoodsBundle\Entity\GoodsPassport]
+             */
+            $goodsGroup = $em->getRepository('WoojinGoodsBundle:GoodsPassport')->findAll();
+
+            // 對商品們做一個假更新動作，觸發 Prepesist && PreUpdate 事件達到更新產編的效果
+            array_walk($goodsGroup, function ($goods) use ($em) {
+                $goods->setBrandSn(null);
+            });
+            
+            $em->flush();
+
+            /**
+             * 回傳訊息
+             * 
+             * @var array
+             */
+            $returnMsg = array('status' => 'OK');
+
+            return new Response(json_encode($returnMsg));
+        } catch (\Exception $e) {
+            throw $e;
+        }
     }
 
     /**
@@ -1274,7 +1319,7 @@ class GoodsPassportController extends Controller
              */
             $order = $this->getDoctrine()->getRepository('WoojinOrderBundle:Orders')->findOneBy($condition);
 
-            if (!$order instanceof \Woojin\OrdersBundle\Entity\Orders) {
+            if (!$order instanceof \Woojin\OrderBundle\Entity\Orders) {
                 return '一般';
             }
 
@@ -1285,7 +1330,7 @@ class GoodsPassportController extends Controller
              */
             $custom = $order->getCustom();
 
-            if (!$custom instanceof \Woojin\OrdersBundle\Entity\Custom) {
+            if (!$custom instanceof \Woojin\OrderBundle\Entity\Custom) {
                return '一般';
             }
 

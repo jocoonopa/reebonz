@@ -23,7 +23,7 @@ class GoodsPassportController extends Controller
    * @Template()
    * @Method("GET")
    */
-  public function indexAction (Request $request)
+  public function indexAction ()
   {        
     return array();
   }

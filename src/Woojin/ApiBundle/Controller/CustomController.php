@@ -272,7 +272,7 @@ class CustomController extends Controller
             $returnMsg = array('status' => 'OK');
 
             return new Response(json_encode($returnMsg));
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
     }
