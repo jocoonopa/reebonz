@@ -29828,7 +29828,7 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
    */
   $scope.init = function () {
     // 發票
-    $scope.invoices = [];
+    $scope.invoices = {};
 
     // 取得活動選項
     Activity.query(function (res) {

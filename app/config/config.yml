@@ -111,15 +111,15 @@ nelmio_api_doc: ~
 services:  
     custom.factory:
         class: Woojin\OrderBundle\CustomFactory
-        arguments: ['@doctrine.orm.entity_manager', '@security.context']
+        arguments: ['@doctrine', '@security.context']
 
     ope.factory:
         class: Woojin\OrderBundle\OpeFactory
-        arguments: ['@doctrine.orm.entity_manager', '@security.context']
+        arguments: ['@doctrine', '@security.context']
 
     order.factory:
         class: Woojin\OrderBundle\OrderFactory
-        arguments: ['@doctrine.orm.entity_manager', '@security.context']
+        arguments: ['@doctrine', '@security.context']
 
     goods.factory:
         class: Woojin\GoodsBundle\GoodsFactory

@@ -6,15 +6,16 @@ use Woojin\OrderBundle\Entity\Orders;
 use Woojin\OrderBundle\Entity\Ope;
 
 use Symfony\Component\Security\Core\SecurityContext;
+use Doctrine\Common\Persistence\ManagerRegistry;
 
 class OrderFactory implements \Woojin\BackendBundle\EntityFactory
 {
-  protected $em;
+  protected $registry;
   protected $context;
 
-  public function __construct(\Doctrine\ORM\EntityManager $em, SecurityContext $context)
+  public function __construct(ManagerRegistry $registry, SecurityContext $context)
   {
-    $this->em = $em;
+    $this->registry = $registry;
     $this->context = $context;
   }
 
@@ -37,8 +38,10 @@ class OrderFactory implements \Woojin\BackendBundle\EntityFactory
    */
   public function create($settings)
   {
+    $em = $this->registry->getManager();
+
     // 使用交易機制以防萬一
-    $this->em->getConnection()->beginTransaction();
+    $em->getConnection()->beginTransaction();
 
     try {
         $order = new Orders;
@@ -49,12 +52,12 @@ class OrderFactory implements \Woojin\BackendBundle\EntityFactory
         }
 
       // 將結果保存，迴圈結束後再一次執行
-      $this->em->persist($order);
+      $em->persist($order);
 
-      $this->em->flush();
-      $this->em->getConnection()->commit();
-    } catch (Exception $e) {
-      $this->em->getConnection()->rollback();
+      $em->flush();
+      $em->getConnection()->commit();
+    } catch (\Exception $e) {
+      $em->getConnection()->rollback();
       throw $e;
     }    
 
@@ -82,7 +85,7 @@ class OrderFactory implements \Woojin\BackendBundle\EntityFactory
   public function update($settings, $order)
   {
     // 使用交易機制以防萬一
-    $this->em->getConnection()->beginTransaction();
+    $em->getConnection()->beginTransaction();
 
     try {
         // 根據傳入的設定進行屬性設置
@@ -91,12 +94,12 @@ class OrderFactory implements \Woojin\BackendBundle\EntityFactory
         }
 
       // 將結果保存，迴圈結束後再一次執行
-      $this->em->persist($order);
+      $em->persist($order);
 
-      $this->em->flush();
-      $this->em->getConnection()->commit();
-    } catch (Exception $e) {
-      $this->em->getConnection()->rollback();
+      $em->flush();
+      $em->getConnection()->commit();
+    } catch (\Exception $e) {
+      $em->getConnection()->rollback();
       throw $e;
     }    
 

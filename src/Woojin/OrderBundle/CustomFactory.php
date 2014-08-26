@@ -5,15 +5,16 @@ namespace Woojin\OrderBundle;
 use Woojin\OrderBundle\Entity\Custom;
 use Symfony\Component\Security\Core\SecurityContext;
 use Symfony\Component\PropertyAccess\PropertyAccess;
+use Doctrine\Common\Persistence\ManagerRegistry;
 
 class CustomFactory implements \Woojin\BackendBundle\EntityFactory
 {
-  protected $em;
+  protected $registry;
   protected $context;
 
-  public function __construct(\Doctrine\ORM\EntityManager $em, SecurityContext $context)
+  public function __construct(ManagerRegistry $registry, SecurityContext $context)
   {
-    $this->em = $em;
+    $this->registry = $registry;
     $this->context = $context;
   }
 
@@ -34,11 +35,7 @@ class CustomFactory implements \Woojin\BackendBundle\EntityFactory
    */
   public function create($settings)
   {
-    /**
-     * Symfony 的屬性套件，透過它可以用物件方式讀寫陣列
-     * @var object
-     */
-    $accessor = PropertyAccess::createPropertyAccessor();
+    $em = $this->registry->getManager();
 
     /**
      * 新增一個客戶實體
@@ -47,7 +44,7 @@ class CustomFactory implements \Woojin\BackendBundle\EntityFactory
     $custom = new Custom;
 
     // 使用交易機制以防萬一
-    $this->em->getConnection()->beginTransaction();
+    $em->getConnection()->beginTransaction();
 
     try {
       // 根據傳入的設定進行屬性設置
@@ -56,12 +53,12 @@ class CustomFactory implements \Woojin\BackendBundle\EntityFactory
       }
 
       // 將結果保存，迴圈結束後再一次執行
-      $this->em->persist($custom);
+      $em->persist($custom);
 
-      $this->em->flush();
-      $this->em->getConnection()->commit();
-    } catch (Exception $e) {
-      $this->em->getConnection()->rollback();
+      $em->flush();
+      $em->getConnection()->commit();
+    } catch (\Exception $e) {
+      $em->getConnection()->rollback();
       throw $e;
     }    
 
@@ -85,14 +82,10 @@ class CustomFactory implements \Woojin\BackendBundle\EntityFactory
    */
   public function update($settings, $custom)
   {
-    /**
-     * Symfony 的屬性套件，透過它可以用物件方式讀寫陣列
-     * @var object
-     */
-    $accessor = PropertyAccess::createPropertyAccessor();
+    $em = $this->registry->getManager();
 
     // 使用交易機制以防萬一
-    $this->em->getConnection()->beginTransaction();
+    $em->getConnection()->beginTransaction();
 
     try {
       // 根據傳入的設定進行屬性設置
@@ -101,12 +94,12 @@ class CustomFactory implements \Woojin\BackendBundle\EntityFactory
       }
 
       // 將結果保存，迴圈結束後再一次執行
-      $this->em->persist($custom);
+      $em->persist($custom);
 
-      $this->em->flush();
-      $this->em->getConnection()->commit();
-    } catch (Exception $e) {
-      $this->em->getConnection()->rollback();
+      $em->flush();
+      $em->getConnection()->commit();
+    } catch (\Exception $e) {
+      $em->getConnection()->rollback();
       throw $e;
     }    
 
