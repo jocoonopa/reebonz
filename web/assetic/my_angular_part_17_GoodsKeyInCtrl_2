@@ -105,6 +105,16 @@ backendCtrls.controller('GoodsKeyInCtrl', ['$scope', '$routeParams', '$http', '$
     $scope.goods.mt = {id: ''};
     $scope.goods.supplier = {id: 1};
     $scope.goods.color = {id: ''};
+
+    $http.get(Routing.generate('api_user_current'))
+      .success(function (user) {
+        $scope.goods.store = user.store;
+      })
+      .error(function (e) {
+        console.log(e);
+
+        $scope.goods.store = {};
+      });
   };
 
   $scope.initKeyInForm();

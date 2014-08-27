@@ -26803,8 +26803,10 @@ backendCtrls.controller('BrandCtrl', ['$scope', '$routeParams', '$http', 'Brand'
 	  	$promise.then(function () {
 	  		$scope.successMsg = query.name + ' 新增完成!';
 	  		$scope.brands = Brand.query();
+        $scope.errorMsg = null;
 	  		$scope.query.name = '';
 	  	}, function (error) {
+        $scope.successMsg = null;
 	  		$scope.errorMsg = query.name + '新增失敗，請確認是否有名稱重複!';
 	  	});
   };
@@ -26884,9 +26886,11 @@ backendCtrls.controller('ColorCtrl', ['$scope', '$routeParams', '$http', 'Color'
     Color.update({ id: color.id}, color).
       $promise.then(function () {
         $scope.successMsg = color.name + ' 修改完成!';
+        $scope.errorMsg = null;
         //$scope.colors = Color.query();
         $scope.query.name = '';
       }, function () {
+        $scope.successMsg = null;
         $scope.errorMsg = color.name + '修改失敗，請確認是否有名稱重複!';
       });
   };
@@ -27243,7 +27247,7 @@ backendCtrls.controller('GoodsImportCtrl', ['$scope', '$routeParams', '$http', '
     $http.post(Routing.generate('api_' + $scope.errorEntity.resource + '_create'), {name: $scope.errorEntity.name})
       .success(function (res) {
         $scope.isSuccess(res.name + '新增完成!');
-        $scope.errorEntity = {};
+        $scope.errorEntity = false;
       })
       .error(function () {
         $scope.isError($scope.errorEntity.name + '新增失敗!');
@@ -27357,6 +27361,16 @@ backendCtrls.controller('GoodsKeyInCtrl', ['$scope', '$routeParams', '$http', '$
     $scope.goods.mt = {id: ''};
     $scope.goods.supplier = {id: 1};
     $scope.goods.color = {id: ''};
+
+    $http.get(Routing.generate('api_user_current'))
+      .success(function (user) {
+        $scope.goods.store = user.store;
+      })
+      .error(function (e) {
+        console.log(e);
+
+        $scope.goods.store = {};
+      });
   };
 
   $scope.initKeyInForm();
@@ -28937,8 +28951,6 @@ backendCtrls.controller('OrdersNormalCtrl', ['$scope', '$routeParams', '$http', 
         // 設置訂單內涵
         setInvoices(eachOrders);
       }
-
-      console.log($scope.invoices);
     })
     .error(function (e) {
       console.log(e);
@@ -29803,8 +29815,6 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
         // 設置訂單內涵
         setInvoices(eachOrders);
       }
-
-      console.log($scope.invoices);
     })
     .error(function (e) {
       console.log(e);
@@ -30108,9 +30118,11 @@ backendCtrls.controller('PatternCtrl', ['$scope', '$routeParams', '$http', 'Patt
   	Pattern.save(query).
 	  	$promise.then(function () {
 	  		$scope.successMsg = query.name + ' 新增完成!';
+        $scope.errorMsg = null;
 	  		$scope.patterns = Pattern.query();
 	  		$scope.query.name = '';
 	  	}, function (error) {
+        $scope.successMsg = null;
 	  		$scope.errorMsg = query.name + '新增失敗，請確認是否有名稱重複!';
 	  	});
   };
@@ -30244,7 +30256,7 @@ backendCtrls.controller('GoodsImportCtrl', ['$scope', '$routeParams', '$http', '
     $http.post(Routing.generate('api_' + $scope.errorEntity.resource + '_create'), {name: $scope.errorEntity.name})
       .success(function (res) {
         $scope.isSuccess(res.name + '新增完成!');
-        $scope.errorEntity = {};
+        $scope.errorEntity = false;
       })
       .error(function () {
         $scope.isError($scope.errorEntity.name + '新增失敗!');
@@ -30358,6 +30370,16 @@ backendCtrls.controller('GoodsKeyInCtrl', ['$scope', '$routeParams', '$http', '$
     $scope.goods.mt = {id: ''};
     $scope.goods.supplier = {id: 1};
     $scope.goods.color = {id: ''};
+
+    $http.get(Routing.generate('api_user_current'))
+      .success(function (user) {
+        $scope.goods.store = user.store;
+      })
+      .error(function (e) {
+        console.log(e);
+
+        $scope.goods.store = {};
+      });
   };
 
   $scope.initKeyInForm();
@@ -30839,9 +30861,11 @@ backendCtrls.controller('SupplierCtrl', ['$scope', '$routeParams', '$http', 'Sup
     Supplier.save(query).
       $promise.then(function () {
         $scope.successMsg = query.name + ' 新增完成!';
+        $scope.errorMsg = null;
         $scope.suppliers = Supplier.query();
         $scope.query.name = '';
       }, function (error) {
+        $scope.successMsg = null;
         $scope.errorMsg = query.name + '新增失敗，請確認是否有名稱重複!';
       });
   };

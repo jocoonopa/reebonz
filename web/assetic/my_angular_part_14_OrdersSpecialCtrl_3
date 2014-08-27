@@ -613,8 +613,6 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
         // 設置訂單內涵
         setInvoices(eachOrders);
       }
-
-      console.log($scope.invoices);
     })
     .error(function (e) {
       console.log(e);

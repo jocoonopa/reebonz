@@ -18,9 +18,11 @@ backendCtrls.controller('PatternCtrl', ['$scope', '$routeParams', '$http', 'Patt
   	Pattern.save(query).
 	  	$promise.then(function () {
 	  		$scope.successMsg = query.name + ' 新增完成!';
+        $scope.errorMsg = null;
 	  		$scope.patterns = Pattern.query();
 	  		$scope.query.name = '';
 	  	}, function (error) {
+        $scope.successMsg = null;
 	  		$scope.errorMsg = query.name + '新增失敗，請確認是否有名稱重複!';
 	  	});
   };

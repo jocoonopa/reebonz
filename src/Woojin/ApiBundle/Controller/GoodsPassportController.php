@@ -400,6 +400,75 @@ class GoodsPassportController extends Controller
     }
 
     /**
+     * 新增商品，為了讓controller乾淨點，做一個商品工廠來處理產生新的商品的動作，
+     * controller只處理傳入的參數之檢查以及最後回傳序列商品實體之json字串
+     * 
+     * @Route("", name="api_goodsPassport_create", options={"expose"=true})
+     * @Method("POST")
+     * 
+     * @ApiDoc(
+     *  resource=true,
+     *  description="新增商品",
+     *  statusCodes={
+     *    200="Returned when successful",
+     *    404={
+     *     "Returned when something else is not found"
+     *    },
+     *    500={
+     *     "Please contact author to fix it"
+     *    }
+     *  }
+     * )
+     */
+    public function createAction(Request $request)
+    {
+        /**
+         * Entity Manager
+         * 
+         * @var object
+         */
+        $em = $this->getDoctrine()->getManager();
+
+        /**
+         * Symfony 的屬性套件，透過它可以用物件方式讀寫陣列
+         * @var object
+         */
+        $accessor = PropertyAccess::createPropertyAccessor();
+
+        /**
+         * serializer
+         * @var object
+         */
+        $serializer = \JMS\Serializer\SerializerBuilder::create()->build();
+
+        /**
+         * 商品屬性設定者，專責處理傳入工廠的 $settings
+         * 
+         * @var \Woojin\GoodsBundle\GoodsSetter
+         */
+        $GoodsSetter = $this->get('goods.setter');
+
+        /**
+         * 這個工廠將會替我們創建新的商品實體
+         * @var object
+         */
+        $GoodsFactory = $this->get('goods.factory');
+
+        /**
+         * 提供給工廠的參數陣列
+         * @var array
+         */
+        $settings = array();
+
+        // // 設置新增商品設定陣列
+        $GoodsSetter->setCreateSettings($accessor, $settings, $request, $em);
+
+        $jsonGoodsPassports = $serializer->serialize($GoodsFactory->create($settings), 'json');
+
+        return new Response($jsonGoodsPassports);
+    }
+
+    /**
      * 修改商品
      * 
      * @Route("/{id}", requirements={"id" = "\d+"}, name="api_goodsPassport_update", options={"expose"=true})
@@ -431,6 +500,25 @@ class GoodsPassportController extends Controller
         $em = $this->getDoctrine()->getManager();
 
         /**
+         * Symfony 的屬性套件，透過它可以用物件方式讀寫陣列
+         * @var object
+         */
+        $accessor = PropertyAccess::createPropertyAccessor();
+
+        /**
+         * serializer
+         * @var object
+         */
+        $serializer = \JMS\Serializer\SerializerBuilder::create()->build();
+
+        /**
+         * 商品屬性設定者，專責處理傳入工廠的 $settings
+         * 
+         * @var \Woojin\GoodsBundle\GoodsSetter
+         */
+        $GoodsSetter = $this->get('goods.setter');
+
+        /**
          * 這個工廠將會替我們創建新的商品實體
          * @var object
          */
@@ -442,151 +530,10 @@ class GoodsPassportController extends Controller
          */
         $settings = array();
 
-        /**
-         * Symfony 的屬性套件，透過它可以用物件方式讀寫陣列
-         * @var object
-         */
-        $accessor = PropertyAccess::createPropertyAccessor();
-
-        /**
-         * 目前商品的所屬商店
-         * 
-         * @var object
-         */
-        $store = $goodsPassport->getStore();
-
-        /**
-         * serializer
-         * @var object
-         */
-        $serializer = \JMS\Serializer\SerializerBuilder::create()->build();
-
-        $accessor->setValue($settings, '[setName]', $request->request->get('name'));
-        // $accessor->setValue($settings, '[setInType]', $request->request->get('inType')); 不可更改進貨類型
-        $accessor->setValue($settings, '[setDpo]', $request->request->get('dpo'));
-        $accessor->setValue($settings, '[setPrice]', $request->request->get('price'));
-        $accessor->setValue($settings, '[setFakePrice]', $request->request->get('fake_price'));
-        //$accessor->setValue($settings, '[setFeedback]', $request->request->get('feedback'));
-        $accessor->setValue($settings, '[setCost]', $request->request->get('cost'));
-        $accessor->setValue($settings, '[setOrgSn]', $request->request->get('org_sn'));
-        $accessor->setValue($settings, '[setBrandSn]', $request->request->get('brand_sn'));
-        $accessor->setValue($settings, '[setDes]', $request->request->get('des'));
-        $accessor->setValue($settings, '[setMemo]', $request->request->get('memo'));
-        $accessor->setValue($settings, '[setIsWeb]', $request->request->get('is_web'));
-        $accessor->setValue($settings, '[setPurchaseAt]', new \DateTime($request->request->get('purchase_at')));
-        $accessor->setValue($settings, '[setExpirateAt]', new \DateTime($request->request->get('expirate_at')));
-        $accessor->setValue($settings, '[setAllowDiscount]', $request->request->get('allow_discount'));
-        $accessor->setValue($settings, '[setBrand]', $em->find('WoojinGoodsBundle:Brand', $request->request->get('brand', self::NONE_ENTITY)));
-        $accessor->setValue($settings, '[setColor]', $em->find('WoojinGoodsBundle:Color', $request->request->get('color', self::NONE_ENTITY)));
-        $accessor->setValue($settings, '[setPattern]', $em->find('WoojinGoodsBundle:Pattern', $request->request->get('pattern', self::NONE_ENTITY)));
-        $accessor->setValue($settings, '[setLevel]', $em->find('WoojinGoodsBundle:GoodsLevel', $request->request->get('level', self::NONE_ENTITY)));
-        $accessor->setValue($settings, '[setSource]', $em->find('WoojinGoodsBundle:GoodsSource', $request->request->get('source', self::NONE_ENTITY)));
-        $accessor->setValue($settings, '[setMt]', $em->find('WoojinGoodsBundle:GoodsMT', $request->request->get('mt', self::NONE_ENTITY)));
-        $accessor->setValue($settings, '[setSupplier]', $em->find('WoojinGoodsBundle:Supplier', $request->request->get('supplier', self::NONE_ENTITY)));
-        $accessor->setValue($settings, '[setStatus]', $em->find('WoojinGoodsBundle:GoodsStatus', $request->request->get('status', self::GS_ON_SALE)));
-        $accessor->setValue($settings, '[setStore]', $store); // 原本是不可直接修改所屬店，需透過調貨，但Reebonz 這邊不需要這種限制
+        // 設置更新商品設定陣列
+        $GoodsSetter->setUpdateSettings($accessor, $settings, $request, $em);
         
-        // 若是404表示移除圖片，需要更新，其他的動作都交給ImgController.php，
-        // 這邊會這樣處理的原因是，移除圖片本身沒有檔案上傳，所以ImgController.php 不會被呼叫，
-        // 連帶的商品的圖片路徑也不會被ImgController.php 修改，因此在商品資訊更新就要自行先處理，
-        // 而如果確實有修改圖片且上傳的話，就不需要進行此動作
-        if ($request->request->get('imgpath') === '/img/404.png') {
-            $accessor->setValue($settings, '[setImgpath]', '/img/404.png');
-        } 
-
         $jsonGoodsPassports = $serializer->serialize($GoodsFactory->update($settings, $goodsPassport), 'json');
-
-        return new Response($jsonGoodsPassports);
-    }
-
-    /**
-     * 新增商品，為了讓controller乾淨點，做一個商品工廠來處理產生新的商品的動作，
-     * controller只處理傳入的參數之檢查以及最後回傳序列商品實體之json字串
-     * 
-     * @Route("", name="api_goodsPassport_create", options={"expose"=true})
-     * @Method("POST")
-     * 
-     * @ApiDoc(
-     *  resource=true,
-     *  description="新增商品",
-     *  statusCodes={
-     *    200="Returned when successful",
-     *    404={
-     *     "Returned when something else is not found"
-     *    },
-     *    500={
-     *     "Please contact author to fix it"
-     *    }
-     *  }
-     * )
-     */
-    public function createAction(Request $request)
-    {
-        /**
-         * Entity Manager
-         * 
-         * @var object
-         */
-        $em = $this->getDoctrine()->getManager();
-
-        /**
-         * 這個工廠將會替我們創建新的商品實體
-         * @var object
-         */
-        $GoodsFactory = $this->get('goods.factory');
-
-        /**
-         * 提供給工廠的參數陣列
-         * @var array
-         */
-        $settings = array();
-
-        /**
-         * Symfony 的屬性套件，透過它可以用物件方式讀寫陣列
-         * @var object
-         */
-        $accessor = PropertyAccess::createPropertyAccessor();
-
-        /**
-         * 目前使用者的所屬商店
-         * @var object
-         */
-        $store = $this->get('security.context')->getToken()->getUser()->getStore();
-
-        /**
-         * serializer
-         * @var object
-         */
-        $serializer = \JMS\Serializer\SerializerBuilder::create()->build();
-
-        $accessor->setValue($settings, '[setName]', $request->request->get('name'));
-        $accessor->setValue($settings, '[setInType]', $request->request->get('in_type'));
-        $accessor->setValue($settings, '[setDpo]', $request->request->get('dpo'));
-        $accessor->setValue($settings, '[setPrice]', $request->request->get('price'));
-        $accessor->setValue($settings, '[setFakePrice]', $request->request->get('fake_price'));
-        $accessor->setValue($settings, '[setFeedback]', $request->request->get('feedback'));
-        $accessor->setValue($settings, '[setCost]', $request->request->get('cost'));
-        $accessor->setValue($settings, '[setOrgSn]', $request->request->get('org_sn'));
-        $accessor->setValue($settings, '[setBrandSn]', $request->request->get('brand_sn'));
-        $accessor->setValue($settings, '[setDes]', $request->request->get('des'));
-        $accessor->setValue($settings, '[setMemo]', $request->request->get('memo'));
-        $accessor->setValue($settings, '[setIsWeb]', $request->request->get('is_web'));
-        $accessor->setValue($settings, '[setPurchaseAt]', new \DateTime($request->request->get('purchase_at')));
-        $accessor->setValue($settings, '[setExpirateAt]', new \DateTime($request->request->get('expirate_at')));
-        $accessor->setValue($settings, '[setAllowDiscount]', $request->request->get('allow_discount'));
-        $accessor->setValue($settings, '[setBrand]', $em->find('WoojinGoodsBundle:Brand', $request->request->get('brand', self::NONE_ENTITY)));
-        $accessor->setValue($settings, '[setColor]', $em->find('WoojinGoodsBundle:Color', $request->request->get('color', self::NONE_ENTITY)));
-        $accessor->setValue($settings, '[setPattern]', $em->find('WoojinGoodsBundle:Pattern', $request->request->get('pattern', self::NONE_ENTITY)));
-        $accessor->setValue($settings, '[setLevel]', $em->find('WoojinGoodsBundle:GoodsLevel', $request->request->get('level', self::NONE_ENTITY)));
-        $accessor->setValue($settings, '[setSource]', $em->find('WoojinGoodsBundle:GoodsSource' , $request->request->get('source', self::NONE_ENTITY)));
-        $accessor->setValue($settings, '[setMt]', $em->find('WoojinGoodsBundle:GoodsMT', $request->request->get('mt', self::NONE_ENTITY)));
-        $accessor->setValue($settings, '[setSupplier]', $em->find('WoojinGoodsBundle:Supplier', $request->request->get('supplier', self::NONE_ENTITY)));
-        $accessor->setValue($settings, '[setStatus]', $em->find('WoojinGoodsBundle:GoodsStatus', $request->request->get('status', self::GS_ON_SALE)));
-        $accessor->setValue($settings, '[setStore]', $store); 
-        $accessor->setValue($settings, '[setImgpath]', self::NO_IMG); 
-        $accessor->setValue($settings, '[amount]', $request->request->get('amount')); 
-
-        $jsonGoodsPassports = $serializer->serialize($GoodsFactory->create($settings), 'json');
 
         return new Response($jsonGoodsPassports);
     }
@@ -707,13 +654,6 @@ class GoodsPassportController extends Controller
         ini_set('memory_limit','512M');
 
         /**
-         * 使用者
-         * 
-         * @var object
-         */
-        $user = $this->get('security.context')->getToken()->getUser();
-
-        /**
          * 將搜尋條件的 json 字串轉換成搜尋陣列
          * 
          * @var array
@@ -721,107 +661,27 @@ class GoodsPassportController extends Controller
         $conditions = json_decode($jsonCondition, true);
 
         /**
-         * 商品repo
+         * 商品匯出報表物件
          * 
-         * @var object
+         * @var \Woojin\GoodsBundle\GoodsExporter
          */
-        $goodsRepo = $this->getDoctrine()->getRepository('WoojinGoodsBundle:GoodsPassport');
+        $GoodsExporter = $this->get('goods.exporter');
 
         /**
          * 取得的商品資料
          * 
          * @var array(object)
          */
-        $goods = $goodsRepo->findByFilter($conditions);
+        $goodsGroup = $this->getDoctrine()->getRepository('WoojinGoodsBundle:GoodsPassport')->findByFilter($conditions);
 
         /**
-         * phpExcel Service
+         * Response to Client
          * 
-         * @var object
+         * @var [object]
          */
-        $phpExcelObject = $this->get('phpexcel')->createPHPExcelObject();
+        $reponse = $GoodsPassport->run($goodsGroup); 
 
-        // 設置excel 的 一些meta資訊
-        $phpExcelObject->getProperties()
-            ->setCreator('ReebonzSystem')
-            ->setLastModifiedBy($user->getUsername())
-            ->setTitle('商品報表')
-            ->setSubject('商品報表')
-            ->setDescription('根據傳入條件匯出excel商品報表')
-            ->setKeywords('Reebonz Export')
-            ->setCategory('Goods');
-
-        // 設置各欄位名稱
-        $phpExcelObject->setActiveSheetIndex(0)
-            ->setCellValue('A1', '部門*')
-            ->setCellValue('B1', '進貨日*')
-            ->setCellValue('C1', '到期日')
-            ->setCellValue('D1', '廠商*')
-            ->setCellValue('E1', '品牌*')
-            ->setCellValue('F1', 'SKU') // 廠商型號
-            ->setCellValue('G1', '商品描述*') // 商品名稱
-            ->setCellValue('H1', '款式*')
-            ->setCellValue('I1', '花色*')
-            ->setCellValue('J1', '商品狀況')
-            ->setCellValue('K1', 'DPO#') // 系統內部編號
-            ->setCellValue('L1', '單價成本*(含稅)')
-            ->setCellValue('M1', '市價')
-            ->setCellValue('N1', '優惠價*') // 真實顯示價格為此
-            ->setCellValue('O1', '備註')
-            ->setCellValue('P1', '允許折扣')// {0: 否,1: 是}
-            ->setCellValue('Q1', '允許網路販售')// {0: 否,1: 是}
-            ->setCellValue('R1', '進貨類型') // {0: 否,1: 是}
-            ->setCellValue('S1', '對應圖片') // 請將對應的圖片丟到 /img/yy-mm-dd/ 裡
-            ->setCellValue('T1', '狀態')
-            ->setCellValue('U1', '產編')
-        ;
-
-        // 迭代商品陣列，逐行->逐格填入對應資訊
-        foreach ($goods as $key => $eachOne) {
-
-            $phpExcelObject->setActiveSheetIndex(0)
-                ->setCellValue('A' . ($key + 2), substr($eachOne->getSn(), 0, 1))
-                ->setCellValue('B' . ($key + 2), (is_object($purchaseAt = $eachOne->getPurchaseAt())) ? $purchaseAt->format('Y-m-d') : '')
-                ->setCellValue('C' . ($key + 2), (is_object($expirateAt = $eachOne->getExpirateAt())) ? $expirateAt->format('Y-m-d') : '')
-                ->setCellValue('D' . ($key + 2), (is_object($supplier = $eachOne->getSupplier())) ? $supplier->getName() : '')
-                ->setCellValue('E' . ($key + 2), (is_object($brand = $eachOne->getBrand())) ? $brand->getName() : '')
-                ->setCellValue('F' . ($key + 2), $eachOne->getOrgSn()) // 廠商型號
-                ->setCellValue('G' . ($key + 2), $eachOne->getName()) 
-                ->setCellValue('H' . ($key + 2), (is_object($pattern = $eachOne->getPattern())) ? $pattern->getName() : '')
-                ->setCellValue('I' . ($key + 2), (is_object($color = $eachOne->getColor())) ? $color->getName() : '')
-                ->setCellValue('J' . ($key + 2), (is_object($level = $eachOne->getLevel())) ? $level->getName() : '')
-                ->setCellValue('K' . ($key + 2), $eachOne->getDpo()) // 系統內部編號
-                ->setCellValue('L' . ($key + 2), $eachOne->getCost())
-                ->setCellValue('M' . ($key + 2), $eachOne->getFakePrice()) // 市場價
-                ->setCellValue('N' . ($key + 2), $eachOne->getPrice()) // 真實顯示價格為此
-                ->setCellValue('O' . ($key + 2), $eachOne->getMemo())
-                ->setCellValue('P' . ($key + 2), ($eachOne->getAllowDiscount()) ? '是' : '否')// {0: 否,1: 是}
-                ->setCellValue('Q' . ($key + 2), ($eachOne->getIsWeb()) ? '是' : '否' )// {0: 否,1: 是}
-                ->setCellValue('R' . ($key + 2), $this->getInTypeCellValue($eachOne)) // {0: 否,1: 是}
-                ->setCellValue('S' . ($key + 2), $eachOne->getImgpath()) // 請將對應的圖片丟到 /img/yy-mm-dd/ 裡
-                ->setCellValue('T' . ($key + 2), $eachOne->getStatus()->getName())
-                ->setCellValue('U' . ($key + 2), $eachOne->getSn())
-            ;
-        }
-
-        $phpExcelObject->getActiveSheet()->setTitle('報表');
-        
-        // Set active sheet index to the first sheet, so Excel opens this as the first sheet
-        $phpExcelObject->setActiveSheetIndex(0);
-
-        // create the writer
-        $writer = $this->get('phpexcel')->createWriter($phpExcelObject, 'Excel2007');
-        
-        // create the response
-        $response = $this->get('phpexcel')->createStreamedResponse($writer);
-        
-        // adding headers
-        $response->headers->set('Content-Type', 'text/vnd.ms-excel; charset=utf-8');
-        $response->headers->set('Content-Disposition', 'attachment;filename=goods_export.xlsx');
-        $response->headers->set('Pragma', 'public');
-        $response->headers->set('Cache-Control', 'maxage=1');
-
-        return $response;        
+        return $response;      
     }
 
     /**
@@ -868,20 +728,6 @@ class GoodsPassportController extends Controller
         $em = $this->getDoctrine()->getManager();
 
         /**
-         * 這個工廠將會替我們創建新的商品實體
-         * 
-         * @var object
-         */
-        $GoodsFactory = $this->get('goods.factory');
-
-        /**
-         * 取得新增後的商品
-         * 
-         * @var array{object}
-         */
-        $newGoods = array();
-
-        /**
          * 新增成功的商品實體陣列
          * 
          * @var array{object}
@@ -895,258 +741,21 @@ class GoodsPassportController extends Controller
         $serializer = \JMS\Serializer\SerializerBuilder::create()->build();
 
         /**
-         * $goodsCollection 序列化後的json字串
+         * 商品資料上傳用物件
          * 
-         * @var string
+         * @var \Woojin\GoodsBundle\GoodsImporter
          */
-        $jsonGoods = null;
-
-        /**
-         * 提供給工廠的參數陣列，在此Action裡該參數會隨著每行迭代重新刷新
-         * 
-         * @var array
-         */
-        $settings = array();
-
-        /**
-         * 取得檔案
-         * 
-         * @var object
-         */
-        $files = $request->files->get('file');
-
-        // 無上傳檔案則不動作
-        if (!$files->isValid()) {
-            return new Response('');
-        }
-
-        /**
-         * 取得目前使用者
-         * 
-         * @var object
-         */
-        $user = $this->get('security.context')->getToken()->getUser();
-
-        /**
-         * 資料夾絕對路徑
-         * 
-         * @var string
-         */
-        $filepath = $request->server->get('DOCUMENT_ROOT') . '/uploads/'. $user->getId();
-
-        /**
-         * 檔案名稱
-         * 
-         * @var string
-         */
-        $fileName = md5('import_file' . date('H:i:s')) . 'xlsx';
-
-        // 移動檔案
-        $files->move($filepath, $fileName);
-
-        /**
-         * phpExcel Service
-         * 
-         * @var object
-         */
-        $phpExcelObject = $this->get('phpexcel')->createPHPExcelObject();
-
-
-        /**
-         * 讀取前面上傳的excel檔案，並轉換成物件
-         * 
-         * @var object
-         */
-        $excelObj = \PHPExcel_IOFactory::load($filepath . '/' . $fileName);
-
-        // 檔案讀取完立刻刪除
-        @unlink($filepath . '/' . $fileName);
-
-        /**
-         * Worksheet
-         * 
-         * @var object
-         */
-        $workSheet = $excelObj->getActiveSheet();
-
-        /**
-         * 取得所有的 row 
-         * 
-         * @var array
-         */
-        $rows = $workSheet->getRowIterator();
-
-        /**
-         * Symfony 的屬性套件，透過它可以用物件方式讀寫陣列
-         * 
-         * @var object
-         */
-        $accessor = PropertyAccess::createPropertyAccessor();
-
-        /**
-         * 欄位順位-資料屬性對應陣列，
-         * 會在迭代 $rows 的第一行時組成
-         * 
-         * @var array
-         */
-        $mapping = array();
-
-        /**
-         * 中文欄位名稱轉換為英文陣列鍵名之對應陣列
-         * 
-         * @var array
-         */
-        $translates = array(
-            'setStore' => '部門*',
-            'setPurchaseAt' => '進貨日*', 
-            'setExpirateAt' => '到期日',
-            'setSupplier' => '廠商*', 
-            'setBrand' => '品牌*', 
-            'setOrgSn' => 'SKU',
-            'setName' => '商品描述*', 
-            'setPattern' => '款式*', 
-            'setMt' => '材質*',
-            'setColor' => '花色*',
-            'setSource' => '來源*',
-            'setLevel' => '商品狀況', 
-            'setDpo' => 'DPO#', 
-            'setCost' => '單價成本*(含稅)',
-            'amount' => '數量*', 
-            'setFakePrice' => '市價', 
-            'setPrice' => '優惠價*',
-            'setMemo' => '備註', 
-            'setAllowDiscount' => '允許折扣', 
-            'setIsWeb' => '允許網路販售',
-            'setImgpath' => '對應圖片',
-            'setConsigner' => '客戶信箱',
-            'setFeedBack' => '回扣'
-        );
-
-        /**
-         * 某列的所有格子
-         * 
-         * @var object
-         */
-        $cells = array();
+        $importer = $this->get('goods.importer');
         
-        // 進行迭代，注意 $rowNum 是從 1 開始算，非一般我們習慣的0
-        foreach ($rows as $rowNum => $row) {         
-            // 取得本列的所有格子
-            $cells = $row->getCellIterator();
-
-            // true: 空的格子一樣要迭代
-            $cells->setIterateOnlyExistingCells(false);
-
-            // 第一行是欄位名稱，用來形成 key-attribute 的 mapping
-            if ($rowNum === self::ROW_START) {
-                // $cellNum 是從0開始，別和 $rowNum 搞混了
-                foreach ($cells as $cellNum => $cell) {
-                    // 如果沒有對應的動作，則直接進行下一次迭代
-                    if (!$tmpAct = array_search(trim($cell), $translates)) {
-                        continue;
-                    }
-
-                    // 根據欄位內容組成 mapping
-                    $accessor->setValue($mapping, '[' . $cellNum . ']', $tmpAct);                         
-                }
-
-                if (!is_array($mapping)) {
-                    throw new \Exception('mapping error!');
-
-                    break;
-                }
-
-                // 檢查mapping 有無 setAllowDiscount 方法, 若為沒有則添加
-                if (!in_array('setAllowDiscount', $mapping)) {
-                    $accessor->setValue($mapping, '[' . count($mapping) . ']', 'setAllowDiscount'); 
-                }
-
-                // 檢查mapping 有無 setIsWeb 方法, 若為沒有則添加
-                if (!in_array('setIsWeb', $mapping)) {
-                    $accessor->setValue($mapping, '[' . count($mapping) . ']', 'setIsWeb'); 
-                }
-
-                // 檢查mapping 有無 setStore 方法, 若為沒有則添加
-                if (!in_array('setStore', $mapping)) {
-                    $accessor->setValue($mapping, '[' . count($mapping) . ']', 'setStore'); 
-                }
-
-                continue;
-            }
-
-            // 迭代並且進行新增資料實體的動作
-            foreach ($cells as $cellNum => $cell) {
-                // 如果是客戶信箱，要在 request 添加 email，這在 order 產生時會用到，
-                // 又因為有客戶信箱表示為寄賣商品，所以要把 settings 的 setInType 設置為 1
-                if (isset($mapping[$cellNum])) {
-                    // 設置參數陣列
-                    $accessor->setValue($settings, '[' . $mapping[$cellNum] . ']', $this->getSettingsVal($mapping[$cellNum], $cell));
-
-                    if ($mapping[$cellNum] === 'email') {
-                        // request 參數 email 設置，訂單會用到此參數
-                        $request->request->set('email', $cell);
-
-                        // 進貨類型設置為寄賣
-                        $accessor->setValue($settings, '[setInType]', self::IS_CONSIGN);
-                    } else {
-                        // 設置參數陣列
-                        $accessor->setValue($settings, '[' . $mapping[$cellNum] . ']', $this->getSettingsVal($mapping[$cellNum], $cell));
-                    }
-                }
-            }
-
-            // 設置商品狀態為上架，強制規定，不開放批次上傳欄位擇定商品狀態，可能會造成系統業務邏輯混亂
-            $accessor->setValue($settings, '[setStatus]', $this->getSettingsVal('setStatus', self::GS_ON_SALE));
-
-            // 如果沒有設置圖片路徑，則給予404png 的路徑，null 不符合原本的邏輯
-            if (!$accessor->getValue($settings, '[setImgpath]')) {
-                $accessor->setValue($settings, '[setImgpath]', self::NO_IMG);
-            }
-
-            // 如果沒有設置允許折扣，預設給1表示允許 (這邊用 === 是因為PHP會把 0 當成 !, 算是語言問題吧...)
-            if ($accessor->getValue($settings, '[setAllowDiscount]') === false || $accessor->getValue($settings, '[setAllowDiscount]') == '') {
-                $accessor->setValue($settings, '[setAllowDiscount]', self::IS_ALLOW);
-            }
-            
-            // 判斷是否有綁定寄賣客戶，若有為進貨寄賣，否則為一般進貨
-            if ($accessor->getValue($settings, '[setConsigner]') === false || $accessor->getValue($settings, '[setConsigner]') == '') {
-                $accessor->setValue($settings, '[setInType]', self::IS_NORMAL);
-            } else {
-                $accessor->setValue($settings, '[setInType]', self::IS_CONSIGN);
-            }
-
-            // 如果沒有設置允許折扣，預設給1表示允許
-            if ($accessor->getValue($settings, '[setIsWeb]') === false || $accessor->getValue($settings, '[setIsWeb]') == '') {
-                $accessor->setValue($settings, '[setIsWeb]', self::IS_ALLOW);
-            }
-
-            // 如果沒有設置商店，預設使用目前使用者的所屬店
-            if (!$accessor->getValue($settings, '[setStore]')) {
-                $accessor->setValue($settings, '[setStore]', $this->getSettingsVal('setStore', $user->getStore()->getSn()));
-            }      
-
-            // 迭代加入 goodsCollection
-            // 
-            // ********** array_map example *********
-            // 
-            // array_map(function ($goods) use (&$goodsCollection) {
-            //     array_push($goodsCollection, $goods);
-            // }, $GoodsFactory->lazyCreate($settings, $em));
-            // 
-            // ***************************************
-            $newGoodses = $GoodsFactory->lazyCreate($settings, $em);
-            array_walk($newGoodses, function ($goods) use (&$goodsCollection) {
-                array_push($goodsCollection, $goods);
-            });
-
-            // 清空設定參數陣列
-            $settings = array();
-        }
+        // 迭代excel物件新增商品物件
+        $importer->iterateRowToCreate($em, $goodsCollection, $request);
 
         // 使用交易機制
         $em->getConnection()->beginTransaction();
+
         try {
             $em->flush(); 
+
             $em->getConnection()->commit();
         } catch (\Exception $e) {
             $em->getConnection()->rollback();
@@ -1154,7 +763,11 @@ class GoodsPassportController extends Controller
             throw $e;
         }
 
-        // 序列化 $goodsCollection 丟回給前端讓 angular 去 pharse
+        /**
+         * $goodsCollection 序列化後的json字串
+         * 
+         * @var string
+         */
         $jsonGoods = $serializer->serialize($goodsCollection, 'json');
 
         return new Response($jsonGoods);
@@ -1269,8 +882,9 @@ class GoodsPassportController extends Controller
             $goodsGroup = $em->getRepository('WoojinGoodsBundle:GoodsPassport')->findAll();
 
             // 對商品們做一個假更新動作，觸發 Prepesist && PreUpdate 事件達到更新產編的效果
-            array_walk($goodsGroup, function ($goods) use ($em) {
-                $goods->setBrandSn(null);
+            array_walk($goodsGroup, function ($goods) use (&$em) {
+                $goods->setBrandSn(' ');
+                $em->persist($goods);
             });
             
             $em->flush();
@@ -1286,250 +900,5 @@ class GoodsPassportController extends Controller
         } catch (\Exception $e) {
             throw $e;
         }
-    }
-
-    /**
-     * 取得 excel 進貨類型那一格的值
-     * 
-     * @param  object $goods
-     * @return string
-     */
-    protected function getInTypeCellValue($goods)
-    {
-        /**
-         * 進貨類型
-         * 
-         * @var string
-         */
-        $inType = null;
-        
-        /**
-         * 搜尋條件
-         * 
-         * @var array
-         */
-        $condition = array('goods_passport' => $goods->getId(), 'kind' => self::OK_CONSIGN_IN);
-
-        // 判斷進貨類型為何, 若為true 則是寄賣貨物，需要找出關連的訂單和客戶
-        if ($goods->getInType()) {
-            /**
-             * 寄賣進貨訂單實體
-             * 
-             * @var object
-             */
-            $order = $this->getDoctrine()->getRepository('WoojinOrderBundle:Orders')->findOneBy($condition);
-
-            if (!$order instanceof \Woojin\OrderBundle\Entity\Orders) {
-                return '一般';
-            }
-
-            /**
-             * 寄賣訂單的客戶實體
-             * 
-             * @var object
-             */
-            $custom = $order->getCustom();
-
-            if (!$custom instanceof \Woojin\OrderBundle\Entity\Custom) {
-               return '一般';
-            }
-
-            $inType = '寄賣  ' . $custom->getEmail() . '[' . $custom->getName() . $custom->getSex() . ']';
-        }
-
-        return (is_null($inType)) ? '一般' : $inType;
-    }
-
-    /**
-     * 組成設定參數陣列
-     *
-     * @param   [string] $act 
-     * @param   [string] $arg
-     * @return  [string|integer|object]
-     */
-    protected function getSettingsVal($act, $arg)
-    {   
-        /**
-         * 回傳值
-         * 
-         * @var [string|integer|object]
-         */
-        $return = null;
-
-        switch ($act)
-        {
-            case 'setPurchaseAt':
-            case 'setExpirateAt':
-
-                $return = new \DateTime(date('Y-m-d', strtotime($arg)));
-
-                break;
-
-            case 'setSupplier':
-
-                $return = $this->getDoctrine()->getRepository('WoojinGoodsBundle:Supplier')->findOneBy((is_numeric($arg)) ? array('id' => $arg) : array('name' => $arg));
-
-                if (!is_object($return)) {
-                    $msg = array(
-                        'error' => '供貨商' . $arg . '尚未建立!', 
-                        'resource' => 'supplier', 
-                        'name' => strval($arg)
-                    );
-
-                    exit(json_encode($msg));
-                }
-
-                break;
-
-            case 'setBrand':
-
-                $return = $this->getDoctrine()->getRepository('WoojinGoodsBundle:Brand')->findOneBy((is_numeric($arg)) ? array('id' => $arg) : array('name' => $arg));
-
-                if (!is_object($return) && empty($return) && strval($arg) != '' ) {
-                    exit(json_encode(array('error' => '品牌' . $arg . '尚未建立!', 'resource' => 'brand', 'name' => strval($arg))));
-                }
-
-                break;
-            
-            case 'setPattern':
-
-                $return = $this->getDoctrine()->getRepository('WoojinGoodsBundle:Pattern')->findOneBy((is_numeric($arg)) ? array('id' => $arg) : array('name' => $arg));
-
-                if (!is_object($return) && empty($return) && strval($arg) != '' ) {
-                    exit(json_encode(array('error' => '款式' . $arg . '尚未建立!', 'resource' => 'pattern', 'name' => strval($arg))));
-                }
-
-                break;
-            
-            case 'setColor':
-
-                $return = $this->getDoctrine()->getRepository('WoojinGoodsBundle:Color')->findOneBy((is_numeric($arg)) ? array('id' => $arg) : array('name' => $arg));
-
-                if (!is_object($return) && empty($return) && strval($arg) != '' ) {
-                    exit(json_encode(array('error' => '顏色' . $arg . '尚未建立!', 'resource' => 'color', 'name' => strval($arg))));
-                }
-
-                break;
-
-            case 'setLevel':
-
-                $return = $this->getDoctrine()->getRepository('WoojinGoodsBundle:GoodsLevel')->findOneBy((is_numeric($arg)) ? array('id' => $arg) : array('name' => $arg));
-
-                if (!is_object($return) && empty($return) && strval($arg) != '' ) {
-                    exit(json_encode(array('error' => '商品狀況' . $arg . '尚未建立!', 'resource' => 'goodsLevel', 'name' => strval($arg))));
-                }
-
-                break;
-            
-            case 'setStatus':
-
-                $return = $this->getDoctrine()->getRepository('WoojinGoodsBundle:GoodsStatus')->findOneBy((is_numeric($arg)) ? array('id' => $arg) : array('name' => $arg));
-
-                break;
-
-            case 'setMT':
-
-                $return = $this->getDoctrine()->getRepository('WoojinGoodsBundle:GoodsMT')->findOneBy((is_numeric($arg)) ? array('id' => $arg) : array('name' => $arg));
-
-                if (!is_object($return) && empty($return) && strval($arg) != '' ) {
-                    exit(json_encode(array('error' => '材質' . $arg . '尚未建立!', 'resource' => 'goodsMt', 'name' => strval($arg))));
-                }
-
-                break;
-            
-            
-            case 'setSource':
-
-                $return = $this->getDoctrine()->getRepository('WoojinGoodsBundle:GoodsSource')->findOneBy((is_numeric($arg)) ? array('id' => $arg) : array('name' => $arg));
-
-                if (!is_object($return) && empty($return) && strval($arg) != '' ) {
-                    exit(json_encode(array('error' => '來源' . $arg . '尚未建立!', 'resource' => 'goodsSource', 'name' => strval($arg))));
-                }
-
-                break;
-            
-            case 'setConsigner':
-
-                $return = $this->getDoctrine()->getRepository('WoojinOrderBundle:Custom')->findOneBy((is_numeric($arg)) ? array('id' => $arg) : array('email' => $arg));
-
-                if (!is_object($return) && empty($return) && strval($arg) != '' ) {
-                    exit(json_encode(array('error' => '' . $arg . '信箱不存在!')));
-                }
-
-                break;
-
-            case 'setStore':
-
-                $return = $this->getDoctrine()->getRepository('WoojinStoreBundle:Store')->findOneBy((is_numeric($arg)) ? array('id' => $arg) : array('sn' => $arg));
-
-                if (!is_object($return)) {
-                    exit(json_encode(array('error' => '商店' . $arg . '尚未建立!')));
-                }
-
-                break;
-
-            case 'setOrgSn':    
-            case 'setName':
-            case 'setDpo':
-            case 'setCost':
-            case 'amount':
-            case 'setFakePrice':
-            case 'setPrice':
-            case 'setFeedBack':
-            case 'setBrandSn':            
-            case 'setDes':
-            case 'setMemo':
-            case 'setImgpath':
-
-                $return = strval($arg);
-
-                break;
-
-            case 'setIsWeb':
-            case 'setAllowDiscount':
-                // 若為空是1(預設值), 否則自己
-                $tmp = ((string) $arg === '') ? 1 : strval($arg); 
-                
-                // 轉數字->字串
-                $return = ((int) strval($tmp) === 1) ? '1' : '0';
-
-                break;
-
-            default:
-                break;
-        }
-
-        return $return;
-    }
-
-    /**
-     * 檢查email 是否有效
-     * 
-     * @param  string  $email
-     * @return boolean   
-     */
-    protected function isValidEmail($email)
-    {
-        // 過濾空白字串防止有人手殘
-        $email = trim($email);
-
-        if (in_array($this->emails, $email)) {
-            return true;
-        }
-
-        /**
-         * 客戶實體
-         * 
-         * @var \Woojin\OrderBundle\Entity\Custom
-         */
-        $custom = $this->getDoctrine()->getRepository('WoojinOrderBundle:Custom')->findOneBy(array('email' => $email));
-
-        if ($custom) {
-            array_push($this->emails, $email);
-
-            return true;
-        }
-
-        return false;
     }
 }

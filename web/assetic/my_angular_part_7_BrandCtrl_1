@@ -17,8 +17,10 @@ backendCtrls.controller('BrandCtrl', ['$scope', '$routeParams', '$http', 'Brand'
 	  	$promise.then(function () {
 	  		$scope.successMsg = query.name + ' 新增完成!';
 	  		$scope.brands = Brand.query();
+        $scope.errorMsg = null;
 	  		$scope.query.name = '';
 	  	}, function (error) {
+        $scope.successMsg = null;
 	  		$scope.errorMsg = query.name + '新增失敗，請確認是否有名稱重複!';
 	  	});
   };

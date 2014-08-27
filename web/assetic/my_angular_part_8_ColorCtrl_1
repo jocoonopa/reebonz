@@ -34,9 +34,11 @@ backendCtrls.controller('ColorCtrl', ['$scope', '$routeParams', '$http', 'Color'
     Color.update({ id: color.id}, color).
       $promise.then(function () {
         $scope.successMsg = color.name + ' 修改完成!';
+        $scope.errorMsg = null;
         //$scope.colors = Color.query();
         $scope.query.name = '';
       }, function () {
+        $scope.successMsg = null;
         $scope.errorMsg = color.name + '修改失敗，請確認是否有名稱重複!';
       });
   };

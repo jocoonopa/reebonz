@@ -83,7 +83,7 @@ backendCtrls.controller('GoodsImportCtrl', ['$scope', '$routeParams', '$http', '
     $http.post(Routing.generate('api_' + $scope.errorEntity.resource + '_create'), {name: $scope.errorEntity.name})
       .success(function (res) {
         $scope.isSuccess(res.name + '新增完成!');
-        $scope.errorEntity = {};
+        $scope.errorEntity = false;
       })
       .error(function () {
         $scope.isError($scope.errorEntity.name + '新增失敗!');
