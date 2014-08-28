@@ -3,17 +3,39 @@
 namespace Woojin\GoodsBundle;
 
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\Security\Core\SecurityContext;
 
 class GoodsExporter
 {
 	const IN_TYPE_NORMAL_DES = '一般';
 	const IN_TYPE_CONSIGN_DES = '寄賣';
 
+	/**
+	 * Service Container
+	 * 
+	 * @var [\Symfony\Component\DependencyInjection\ContainerInterface]
+	 */
 	protected $container;
 
-    public function __construct(ContainerInterface $container)
+	/**
+	 * Context
+	 * 
+	 * @var [\Symfony\Component\Security\Core\SecurityContext]
+	 */
+	protected $context;
+
+	/** 
+	 * phpExcelObject
+	 * 
+	 * @var [object]
+	 */
+	protected $phpExcelObj;
+
+    public function __construct(ContainerInterface $container, SecurityContext $context)
     {
         $this->container = $container;
+
+        $this->context = $context;
 
         $this->phpExcelObj = $this->container->get('phpexcel')->createPHPExcelObject();
     }
@@ -40,6 +62,13 @@ class GoodsExporter
      */
     protected function setMeta()
     {
+    	/**
+         * 取得目前使用者
+         * 
+         * @var object
+         */
+        $user = $this->context->getToken()->getUser();
+
     	// 設置excel 的 一些meta資訊
         $this->phpExcelObj
         	->getProperties()
@@ -92,34 +121,43 @@ class GoodsExporter
 
     protected function setCellViaIterateGoods($goodsGroup)
     {
+    	/**
+    	 * ProGetter
+    	 * 
+    	 * @var [\Woojin\Entity\ProGetter]
+    	 */
+    	$EntityProGetter = $this->container->get('entity.pro.getter');
+
     	// 迭代商品陣列，逐行->逐格填入對應資訊
         foreach ($goodsGroup as $key => $eachOne) {
 
             $this->phpExcelObj
             	->setActiveSheetIndex(0)
-                ->setCellValue('A' . ($key + 2), substr($eachOne->getSn(), 0, 1))
-                ->setCellValue('B' . ($key + 2), (is_object($purchaseAt = $eachOne->getPurchaseAt())) ? $purchaseAt->format('Y-m-d') : '')
-                ->setCellValue('C' . ($key + 2), (is_object($expirateAt = $eachOne->getExpirateAt())) ? $expirateAt->format('Y-m-d') : '')
-                ->setCellValue('D' . ($key + 2), (is_object($supplier = $eachOne->getSupplier())) ? $supplier->getName() : '')
-                ->setCellValue('E' . ($key + 2), (is_object($brand = $eachOne->getBrand())) ? $brand->getName() : '')
+                ->setCellValue('A' . ($key + 2), $EntityProGetter->getName($eachOne->getStore())) // 部門
+                ->setCellValue('B' . ($key + 2), $EntityProGetter->getDate($eachOne->getPurchaseAt())) // 進貨時間
+                ->setCellValue('C' . ($key + 2), $EntityProGetter->getDate($eachOne->getExpirateAt())) // 到期時間
+                ->setCellValue('D' . ($key + 2), $EntityProGetter->getName($eachOne->getSupplier())) // 廠商名稱
+                ->setCellValue('E' . ($key + 2), $EntityProGetter->getName($eachOne->getBrand())) // 品牌名稱
                 ->setCellValue('F' . ($key + 2), $eachOne->getOrgSn()) // 廠商型號
-                ->setCellValue('G' . ($key + 2), $eachOne->getName()) 
-                ->setCellValue('H' . ($key + 2), (is_object($pattern = $eachOne->getPattern())) ? $pattern->getName() : '')
-                ->setCellValue('I' . ($key + 2), (is_object($color = $eachOne->getColor())) ? $color->getName() : '')
-                ->setCellValue('J' . ($key + 2), (is_object($level = $eachOne->getLevel())) ? $level->getName() : '')
+                ->setCellValue('G' . ($key + 2), $eachOne->getName()) // 商品名稱
+                ->setCellValue('H' . ($key + 2), $EntityProGetter->getName($eachOne->getPattern())) // 款式名稱
+                ->setCellValue('I' . ($key + 2), $EntityProGetter->getName($eachOne->getColor())) // 顏色名稱
+                ->setCellValue('J' . ($key + 2), $EntityProGetter->getName($eachOne->getLevel())) // 商品狀況名稱
                 ->setCellValue('K' . ($key + 2), $eachOne->getDpo()) // 系統內部編號
-                ->setCellValue('L' . ($key + 2), $eachOne->getCost())
+                ->setCellValue('L' . ($key + 2), $eachOne->getCost()) // 成本
                 ->setCellValue('M' . ($key + 2), $eachOne->getFakePrice()) // 市場價
                 ->setCellValue('N' . ($key + 2), $eachOne->getPrice()) // 真實顯示價格為此
-                ->setCellValue('O' . ($key + 2), $eachOne->getMemo())
-                ->setCellValue('P' . ($key + 2), ($eachOne->getAllowDiscount()) ? '是' : '否')// {0: 否,1: 是}
-                ->setCellValue('Q' . ($key + 2), ($eachOne->getIsWeb()) ? '是' : '否' )// {0: 否,1: 是}
+                ->setCellValue('O' . ($key + 2), $eachOne->getMemo()) // 備註
+                ->setCellValue('P' . ($key + 2), $EntityProGetter->getTrueFalseDes($eachOne->getAllowDiscount()))// {0: 否,1: 是}
+                ->setCellValue('Q' . ($key + 2), $EntityProGetter->getTrueFalseDes($eachOne->getIsWeb()))// {0: 否,1: 是}
                 ->setCellValue('R' . ($key + 2), $this->getInTypeCellValue($eachOne)) // {0: 否,1: 是}
                 ->setCellValue('S' . ($key + 2), $eachOne->getImgpath()) // 請將對應的圖片丟到 /img/yy-mm-dd/ 裡
-                ->setCellValue('T' . ($key + 2), $eachOne->getStatus()->getName())
-                ->setCellValue('U' . ($key + 2), $eachOne->getSn())
+                ->setCellValue('T' . ($key + 2), $eachOne->getStatus()->getName()) // 商品狀態, ex: 上架
+                ->setCellValue('U' . ($key + 2), $eachOne->getSn()) // 產編
             ;
         }
+
+        return $this;
     }
 
     protected function setActiveSheet()

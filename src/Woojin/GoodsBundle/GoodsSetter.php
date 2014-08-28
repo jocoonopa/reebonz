@@ -4,6 +4,22 @@ namespace Woojin\GoodsBundle;
 
 class GoodsSetter
 {
+	const NO_IMG = '/img/404.png';
+	const NONE_ENTITY = 0;
+	const GS_ON_SALE = 1;
+
+	protected $settings = array();
+
+	/**
+	 * 取得設定陣列
+	 * 
+	 * @return [array]
+	 */
+	public function getSettings()
+	{
+		return $this->settings;
+	}
+
 	/**
      * 設置更新商品設定陣列
      * 
@@ -11,12 +27,12 @@ class GoodsSetter
      * @param [array] $settings
      * @param [object] $request
      */
-    public function setUpdateSettings($accessor, &$settings, $request, $em)
+    public function setUpdateSettings($accessor, $request, $em)
     {      
-        $this
-            ->setUpdateSettingsWithValue($accessor, $settings, $request)
-            ->setUpdateSettingsWithEntity($accessor, $settings, $request, $em)
-        ;
+        return $this
+	            ->setUpdateSettingsWithValue($accessor, $request)
+	            ->setUpdateSettingsWithEntity($accessor, $request, $em)
+	        ;
     }
 
     /**
@@ -26,58 +42,58 @@ class GoodsSetter
      * @param [array] $settings 
      * @param [object] $request
      */
-    protected function setUpdateSettingsWithValue($accessor, &$settings, $request)
+    protected function setUpdateSettingsWithValue($accessor, $request)
     {
         if ($name = $request->request->get('name')) {
-            $accessor->setValue($settings, '[setName]', $name);
+            $accessor->setValue($this->settings, '[setName]', $name);
         }
         
         if ($dpo = $request->request->get('dpo')) {
-            $accessor->setValue($settings, '[setDpo]', $dpo);
+            $accessor->setValue($this->settings, '[setDpo]', $dpo);
         }
         
         if ($price = $request->request->get('price')) {
-            $accessor->setValue($settings, '[setPrice]', $price);
+            $accessor->setValue($this->settings, '[setPrice]', $price);
         }
        
         if ($fakePrice = $request->request->get('fake_price')) {
-            $accessor->setValue($settings, '[setFakePrice]', $fakePrice);
+            $accessor->setValue($this->settings, '[setFakePrice]', $fakePrice);
         }
         
         if ($cost = $request->request->get('cost')) {
-            $accessor->setValue($settings, '[setCost]', $cost);
+            $accessor->setValue($this->settings, '[setCost]', $cost);
         }
         
         if ($orgSn = $request->request->get('org_sn')) {
-            $accessor->setValue($settings, '[setOrgSn]', $orgSn);
+            $accessor->setValue($this->settings, '[setOrgSn]', $orgSn);
         }
         
         if ($brandSn = $request->request->get('brand_sn')) {
-            $accessor->setValue($settings, '[setBrandSn]', $brandSn);
+            $accessor->setValue($this->settings, '[setBrandSn]', $brandSn);
         }
         
         if ($des = $request->request->get('des')) {
-            $accessor->setValue($settings, '[setDes]', $des);
+            $accessor->setValue($this->settings, '[setDes]', $des);
         }
         
         if ($memo = $request->request->get('memo')) {
-            $accessor->setValue($settings, '[setMemo]', $memo);
+            $accessor->setValue($this->settings, '[setMemo]', $memo);
         }
         
         if ($isWeb = $request->request->get('is_web')) {
-            $accessor->setValue($settings, '[setIsWeb]', $isWeb);
+            $accessor->setValue($this->settings, '[setIsWeb]', $isWeb);
         }
         
         if ($purchaseAt = $request->request->get('purchase_at')) {
-            $accessor->setValue($settings, '[setPurchaseAt]', new \DateTime($purchaseAt));
+            $accessor->setValue($this->settings, '[setPurchaseAt]', new \DateTime($purchaseAt));
         }
         
         if ($expirateAt = $request->request->get('expirate_at')) {
-            $accessor->setValue($settings, '[setExpirateAt]', new \DateTime($expirateAt));
+            $accessor->setValue($this->settings, '[setExpirateAt]', new \DateTime($expirateAt));
         }     
         
         if ($allowDiscount = $request->request->get('allow_discount')) {
-            $accessor->setValue($settings, '[setAllowDiscount]', $allowDiscount);   
+            $accessor->setValue($this->settings, '[setAllowDiscount]', $allowDiscount);   
         }
 
         // 若是404表示移除圖片，需要更新，其他的動作都交給ImgController.php，
@@ -85,7 +101,7 @@ class GoodsSetter
         // 連帶的商品的圖片路徑也不會被ImgController.php 修改，因此在商品資訊更新就要自行先處理，
         // 而如果確實有修改圖片且上傳的話，就不需要進行此動作
         if ($request->request->get('imgpath') === '/img/404.png') {
-            $accessor->setValue($settings, '[setImgpath]', '/img/404.png');
+            $accessor->setValue($this->settings, '[setImgpath]', '/img/404.png');
         } 
 
         return $this;
@@ -99,42 +115,42 @@ class GoodsSetter
      * @param [object] $request  
      * @param [object] $em       
      */
-    protected function setUpdateSettingsWithEntity($accessor, &$settings, $request, $em)
+    protected function setUpdateSettingsWithEntity($accessor, $request, $em)
     {
         if ($brand = $request->request->get('brand')) {
-            $accessor->setValue($settings, '[setBrand]', $em->find('WoojinGoodsBundle:Brand', $brand));
+            $accessor->setValue($this->settings, '[setBrand]', $em->find('WoojinGoodsBundle:Brand', $brand));
         }
         
         if ($color = $request->request->get('color')) {
-            $accessor->setValue($settings, '[setColor]', $em->find('WoojinGoodsBundle:Color', $color));   
+            $accessor->setValue($this->settings, '[setColor]', $em->find('WoojinGoodsBundle:Color', $color));   
         }
         
         if ($pattern = $request->request->get('pattern')) {
-            $accessor->setValue($settings, '[setPattern]', $em->find('WoojinGoodsBundle:Pattern', $pattern));   
+            $accessor->setValue($this->settings, '[setPattern]', $em->find('WoojinGoodsBundle:Pattern', $pattern));   
         }
         
         if ($level = $request->request->get('level')) {
-            $accessor->setValue($settings, '[setLevel]', $em->find('WoojinGoodsBundle:GoodsLevel', $level));   
+            $accessor->setValue($this->settings, '[setLevel]', $em->find('WoojinGoodsBundle:GoodsLevel', $level));   
         }
         
         if ($source = $request->request->get('source')) {
-            $accessor->setValue($settings, '[setSource]', $em->find('WoojinGoodsBundle:GoodsSource', $source));   
+            $accessor->setValue($this->settings, '[setSource]', $em->find('WoojinGoodsBundle:GoodsSource', $source));   
         }
         
         if ($mt = $request->request->get('mt')) {
-            $accessor->setValue($settings, '[setMt]', $em->find('WoojinGoodsBundle:GoodsMT', $mt));   
+            $accessor->setValue($this->settings, '[setMt]', $em->find('WoojinGoodsBundle:GoodsMT', $mt));   
         }
         
         if ($supplier = $request->request->get('supplier')) {
-            $accessor->setValue($settings, '[setSupplier]', $em->find('WoojinGoodsBundle:Supplier', $supplier));
+            $accessor->setValue($this->settings, '[setSupplier]', $em->find('WoojinGoodsBundle:Supplier', $supplier));
         }
         
         if ($status = $request->request->get('status')) {
-            $accessor->setValue($settings, '[setStatus]', $em->find('WoojinGoodsBundle:GoodsStatus', $status));   
+            $accessor->setValue($this->settings, '[setStatus]', $em->find('WoojinGoodsBundle:GoodsStatus', $status));   
         }
 
         if ($store = $request->request->get('store')) {
-            $accessor->setValue($settings, '[setStore]', $em->find('WoojinStoreBundle:Store', $request->request->get('store'))); // 原本是不可直接修改所屬店，需透過調貨，但Reebonz 這邊不需要這種限制
+            $accessor->setValue($this->settings, '[setStore]', $em->find('WoojinStoreBundle:Store', $store)); // 原本是不可直接修改所屬店，需透過調貨，但Reebonz 這邊不需要這種限制
         }  
 
         return $this;
@@ -148,14 +164,12 @@ class GoodsSetter
      * @param [object] $request 
      * @param [object] $em      
      */
-    public function setCreateSettings($accessor, &$settings, $request, $em)
+    public function setCreateSettings($accessor, $request, $em)
     {
-        $this
-            ->setCreateSettingsWithValue($accessor, $settings, $request)
-            ->setCreateSettingsWithEntity($accessor, $settings, $request, $em)
-        ;
-
-        return $this;
+        return $this
+	            ->setCreateSettingsWithValue($accessor, $this->settings, $request)
+	            ->setCreateSettingsWithEntity($accessor, $this->settings, $request, $em)
+	        ;
     }
 
     /**

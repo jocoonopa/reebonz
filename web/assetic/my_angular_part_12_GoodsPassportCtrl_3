@@ -155,10 +155,6 @@ backendCtrls.controller('GoodsPassportCtrl', [ '$scope', '$http', '$filter', '$t
         $scope.isSuccess('修改成功', goods);
       })
       .error(function (e) {
-        returnGoods.isSuccess = false;
-
-        repo[index] = returnGoods;
-
         $scope.isError('修改失敗', goods);
       });
   }

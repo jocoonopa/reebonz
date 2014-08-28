@@ -154,7 +154,7 @@ class GoodsFactory implements \Woojin\BackendBundle\EntityFactory
      * @param  [object] $em [entitiy manager]
      * @return [array] [回傳的商品實體陣列]
      */
-    public function lazyCreate($settings, $em)
+    public function lazyCreate($settings, &$em)
     {
         /**
          * Symfony 的屬性套件，透過它可以用物件方式讀寫陣列
@@ -186,7 +186,7 @@ class GoodsFactory implements \Woojin\BackendBundle\EntityFactory
      * @param  [object] $em [entity manager]
      * @return [array] $goodsCollection
      */
-    protected function genGoodsVialoopWithAmount($amount, $settings, $em)
+    protected function genGoodsVialoopWithAmount($amount, $settings, &$em)
     {
         /**
          * 商品實體陣列

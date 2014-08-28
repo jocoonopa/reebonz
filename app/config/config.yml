@@ -109,15 +109,21 @@ swiftmailer:
 nelmio_api_doc: ~
 
 services:  
+    goods.importer.mapping.setter:
+        class: Woojin\GoodsBundle\Importer\Setter\MappingSetter
+
+    entity.pro.getter:
+        class: Woojin\Entity\ProGetter
+
     goods.setter:
         class: Woojin\GoodsBundle\GoodsSetter
 
     goods.exporter:
         class: Woojin\GoodsBundle\GoodsExporter
-        arguments: ['@service_container']
+        arguments: ['@service_container', '@security.context']
 
     goods.importer:
-        class: Woojin\GoodsBundle\GoodsImporter
+        class: Woojin\GoodsBundle\Importer\GoodsImporter
         arguments: ['@doctrine', '@service_container', '@security.context']
 
     custom.factory:

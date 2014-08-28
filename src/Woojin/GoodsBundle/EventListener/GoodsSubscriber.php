@@ -115,7 +115,7 @@ class GoodsSubscriber implements EventSubscriber
     $accessor = PropertyAccess::createPropertyAccessor();
 
     // 若是調貨(進)則不進行以下訂單動作
-    if ($goods->getStatus()->getId() === self::GS_MOVING) {
+    if ($goods->getStatus()->getName() === self::GS_MOVING) {
       return;
     }
 

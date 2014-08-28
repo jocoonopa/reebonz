@@ -1518,7 +1518,7 @@ backendCtrls.controller('GoodsKeyInCtrl', ['$scope', '$routeParams', '$http', '$
         $scope.isSuccess('新增商品完成!');
       })
       .error(function (e) {
-        $scope.isError('新增失敗', goods);
+        $scope.isError('新增失敗!');
       });
   };
 
@@ -1714,10 +1714,6 @@ backendCtrls.controller('GoodsPassportCtrl', [ '$scope', '$http', '$filter', '$t
         $scope.isSuccess('修改成功', goods);
       })
       .error(function (e) {
-        returnGoods.isSuccess = false;
-
-        repo[index] = returnGoods;
-
         $scope.isError('修改失敗', goods);
       });
   }
@@ -4527,7 +4523,7 @@ backendCtrls.controller('GoodsKeyInCtrl', ['$scope', '$routeParams', '$http', '$
         $scope.isSuccess('新增商品完成!');
       })
       .error(function (e) {
-        $scope.isError('新增失敗', goods);
+        $scope.isError('新增失敗!');
       });
   };
 
@@ -4723,10 +4719,6 @@ backendCtrls.controller('GoodsPassportCtrl', [ '$scope', '$http', '$filter', '$t
         $scope.isSuccess('修改成功', goods);
       })
       .error(function (e) {
-        returnGoods.isSuccess = false;
-
-        repo[index] = returnGoods;
-
         $scope.isError('修改失敗', goods);
       });
   }

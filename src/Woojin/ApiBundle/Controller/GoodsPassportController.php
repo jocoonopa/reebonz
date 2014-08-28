@@ -27,39 +27,8 @@ use Woojin\OrderBundle\Entity\Orders;
  * @Route("/goodsPassport")
  */
 class GoodsPassportController extends Controller
-{
-    const NONE_ENTITY       = 0;
-    const NO_IMG            = '/img/404.png';
-    const ROW_START         = 1;
-    const IS_ALLOW          = 1;
-    const IS_NORMAL         = 0;
-    const IS_CONSIGN        = 1;
-    
-    const GS_ON_SALE        = 1;
-    const GS_OFF_SALE       = 4;
-    const OK_IN             = 1;
-    const OK_EXCHANGE_IN    = 2;
-    const OK_TURN_IN        = 3;
-    const OK_MOVE_IN        = 4;
-    const OK_CONSIGN_IN     = 5;
-    const OK_OUT            = 6;
-    const OK_EXCHANGE_OUT   = 7;
-    const OK_TURN_OUT       = 8;
-    const OK_MOVE_OUT       = 9;
-    const OK_FEEDBACK       = 10;
-    const OK_WEB_OUT        = 11;
-    const OK_SPECIAL_SELL   = 12;
-    const OK_SAME_BS        = 13;
-    const OS_HANDLING       = 1;
-    const OS_COMPLETE       = 2;
-    const OS_CANCEL         = 3;
-
-    /**
-     * 批次匯入時判斷信箱用的陣列
-     * 
-     * @var array
-     */
-    protected $emails = array();
+{   
+    const API_KEY = '17201810cc';
 
     /**
      * 取得商品列表
@@ -456,14 +425,23 @@ class GoodsPassportController extends Controller
 
         /**
          * 提供給工廠的參數陣列
+         * 
          * @var array
          */
-        $settings = array();
+        $settings = $GoodsSetter->setCreateSettings($accessor, $request, $em)->getSettings();
 
-        // // 設置新增商品設定陣列
-        $GoodsSetter->setCreateSettings($accessor, $settings, $request, $em);
+        /**
+         * 商品實體
+         * 
+         * @var [\Woojin\GoodsBundle\Entity\GoodsPassport]
+         */
+        $goods = $GoodsFactory->create($settings);
 
-        $jsonGoodsPassports = $serializer->serialize($GoodsFactory->create($settings), 'json');
+        /**
+         * $jsonGoodsPassports
+         * @var [string] (json)
+         */
+        $jsonGoodsPassports = $serializer->serialize($goods, 'json');
 
         return new Response($jsonGoodsPassports);
     }
@@ -526,12 +504,10 @@ class GoodsPassportController extends Controller
 
         /**
          * 提供給工廠的參數陣列
+         * 
          * @var array
          */
-        $settings = array();
-
-        // 設置更新商品設定陣列
-        $GoodsSetter->setUpdateSettings($accessor, $settings, $request, $em);
+        $settings = $GoodsSetter->setUpdateSettings($accessor, $request, $em)->getSettings();
         
         $jsonGoodsPassports = $serializer->serialize($GoodsFactory->update($settings, $goodsPassport), 'json');
 
@@ -679,7 +655,7 @@ class GoodsPassportController extends Controller
          * 
          * @var [object]
          */
-        $reponse = $GoodsPassport->run($goodsGroup); 
+        $response = $GoodsExporter->run($goodsGroup); 
 
         return $response;      
     }
@@ -717,22 +693,9 @@ class GoodsPassportController extends Controller
      */
     public function importAction(Request $request)
     {
+        // 接下來的動作是非常吃資源的!!
         set_time_limit(0);
         ini_set('memory_limit','512M');
-
-        /**
-         * Entity Manager
-         * 
-         * @var [object]
-         */
-        $em = $this->getDoctrine()->getManager();
-
-        /**
-         * 新增成功的商品實體陣列
-         * 
-         * @var array{object}
-         */
-        $goodsCollection = array();
 
         /**
          * serializer
@@ -743,25 +706,16 @@ class GoodsPassportController extends Controller
         /**
          * 商品資料上傳用物件
          * 
-         * @var \Woojin\GoodsBundle\GoodsImporter
+         * @var \Woojin\GoodsBundle\Importer\GoodsImporter
          */
         $importer = $this->get('goods.importer');
         
-        // 迭代excel物件新增商品物件
-        $importer->iterateRowToCreate($em, $goodsCollection, $request);
-
-        // 使用交易機制
-        $em->getConnection()->beginTransaction();
-
-        try {
-            $em->flush(); 
-
-            $em->getConnection()->commit();
-        } catch (\Exception $e) {
-            $em->getConnection()->rollback();
-
-            throw $e;
-        }
+        /**
+         * 新增成功的商品實體陣列
+         * 
+         * @var array{object}
+         */
+        $goodsCollection = $importer->run($request)->getGoodsCollection();
 
         /**
          * $goodsCollection 序列化後的json字串
@@ -797,7 +751,7 @@ class GoodsPassportController extends Controller
     public function batchRemove($apiKey, $id)
     {
         // 檢查 apiKey 是否正確
-        if ($apiKey != '37103710cc') {
+        if ($apiKey !== self::API_KEY) {
             throw new \Exception ('Wrong Api Key');
         }
 
@@ -859,7 +813,7 @@ class GoodsPassportController extends Controller
     public function batchRepair($apiKey)
     {
         // 檢查 apiKey 是否正確
-        if ($apiKey != '37103710cc') {
+        if ($apiKey !== self::API_KEY) {
             throw new \Exception ('Wrong Api Key');
         }
 
