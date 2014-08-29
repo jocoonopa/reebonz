@@ -83,7 +83,8 @@ myApp.directive('goodsListTitle', function () {
   return {
     restrict: 'E',
     scope: {
-      goods: '='
+      goods: '=',
+      allow: '='
     },
     controller: function ($scope) {
       $scope.switchDisplay = function (goods) {

@@ -16,7 +16,7 @@ class ProGetter
 
 	public function getTrueFalseDes($val)
 	{
-		return ($val === 1 ? '是' : '否');
+		return ($val == 1 ? '是' : '否');
 	}
 }
 

@@ -5,6 +5,8 @@
 >
 	<span class="caret"></span>
 	
+	<input ng-show="allow" type="checkbox" ng-model="goods.isCheck" onclick="event.stopPropagation();"/>
+
 	<b>
 		<small ng-show="goods.isDelete;">刪除</small>
 		

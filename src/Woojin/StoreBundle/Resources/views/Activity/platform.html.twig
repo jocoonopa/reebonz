@@ -151,6 +151,29 @@
         </dl>
       </div>
     </div>
+
+    <div class="row" ng-show="totalItems>0;">
+      <form novalidate class="form-horizontal" role="form">
+        <div class="form-group">
+          <label class="col-sm-2 control-label">每頁顯示筆數</label>
+          
+          <div class="col-sm-10">
+            <select ng-model="$parent.perPage" name="per-page" class="form-control" ng-change="$parent.currentPage=1; _query();">
+              <option value="10">10</option>
+              <option value="20">20</option>
+              <option value="30">30</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <hr>
+
+    <pagination ng-show="$parent.totalItems>0;" max-size="10" rotate="false" boundary-links="true" items-per-page="$parent.perPage" total-items="$parent.totalItems" ng-model="$parent.currentPage" ng-change="pageChanged()"></pagination>
+
   </tab>
 </tabset>
 

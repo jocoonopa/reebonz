@@ -29,6 +29,8 @@ use Woojin\OrderBundle\Entity\Orders;
 class GoodsPassportController extends Controller
 {   
     const API_KEY = '17201810cc';
+    const GS_ONSALE = 1;
+    const GS_OFFSALE = 4;
 
     /**
      * 取得商品列表
@@ -602,6 +604,32 @@ class GoodsPassportController extends Controller
     }
 
     /**
+     * 批次下架
+     *
+     * @Route("/offsale", name="api_goodsPassport_offsale", options={"expose"=true})
+     * @Method("PUT")
+     */
+    public function onSaleAction() 
+    {
+        $this->switchGoodesSaleStatusTo(self::GS_ONSALE);
+
+        return new Response(json_encode(array('status' => 'ok')));
+    }
+
+    /**
+     * 批次上架
+     *
+     * @Route("/onsale", name="api_goodsPassport_onsale", options={"expose"=true})
+     * @Method("PUT")
+     */
+    public function offSaleAction() 
+    {
+        $this->switchGoodesSaleStatusTo(self::GS_OFFSALE);
+
+        return new Response(json_encode(array('status' => 'ok')));
+    }
+
+    /**
      * 取得商品匯出excel
      * 
      * @Route("/export/{jsonCondition}", name="api_goodsPassport_export",options={"expose"=true})
@@ -728,68 +756,6 @@ class GoodsPassportController extends Controller
     }
 
     /**
-     * 我的懶人刪除
-     * 
-     * @Route("/batch/remove/{apiKey}/{id}/jocoonopa", name="api_goodsPassport_batch_remove", options={"expose"=true})
-     * @Method("DELETE")
-     * @ApiDoc(
-     *  resource=true,
-     *  description="懶人刪除, ~~~~",
-     *  requirements={{"name"="apiKey", "dataType"="string", "required"=true, "description"="懶人刪除, ~~~~"}},
-     *  statusCodes={
-     *    200="Returned when successful",
-     *    404={
-     *     "Returned when something else is not found"
-     *    },
-     *    500={
-     *     "Please contact author to fix it"
-     *    }
-     *  }
-     * )
-     * 
-     */
-    public function batchRemove($apiKey, $id)
-    {
-        // 檢查 apiKey 是否正確
-        if ($apiKey !== self::API_KEY) {
-            throw new \Exception ('Wrong Api Key');
-        }
-
-        try {
-            /**
-             * Entity Manager
-             * 
-             * @var object
-             */
-            $em = $this->getDoctrine()->getManager();
-            
-             /**
-             * 商品物件陣列
-             * 
-             * @var array[\Woojin\GoodsBundle\Entity\GoodsPassport]
-             */
-            $goodsGroup = $em->getRepository('WoojinGoodsBundle:GoodsPassport')->findBy(array('supplier' => $id));
-
-            // 移除屬於指定所屬店的所有商品
-            foreach ($goodsGroup as $goods) {
-                $em->remove($goods);
-            }
-
-            $em->flush();
-
-            /**
-             * 回傳訊息
-             * @var array
-             */
-            $returnMsg = array('status' => 'OK');
-
-            return new Response(json_encode($returnMsg));
-        } catch (\Exception $e) {
-            throw $e;
-        }
-    }
-
-    /**
      * 我的懶人修復產編
      * 
      * @Route("/batch/repair/{apiKey}/jocoonopa", name="api_goodsPassport_batch_repair", options={"expose"=true})
@@ -835,9 +801,9 @@ class GoodsPassportController extends Controller
              */
             $goodsGroup = $em->getRepository('WoojinGoodsBundle:GoodsPassport')->findAll();
 
-            // 對商品們做一個假更新動作，觸發 Prepesist && PreUpdate 事件達到更新產編的效果
+            // 對商品們做一個假更新動作，觸發 PostPesist && PreUpdate 事件達到更新產編的效果
             array_walk($goodsGroup, function ($goods) use (&$em) {
-                $goods->setBrandSn(' ');
+                $goods->setBrandSn('  ');
                 $em->persist($goods);
             });
             

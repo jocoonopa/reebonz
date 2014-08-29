@@ -2,6 +2,9 @@
 
 namespace Woojin\GoodsBundle;
 
+/**
+ * 處理傳入工廠的 $settings 陣列
+ */
 class GoodsSetter
 {
 	const NO_IMG = '/img/404.png';

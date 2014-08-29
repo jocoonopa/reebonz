@@ -9,7 +9,9 @@ backendCtrls.controller('ActivityCtrl', ['$scope', '$routeParams', '$filter', '$
 
     var init = function () {
       $scope.activitys = Activity.query();
+      
       $scope.newActivity = {};
+
       setNull($scope.newActivity);
     };
 

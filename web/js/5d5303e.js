@@ -26047,7 +26047,8 @@ myApp.directive('goodsListTitle', function () {
   return {
     restrict: 'E',
     scope: {
-      goods: '='
+      goods: '=',
+      allow: '='
     },
     controller: function ($scope) {
       $scope.switchDisplay = function (goods) {
@@ -26453,7 +26454,6 @@ backendServices.factory('Activity', ['$resource',
     });
 }]);
 
-
 'use strict';
 
 /* Controllers */
@@ -26488,7 +26488,9 @@ backendCtrls.controller('ActivityCtrl', ['$scope', '$routeParams', '$filter', '$
 
     var init = function () {
       $scope.activitys = Activity.query();
+      
       $scope.newActivity = {};
+
       setNull($scope.newActivity);
     };
 
@@ -26645,13 +26647,13 @@ backendCtrls.controller('ActivityPlatformCtrl', ['$scope', '$routeParams', '$fil
     };
 
     var _push = function () {
-      var goodsSns = [];
+      var goodsPosts = [];
 
       for (var key in $scope.list) {
-        goodsSns.push($scope.list[key]);
+        goodsPosts.push($scope.list[key]);
       }
 
-      $http.put(Routing.generate('api_activity_push', {id: $routeParams.id}), {goodsSns: goodsSns})
+      $http.put(Routing.generate('api_activity_push', {id: $routeParams.id}), {goodsPost: goodsPosts})
         .success(function (res) {
           if (res.status === 'ok') {
             $scope.init();
@@ -26663,13 +26665,13 @@ backendCtrls.controller('ActivityPlatformCtrl', ['$scope', '$routeParams', '$fil
     };
 
     var pull = function () {
-      var goodsSns = [];
+      var goodsPosts = [];
 
       for (var key in $scope.list) {
-        goodsSns.push($scope.list[key]);
+        goodsPosts.push($scope.list[key]);
       }
 
-      $http.put(Routing.generate('api_activity_pull', {id: $routeParams.id}), {goodsSns: goodsSns})
+      $http.put(Routing.generate('api_activity_pull', {id: $routeParams.id}), {goodsPost: goodsPosts})
         .success(function (res) {
           if (res.status === 'ok') {
             $scope.init();
@@ -26698,7 +26700,7 @@ backendCtrls.controller('ActivityPlatformCtrl', ['$scope', '$routeParams', '$fil
 
           var goods = goodsGroup[0];
 
-          $scope.list.push({sn: goods.sn});
+          $scope.list.push({id: goods.id, sn: goods.sn});
           $scope.barcode = null;
 
           setSuccess(goods.sn + '資料取得成功!');
@@ -26725,10 +26727,14 @@ backendCtrls.controller('ActivityPlatformCtrl', ['$scope', '$routeParams', '$fil
       $scope.barcode = null;
       $scope.act = 1;
       $scope.list = [];
+      $scope.totalItems = 0;
+      $scope.currentPage = 1;
+      $scope.perPage = 10;
       $scope._query();
       $scope.query = {sn: ''};
       $scope.success = null;
       $scope.error = null;
+      $scope.pageInit();
     };
 
     $scope.emptyMsg = function () {
@@ -26737,7 +26743,7 @@ backendCtrls.controller('ActivityPlatformCtrl', ['$scope', '$routeParams', '$fil
     };
 
     $scope._query = function () {
-      $http.get(Routing.generate('api_goodsPassport_filter', {jsonCondition: JSON.stringify(condition), jsonOrderBy: JSON.stringify(orderBy), page: 1, perPage: 10000}))
+      $http.get(Routing.generate('api_goodsPassport_filter', {jsonCondition: JSON.stringify(condition), jsonOrderBy: JSON.stringify(orderBy), page: $scope.currentPage, perPage: $scope.perPage}))
       .success(function (data) {
         $scope.goodses = data;
 
@@ -26747,6 +26753,27 @@ backendCtrls.controller('ActivityPlatformCtrl', ['$scope', '$routeParams', '$fil
           }
         }
       });
+    };
+
+    /**
+     * 換頁時觸發動作，這邊是執行 query() 方法取得資料
+     */
+    $scope.pageChanged = function() {
+      $scope._query();
+    };
+
+    $scope.setPage = function (pageNo) {
+      $scope.currentPage = pageNo;
+    };
+
+    /**
+     * 初始化頁籤
+     */
+    $scope.pageInit = function () {
+      $http.get(Routing.generate("api_goodsPassport_filter_count", {jsonCondition: JSON.stringify(condition)})).
+        success(function (total) {
+          $scope.totalItems = total;
+        });
     };
 
     $scope.saveList = function () {
@@ -27621,6 +27648,9 @@ backendCtrls.controller('GoodsPassportCtrl', [ '$scope', '$http', '$filter', '$t
  */
 backendCtrls.controller('GoodsSearchCtrl', ['$scope', '$routeParams', '$http', '$upload', '$timeout', '$filter',
   function ($scope, $routeParams, $http, $upload, $timeout, $filter) { 
+  
+  var GoodsOperator;
+  
   /**
    * 初始化資料
    */
@@ -27637,6 +27667,20 @@ backendCtrls.controller('GoodsSearchCtrl', ['$scope', '$routeParams', '$http', '
     $scope.orderBy = {attr: 'id', name: '索引'};
     $scope.orderDir = 'DESC';
     $scope.searchRepo = [];
+    $scope.actType = '';
+    $scope.checkStatus = true;
+    $scope.punchActivity = {
+      description: "借出",
+      discount: 0,
+      end_at: "2016-04-09T00:00:00+0800",
+      exceed: 0,
+      id: 1,
+      minus: 0,
+      name: "借出",
+      start_at: "2014-08-01T00:00:00+0800",
+    };
+
+    $scope.isAllowEdit = true;
 
     // 取得排序資料
     $http.get('/bundles/woojinbackend/js/angular-seed/app/js/goods/order_conditions.json').
@@ -27653,6 +27697,18 @@ backendCtrls.controller('GoodsSearchCtrl', ['$scope', '$routeParams', '$http', '
          */
         $scope.mapping = res;
       });
+
+    GoodsOperator = new GoodsOperator;
+  };
+
+  $scope.checkAll = function () {
+    for (var key in $scope.searchRepo) {
+      $scope.searchRepo[key].isCheck = $scope.checkStatus;
+    }
+  };
+  
+  $scope.doAct = function () {
+    GoodsOperator[$scope.actType]();
   };
  
   /**
@@ -27676,11 +27732,14 @@ backendCtrls.controller('GoodsSearchCtrl', ['$scope', '$routeParams', '$http', '
           $scope.switchPanelAndRes();
         }
 
+        if (goods.length === 0) {
+          $scope.isError('查無商品!');
+        }
+
         $scope.searchRepo = goods;
       }).
       error(function () {
-        $scope.successMsh = false;
-        $scope.errorMsg = 'Woops! 查詢發生錯誤！';
+        $scope.isError('Woops! 查詢發生錯誤！');
       });
   };
 
@@ -27824,6 +27883,90 @@ backendCtrls.controller('GoodsSearchCtrl', ['$scope', '$routeParams', '$http', '
         $scope.queryDes += $scope.repo[attr][type][i] + ((i === $scope.repo[attr][type].length - 1) ? '':'或');
       }
     }
+  };
+
+  var GoodsOperator = function () {
+    this.selectChecked = function () {
+      var tmp = [];
+
+      for (var key in $scope.searchRepo) {
+        if ($scope.searchRepo[key].isCheck) {
+          tmp.push({id: $scope.searchRepo[key].id});
+        }
+      }
+
+      return tmp;
+    };
+
+    this.onSaleChecked = function () {
+      $http.put(Routing.generate('api_goodsPassport_onsale'), {goodsPost: this.selectChecked()})
+        .success(function (res) {
+          $scope.isSuccess('批次上架完成！');
+
+          $scope.query();
+        })
+        .error(function (e) {
+          console.log(e);
+
+          $scope.isError('批次刪除發生錯誤!');
+        });
+    };
+
+    this.offSaleChecked = function () {
+      $http.put(Routing.generate('api_goodsPassport_offsale'), {goodsPost: this.selectChecked()})
+        .success(function (res) {
+          $scope.isSuccess('批次下架完成！');
+
+          $scope.query();
+        })
+        .error(function (e) {
+          console.log(e);
+
+          $scope.isError('批次下架發生錯誤！');
+        });
+    };
+    
+    this.deleteChecked = function () {
+      $http.delete(Routing.generate('api_goodsPassport_reverse'), {goodsPost: this.selectChecked()})
+        .success(function (res) {
+          $scope.isSuccess('批次刪除完成！');
+
+          $scope.query();
+        })
+        .error(function (e) {
+          console.log(e);
+
+          $scope.isError('批次刪除發生錯誤！');
+        });
+    };
+    
+    this.punchOutChecked = function () {
+      $http.put(Routing.generate('api_activity_push', {id: $scope.punchActivity}), {goodsPost: this.selectChecked()})
+        .success(function (res) {
+          $scope.isSuccess('批次刷出完成！');
+
+          $scope.query();
+        })
+        .error(function (e) {
+          console.log(e);
+
+          $scope.isError('批次刷出發生錯誤！');
+        });
+    };
+    
+    this.punchInChecked = function () {
+      $http.put(Routing.generate('api_activity_pull', {id: $scope.punchActivity}), {goodsPost: this.selectChecked()})
+        .success(function (res) {
+          $scope.isSuccess('批次刷入完成！');
+
+          $scope.query();
+        })
+        .error(function (e) {
+          console.log(e);
+
+          $scope.isError('批次刷入發生錯誤！');
+        });
+    };
   };
 
   $scope.initSearchMeta();
@@ -29356,7 +29499,7 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
      * @return {Boolean}
      */
     var isHadDiscount = function () {
-      return ($scope.myActivity.discount > 0);
+      return ($scope.myActivity.discount > 0 && $scope.myActivity.exceed > 0);
     };
 
     /**
@@ -30092,6 +30235,17 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
     return (typeof activity !== 'undefined' && activity.exceed > 0 &&  activity.minus > 0);
   };
 
+  /**
+   * 計算目前總價及優惠金額
+   */
+  $scope.countActivitySale = function () {
+    // 根據活動設置商品訂單的金額
+    $scope.ActivityProcessor.setActivityProcessPrice();
+
+    // 計算總金額
+    setTotal();
+  };
+
   $scope.init();
 }]);
 'use strict';
@@ -30626,6 +30780,9 @@ backendCtrls.controller('GoodsPassportCtrl', [ '$scope', '$http', '$filter', '$t
  */
 backendCtrls.controller('GoodsSearchCtrl', ['$scope', '$routeParams', '$http', '$upload', '$timeout', '$filter',
   function ($scope, $routeParams, $http, $upload, $timeout, $filter) { 
+  
+  var GoodsOperator;
+  
   /**
    * 初始化資料
    */
@@ -30642,6 +30799,20 @@ backendCtrls.controller('GoodsSearchCtrl', ['$scope', '$routeParams', '$http', '
     $scope.orderBy = {attr: 'id', name: '索引'};
     $scope.orderDir = 'DESC';
     $scope.searchRepo = [];
+    $scope.actType = '';
+    $scope.checkStatus = true;
+    $scope.punchActivity = {
+      description: "借出",
+      discount: 0,
+      end_at: "2016-04-09T00:00:00+0800",
+      exceed: 0,
+      id: 1,
+      minus: 0,
+      name: "借出",
+      start_at: "2014-08-01T00:00:00+0800",
+    };
+
+    $scope.isAllowEdit = true;
 
     // 取得排序資料
     $http.get('/bundles/woojinbackend/js/angular-seed/app/js/goods/order_conditions.json').
@@ -30658,6 +30829,18 @@ backendCtrls.controller('GoodsSearchCtrl', ['$scope', '$routeParams', '$http', '
          */
         $scope.mapping = res;
       });
+
+    GoodsOperator = new GoodsOperator;
+  };
+
+  $scope.checkAll = function () {
+    for (var key in $scope.searchRepo) {
+      $scope.searchRepo[key].isCheck = $scope.checkStatus;
+    }
+  };
+  
+  $scope.doAct = function () {
+    GoodsOperator[$scope.actType]();
   };
  
   /**
@@ -30681,11 +30864,14 @@ backendCtrls.controller('GoodsSearchCtrl', ['$scope', '$routeParams', '$http', '
           $scope.switchPanelAndRes();
         }
 
+        if (goods.length === 0) {
+          $scope.isError('查無商品!');
+        }
+
         $scope.searchRepo = goods;
       }).
       error(function () {
-        $scope.successMsh = false;
-        $scope.errorMsg = 'Woops! 查詢發生錯誤！';
+        $scope.isError('Woops! 查詢發生錯誤！');
       });
   };
 
@@ -30829,6 +31015,90 @@ backendCtrls.controller('GoodsSearchCtrl', ['$scope', '$routeParams', '$http', '
         $scope.queryDes += $scope.repo[attr][type][i] + ((i === $scope.repo[attr][type].length - 1) ? '':'或');
       }
     }
+  };
+
+  var GoodsOperator = function () {
+    this.selectChecked = function () {
+      var tmp = [];
+
+      for (var key in $scope.searchRepo) {
+        if ($scope.searchRepo[key].isCheck) {
+          tmp.push({id: $scope.searchRepo[key].id});
+        }
+      }
+
+      return tmp;
+    };
+
+    this.onSaleChecked = function () {
+      $http.put(Routing.generate('api_goodsPassport_onsale'), {goodsPost: this.selectChecked()})
+        .success(function (res) {
+          $scope.isSuccess('批次上架完成！');
+
+          $scope.query();
+        })
+        .error(function (e) {
+          console.log(e);
+
+          $scope.isError('批次刪除發生錯誤!');
+        });
+    };
+
+    this.offSaleChecked = function () {
+      $http.put(Routing.generate('api_goodsPassport_offsale'), {goodsPost: this.selectChecked()})
+        .success(function (res) {
+          $scope.isSuccess('批次下架完成！');
+
+          $scope.query();
+        })
+        .error(function (e) {
+          console.log(e);
+
+          $scope.isError('批次下架發生錯誤！');
+        });
+    };
+    
+    this.deleteChecked = function () {
+      $http.delete(Routing.generate('api_goodsPassport_reverse'), {goodsPost: this.selectChecked()})
+        .success(function (res) {
+          $scope.isSuccess('批次刪除完成！');
+
+          $scope.query();
+        })
+        .error(function (e) {
+          console.log(e);
+
+          $scope.isError('批次刪除發生錯誤！');
+        });
+    };
+    
+    this.punchOutChecked = function () {
+      $http.put(Routing.generate('api_activity_push', {id: $scope.punchActivity}), {goodsPost: this.selectChecked()})
+        .success(function (res) {
+          $scope.isSuccess('批次刷出完成！');
+
+          $scope.query();
+        })
+        .error(function (e) {
+          console.log(e);
+
+          $scope.isError('批次刷出發生錯誤！');
+        });
+    };
+    
+    this.punchInChecked = function () {
+      $http.put(Routing.generate('api_activity_pull', {id: $scope.punchActivity}), {goodsPost: this.selectChecked()})
+        .success(function (res) {
+          $scope.isSuccess('批次刷入完成！');
+
+          $scope.query();
+        })
+        .error(function (e) {
+          console.log(e);
+
+          $scope.isError('批次刷入發生錯誤！');
+        });
+    };
   };
 
   $scope.initSearchMeta();

@@ -461,10 +461,8 @@ class GoodsImporter
 
         $notYetMsg = $accessor->getValue($mapping, '[' . $act . '][name]');
 
-        $accessor
-            ->setValue($feedback, '[error]',  $notYetMsg . $arg . '尚未建立!')
-            ->setValue($feedback, '[name]', strval($arg))
-        ;
+        $accessor->setValue($feedback, '[error]',  $notYetMsg . $arg . '尚未建立!');
+        $accessor->setValue($feedback, '[name]', strval($arg));
 
         if ($entity = $accessor->getValue($mapping, '[' . $act . '][entity]')) {
             $accessor->setValue($feedback, '[resource]', $entity);

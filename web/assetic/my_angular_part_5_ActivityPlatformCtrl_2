@@ -44,13 +44,13 @@ backendCtrls.controller('ActivityPlatformCtrl', ['$scope', '$routeParams', '$fil
     };
 
     var _push = function () {
-      var goodsSns = [];
+      var goodsPosts = [];
 
       for (var key in $scope.list) {
-        goodsSns.push($scope.list[key]);
+        goodsPosts.push($scope.list[key]);
       }
 
-      $http.put(Routing.generate('api_activity_push', {id: $routeParams.id}), {goodsSns: goodsSns})
+      $http.put(Routing.generate('api_activity_push', {id: $routeParams.id}), {goodsPost: goodsPosts})
         .success(function (res) {
           if (res.status === 'ok') {
             $scope.init();
@@ -62,13 +62,13 @@ backendCtrls.controller('ActivityPlatformCtrl', ['$scope', '$routeParams', '$fil
     };
 
     var pull = function () {
-      var goodsSns = [];
+      var goodsPosts = [];
 
       for (var key in $scope.list) {
-        goodsSns.push($scope.list[key]);
+        goodsPosts.push($scope.list[key]);
       }
 
-      $http.put(Routing.generate('api_activity_pull', {id: $routeParams.id}), {goodsSns: goodsSns})
+      $http.put(Routing.generate('api_activity_pull', {id: $routeParams.id}), {goodsPost: goodsPosts})
         .success(function (res) {
           if (res.status === 'ok') {
             $scope.init();
@@ -97,7 +97,7 @@ backendCtrls.controller('ActivityPlatformCtrl', ['$scope', '$routeParams', '$fil
 
           var goods = goodsGroup[0];
 
-          $scope.list.push({sn: goods.sn});
+          $scope.list.push({id: goods.id, sn: goods.sn});
           $scope.barcode = null;
 
           setSuccess(goods.sn + '資料取得成功!');
@@ -124,10 +124,14 @@ backendCtrls.controller('ActivityPlatformCtrl', ['$scope', '$routeParams', '$fil
       $scope.barcode = null;
       $scope.act = 1;
       $scope.list = [];
+      $scope.totalItems = 0;
+      $scope.currentPage = 1;
+      $scope.perPage = 10;
       $scope._query();
       $scope.query = {sn: ''};
       $scope.success = null;
       $scope.error = null;
+      $scope.pageInit();
     };
 
     $scope.emptyMsg = function () {
@@ -136,7 +140,7 @@ backendCtrls.controller('ActivityPlatformCtrl', ['$scope', '$routeParams', '$fil
     };
 
     $scope._query = function () {
-      $http.get(Routing.generate('api_goodsPassport_filter', {jsonCondition: JSON.stringify(condition), jsonOrderBy: JSON.stringify(orderBy), page: 1, perPage: 10000}))
+      $http.get(Routing.generate('api_goodsPassport_filter', {jsonCondition: JSON.stringify(condition), jsonOrderBy: JSON.stringify(orderBy), page: $scope.currentPage, perPage: $scope.perPage}))
       .success(function (data) {
         $scope.goodses = data;
 
@@ -146,6 +150,27 @@ backendCtrls.controller('ActivityPlatformCtrl', ['$scope', '$routeParams', '$fil
           }
         }
       });
+    };
+
+    /**
+     * 換頁時觸發動作，這邊是執行 query() 方法取得資料
+     */
+    $scope.pageChanged = function() {
+      $scope._query();
+    };
+
+    $scope.setPage = function (pageNo) {
+      $scope.currentPage = pageNo;
+    };
+
+    /**
+     * 初始化頁籤
+     */
+    $scope.pageInit = function () {
+      $http.get(Routing.generate("api_goodsPassport_filter_count", {jsonCondition: JSON.stringify(condition)})).
+        success(function (total) {
+          $scope.totalItems = total;
+        });
     };
 
     $scope.saveList = function () {

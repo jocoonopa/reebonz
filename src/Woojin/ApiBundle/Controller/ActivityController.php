@@ -269,15 +269,22 @@ class ActivityController extends Controller
         $em = $this->getDoctrine()->getManager();
 
         /**
-         * 商品id陣列
+         * 活動狀態
+         * 
+         * @var \Woojin\GoodsBundle\Entity\GoodsStatus
+         */
+        $activityStatus = $em->find('WoojinGoodsBundle:GoodsStatus', self::GS_ACTIVITY);
+
+        /**
+         * 商品產編陣列
          * 
          * @var array
          */
-        $goodsSns = array();
+        $goodsIds = array();
 
-        array_map(function ($row) use (&$goodsSns) {
-            array_push($goodsSns, $row['sn']);
-        }, $request->request->get('goodsSns'));
+        array_map(function ($row) use (&$goodsIds) {
+            array_push($goodsIds, $row['id']);
+        }, $request->request->get('goodsPost'));
 
         /**
          * QueryBuilder
@@ -290,7 +297,12 @@ class ActivityController extends Controller
         $qb
             ->select('g')
             ->from('WoojinGoodsBundle:GoodsPassport', 'g')
-            ->where($qb->expr()->in('g.sn', $goodsSns))
+            ->where(
+                $qb->expr()->andX(
+                    $qb->expr()->in('g.id', $goodsIds),
+                    $qb->expr()->eq('g.status', self::GS_ONSALE)
+                )
+            )
         ;
 
         /**
@@ -300,18 +312,11 @@ class ActivityController extends Controller
          */
         $goodses = $qb->getQuery()->getResult();
 
-        /**
-         * 商品狀態
-         * 
-         * @var \Woojin\GoodsBundle\Entity\GoodsStatus
-         */
-        $status = $em->getRepository('WoojinGoodsBundle:GoodsStatus')->find(self::GS_ACTIVITY);
-
-        array_map(function ($goods) use ($em, $activity, $status){
+        array_map(function ($goods) use ($em, $activity, $activityStatus){
             // update 商品屬性
             $goods
                 ->setActivity($activity)
-                ->setStatus($status)
+                ->setStatus($activityStatus)
             ;
 
             $em->persist($goods);
@@ -354,15 +359,22 @@ class ActivityController extends Controller
         $em = $this->getDoctrine()->getManager();
 
         /**
-         * 商品id陣列
+         * 商品上架狀態
+         * 
+         * @var \Woojin\GoodsBundle\Entity\GoodsStatus
+         */
+        $onSaleStatus = $em->find('WoojinGoodsBundle:GoodsStatus', self::GS_ONSALE);
+
+        /**
+         * 商品產編陣列
          * 
          * @var array
          */
-        $goodsSns = array();
+        $goodsIds = array();
         
-        array_map(function ($row) use (&$goodsSns) {
-            array_push($goodsSns, $row['sn']);
-        }, $request->request->get('goodsSns'));
+        array_map(function ($row) use (&$goodsIds) {
+            array_push($goodsIds, $row['id']);
+        }, $request->request->get('goodsPost'));
 
         /**
          * QueryBuilder
@@ -375,7 +387,13 @@ class ActivityController extends Controller
         $qb
             ->select('g')
             ->from('WoojinGoodsBundle:GoodsPassport', 'g')
-            ->where($qb->expr()->in('g.sn', $goodsSns))
+            ->where(
+                $qb->expr()->andX(
+                    $qb->expr()->eq('g.status', self::GS_ACTIVITY),
+                    $qb->expr()->in('g.id', $goodsIds),
+                    $qb->expr()->eq('g.activity', $activity->getId())
+                )
+            )
         ;
 
         /**
@@ -385,19 +403,12 @@ class ActivityController extends Controller
          */
         $goodses = $qb->getQuery()->getResult();
 
-        /**
-         * 商品狀態
-         * 
-         * @var \Woojin\GoodsBundle\Entity\GoodsStatus
-         */
-        $status = $em->getRepository('WoojinGoodsBundle:GoodsStatus')->find(self::GS_ONSALE);
-
         // 逐一update活動為目標活動
-        array_map(function ($goods) use ($em, $status) {
+        array_map(function ($goods) use ($em, $onSaleStatus) {
             // update 商品屬性
             $goods
                 ->setActivity(null)
-                ->setStatus($status)
+                ->setStatus($onSaleStatus)
             ;
 
             $em->persist($goods);

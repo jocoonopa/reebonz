@@ -142,10 +142,7 @@ class GoodsFactory implements \Woojin\BackendBundle\EntityFactory
         return $goods;
     }
 
-    public function copy($goods, $amount)
-    {
-
-    }
+    public function copy($goods, $amount){}
 
     /**
      * 批次上傳建立商品函式

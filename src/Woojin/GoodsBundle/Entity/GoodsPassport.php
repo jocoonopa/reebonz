@@ -281,7 +281,7 @@ class GoodsPassport
   }
 
   /**
-   * @ORM\PrePersist
+   * @ORM\PostPersist
    */
   public function autoSetInheritId()
   {
@@ -289,7 +289,7 @@ class GoodsPassport
   }
 
   /**
-   * @ORM\PrePersist
+   * @ORM\PostPersist
    * @ORM\PreUpdate
    */
   public function autoSetSnWithReebonzWay() 

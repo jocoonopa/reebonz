@@ -108,7 +108,11 @@ swiftmailer:
 
 nelmio_api_doc: ~
 
-services:  
+services: 
+    goods.sale.switcher:
+        class: Woojin\GoodsBundle\SaleSwitcher 
+        arguments: ['@doctrine']
+
     goods.importer.mapping.setter:
         class: Woojin\GoodsBundle\Importer\Setter\MappingSetter
 

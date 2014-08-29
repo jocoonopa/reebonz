@@ -12,4 +12,8 @@ use Doctrine\ORM\EntityRepository;
  */
 class ActivityRepository extends EntityRepository
 {
+	public function findAll()
+    {
+        return $this->findBy(array(), array('id' => 'DESC'));
+    }
 }

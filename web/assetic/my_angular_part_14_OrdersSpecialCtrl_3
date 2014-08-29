@@ -158,7 +158,7 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
      * @return {Boolean}
      */
     var isHadDiscount = function () {
-      return ($scope.myActivity.discount > 0);
+      return ($scope.myActivity.discount > 0 && $scope.myActivity.exceed > 0);
     };
 
     /**
@@ -892,6 +892,17 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
    */
   $scope.isGiftWithPurchase = function (activity) {
     return (typeof activity !== 'undefined' && activity.exceed > 0 &&  activity.minus > 0);
+  };
+
+  /**
+   * 計算目前總價及優惠金額
+   */
+  $scope.countActivitySale = function () {
+    // 根據活動設置商品訂單的金額
+    $scope.ActivityProcessor.setActivityProcessPrice();
+
+    // 計算總金額
+    setTotal();
   };
 
   $scope.init();
