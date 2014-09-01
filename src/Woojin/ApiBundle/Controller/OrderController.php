@@ -787,6 +787,69 @@ class OrderController extends Controller
     }
 
     /**
+     * @Route(
+     *     "/export/{jsonCondition}", 
+     *     defaults={
+     *         "jsonCondition"="{}",
+     *     },
+     *     name="api_orders_export",
+     *     options={"expose"=true}
+     * )
+     * @Method("GET")
+     *
+     * @ApiDoc(
+     *  resource=true,
+     *  description="匯出訂單",
+     *  statusCodes={
+     *    200="Returned when successful",
+     *    403="Returned when the ApiKey is not matched to say hello",
+     *    404={
+     *     "Returned when the ApiKey is not matched",
+     *     "Returned when something else is not found"
+     *    },
+     *    500={
+     *     "Please contact author to fix it"
+     *    }
+     *  }
+     * )
+     */
+    public function exportAction($jsonCondition)
+    {
+        set_time_limit(0);
+        ini_set('memory_limit','512M');
+
+        /**
+         * 將搜尋條件的 json 字串轉換成搜尋陣列
+         * 
+         * @var array
+         */
+        $conditions = json_decode($jsonCondition, true);
+
+        /**
+         * 商品匯出報表物件
+         * 
+         * @var \Woojin\OrderBundle\OrdersExporter
+         */
+        $OrdersExporter = $this->get('orders.exporter');
+
+        /**
+         * 取得的商品資料
+         * 
+         * @var array(object)
+         */
+        $ordersGroup = $this->getDoctrine()->getRepository('WoojinOrderBundle:Orders')->findByFilter($conditions);
+
+        /**
+         * Response to Client
+         * 
+         * @var [object]
+         */
+        $response = $OrdersExporter->run($ordersGroup); 
+
+        return $response;    
+    }
+
+    /**
      * 產生一個新的發票實體
      * 
      * @param  [\Woojin\UserBundle\Entity\User] $user   

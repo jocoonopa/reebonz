@@ -6,6 +6,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 use JMS\Serializer\Annotation\ExclusionPolicy;
 use JMS\Serializer\Annotation\Exclude;
 
+use \Woojin\StoreBundle\NullEntity\NullActivity;
+
 /**
  * @ORM\Entity(repositoryClass="Woojin\GoodsBundle\Entity\GoodsPassportRepository")
  * @ORM\Table(name="GoodsPassport")
@@ -13,311 +15,312 @@ use JMS\Serializer\Annotation\Exclude;
  */
 class GoodsPassport
 {
-  /**
-   * @Exclude
-   * @ORM\OneToMany(targetEntity="\Woojin\OrderBundle\Entity\Move", mappedBy="out_goods_passport")
-   * @var OutMoves[]
-   */
-  protected $out_moves;
+	/**
+	* @Exclude
+	* @ORM\OneToMany(targetEntity="\Woojin\OrderBundle\Entity\Move", mappedBy="out_goods_passport")
+	* @var OutMoves[]
+	*/
+	protected $out_moves;
 
-  /**
-   * @Exclude
-   * @ORM\OneToMany(targetEntity="\Woojin\OrderBundle\Entity\Move", mappedBy="in_goods_passport")
-   * @var InMoves[]
-   */
-  protected $in_moves;
+	/**
+	* @Exclude
+	* @ORM\OneToMany(targetEntity="\Woojin\OrderBundle\Entity\Move", mappedBy="in_goods_passport")
+	* @var InMoves[]
+	*/
+	protected $in_moves;
 
-  /**
-   * @Exclude
-   * @ORM\OneToMany(targetEntity="\Woojin\OrderBundle\Entity\Orders", mappedBy="goods_passport", cascade={"remove"})
-   * @var Orders[]
-   */
-  protected $orders;
+	/**
+	* @Exclude
+	* @ORM\OneToMany(targetEntity="\Woojin\OrderBundle\Entity\Orders", mappedBy="goods_passport", cascade={"remove"})
+	* @var Orders[]
+	*/
+	protected $orders;
 
-  /**
-   * @ORM\ManyToOne(targetEntity="\Woojin\StoreBundle\Entity\Store", inversedBy="goods_passports")
-   * @ORM\JoinColumn(name="store_id", referencedColumnName="id")
-   * @var Store
-   */
-  protected $store;
+	/**
+	* @ORM\ManyToOne(targetEntity="\Woojin\StoreBundle\Entity\Store", inversedBy="goods_passports")
+	* @ORM\JoinColumn(name="store_id", referencedColumnName="id")
+	* @var Store
+	*/
+	protected $store;
 
-  /**
-   * @ORM\ManyToOne(targetEntity="\Woojin\OrderBundle\Entity\Custom", inversedBy="goods_passports")
-   * @ORM\JoinColumn(name="consigner_id", referencedColumnName="id")
-   * @var Consigner
-   */
-  protected $consigner;
+	/**
+	* @ORM\ManyToOne(targetEntity="\Woojin\OrderBundle\Entity\Custom", inversedBy="goods_passports")
+	* @ORM\JoinColumn(name="consigner_id", referencedColumnName="id")
+	* @var Consigner
+	*/
+	protected $consigner;
 
-  /**
-   * @ORM\ManyToOne(targetEntity="Supplier", inversedBy="goods_passports")
-   * @ORM\JoinColumn(name="supplier_id", referencedColumnName="id")
-   * @var Supplier
-   */
-  protected $supplier;
+	/**
+	* @ORM\ManyToOne(targetEntity="Supplier", inversedBy="goods_passports")
+	* @ORM\JoinColumn(name="supplier_id", referencedColumnName="id")
+	* @var Supplier
+	*/
+	protected $supplier;
 
-  /**
-   * @ORM\ManyToOne(targetEntity="Color", inversedBy="goods_passports")
-   * @ORM\JoinColumn(name="color_id", referencedColumnName="id")
-   * @var Color
-   */
-  protected $color;
+	/**
+	* @ORM\ManyToOne(targetEntity="Color", inversedBy="goods_passports")
+	* @ORM\JoinColumn(name="color_id", referencedColumnName="id")
+	* @var Color
+	*/
+	protected $color;
 
-  /**
-   * @ORM\ManyToOne(targetEntity="Brand", inversedBy="goods_passports")
-   * @ORM\JoinColumn(name="brand_id", referencedColumnName="id")
-   * @var Brand
-   */
-  protected $brand;
+	/**
+	* @ORM\ManyToOne(targetEntity="Brand", inversedBy="goods_passports")
+	* @ORM\JoinColumn(name="brand_id", referencedColumnName="id")
+	* @var Brand
+	*/
+	protected $brand;
 
-  /**
-   * @ORM\ManyToOne(targetEntity="Pattern", inversedBy="goods_passports")
-   * @ORM\JoinColumn(name="pattern_id", referencedColumnName="id")
-   * @var Pattern
-   */
-  protected $pattern;
+	/**
+	* @ORM\ManyToOne(targetEntity="Pattern", inversedBy="goods_passports")
+	* @ORM\JoinColumn(name="pattern_id", referencedColumnName="id")
+	* @var Pattern
+	*/
+	protected $pattern;
 
-  /**
-   * @ORM\ManyToOne(targetEntity="GoodsStatus", inversedBy="goods_passports")
-   * @ORM\JoinColumn(name="goods_status_id", referencedColumnName="id")
-   * @var Status
-   */
-  protected $status;
+	/**
+	* @ORM\ManyToOne(targetEntity="GoodsStatus", inversedBy="goods_passports")
+	* @ORM\JoinColumn(name="goods_status_id", referencedColumnName="id")
+	* @var Status
+	*/
+	protected $status;
 
-  /**
-   * @ORM\ManyToOne(targetEntity="GoodsSource", inversedBy="goods_passports")
-   * @ORM\JoinColumn(name="goods_source_id", referencedColumnName="id")
-   * @var Source
-   */
-  protected $source;
+	/**
+	* @ORM\ManyToOne(targetEntity="GoodsSource", inversedBy="goods_passports")
+	* @ORM\JoinColumn(name="goods_source_id", referencedColumnName="id")
+	* @var Source
+	*/
+	protected $source;
 
-  /**
-   * @ORM\ManyToOne(targetEntity="\Woojin\StoreBundle\Entity\Activity", inversedBy="goods_passports")
-   * @ORM\JoinColumn(name="activity_id", referencedColumnName="id")
-   * @var Activity
-   */
-  protected $activity;
+	/**
+	* @ORM\ManyToOne(targetEntity="\Woojin\StoreBundle\Entity\Activity", inversedBy="goods_passports")
+	* @ORM\JoinColumn(name="activity_id", referencedColumnName="id")
+	* @var Activity
+	*/
+	protected $activity;
 
-  /**
-   * @ORM\ManyToOne(targetEntity="GoodsMT", inversedBy="goods_passports")
-   * @ORM\JoinColumn(name="goods_mt_id", referencedColumnName="id")
-   * @var MT
-   */
-  protected $mt;
+	/**
+	* @ORM\ManyToOne(targetEntity="GoodsMT", inversedBy="goods_passports")
+	* @ORM\JoinColumn(name="goods_mt_id", referencedColumnName="id")
+	* @var MT
+	*/
+	protected $mt;
 
-  /**
-   * @ORM\ManyToOne(targetEntity="GoodsLevel", inversedBy="goods_passports")
-   * @ORM\JoinColumn(name="goods_level_id", referencedColumnName="id")
-   * @var GoodsLevel
-   */
-  protected $level;
+	/**
+	* @ORM\ManyToOne(targetEntity="GoodsLevel", inversedBy="goods_passports")
+	* @ORM\JoinColumn(name="goods_level_id", referencedColumnName="id")
+	* @var GoodsLevel
+	*/
+	protected $level;
 
-  /**
-   * @var integer
-   * 
-   * @ORM\Id
-   * @ORM\Column(type="integer")
-   * @ORM\GeneratedValue(strategy="AUTO")
-   */
-  protected $id;
+	/**
+	* @var integer
+	* 
+	* @ORM\Id
+	* @ORM\Column(type="integer")
+	* @ORM\GeneratedValue(strategy="AUTO")
+	*/
+	protected $id;
 
-  /**
-   * @var integer
-   * 
-   * @ORM\Column(type="integer", nullable=true)
-   */
-  protected $inherit_id;
+	/**
+	* @var integer
+	* 
+	* @ORM\Column(type="integer", nullable=true)
+	*/
+	protected $inherit_id;
 
-  /**
-   * @ORM\Column(type="string", nullable=true)
-   */
-  protected $sn;
+	/**
+	* @ORM\Column(type="string", nullable=true)
+	*/
+	protected $sn;
 
-  /**
-   * @ORM\Column(type="string")
-   */
-  protected $name;
+	/**
+	* @ORM\Column(type="string")
+	*/
+	protected $name;
 
-  /**
-   * @var integer
-   * 
-   * @ORM\Column(type="integer", length=10)
-   */
-  protected $cost;
+	/**
+	* @var integer
+	* 
+	* @ORM\Column(type="integer", length=10)
+	*/
+	protected $cost;
 
-  /**
-   * @var integer
-   * 
-   * @ORM\Column(type="integer", length=10)
-   */
-  protected $price;
+	/**
+	* @var integer
+	* 
+	* @ORM\Column(type="integer", length=10)
+	*/
+	protected $price;
 
-  /**
-   * @var integer
-   * 
-   * @ORM\Column(type="integer", length=10, nullable=true)
-   */
-  protected $fake_price;
+	/**
+	* @var integer
+	* 
+	* @ORM\Column(type="integer", length=10, nullable=true)
+	*/
+	protected $fake_price;
 
-  /**
-   * @var integer
-   * 
-   * @ORM\Column(type="integer", length=10, nullable=true)
-   */
-  protected $feedback = 0;
+	/**
+	* @var integer
+	* 
+	* @ORM\Column(type="integer", length=10, nullable=true)
+	*/
+	protected $feedback = 0;
 
-  /**
-   * @var string 
-   * 
-   * @ORM\Column(type="string", length=100, nullable=true)
-   */
-  protected $org_sn;
+	/**
+	* @var string 
+	* 
+	* @ORM\Column(type="string", length=100, nullable=true)
+	*/
+	protected $org_sn;
 
-  /**
-   * @var string
-   * 
-   * @ORM\Column(type="text", nullable=true)
-   */
-  protected $des;
+	/**
+	* @var string
+	* 
+	* @ORM\Column(type="text", nullable=true)
+	*/
+	protected $des;
 
-  /**
-   * @var string
-   * 
-   * @ORM\Column(type="text", nullable=true)
-   */
-  protected $memo;
+	/**
+	* @var string
+	* 
+	* @ORM\Column(type="text", nullable=true)
+	*/
+	protected $memo;
 
-  /**
-   * @var string
-   * 
-   * @ORM\Column(type="string", nullable=true)
-   */
-  protected $brand_sn;
+	/**
+	* @var string
+	* 
+	* @ORM\Column(type="string", nullable=true)
+	*/
+	protected $brand_sn;
 
-  /**
-   * @var string
-   * 
-   * @ORM\Column(type="string", nullable=true)
-   */
-  protected $dpo;
+	/**
+	* @var string
+	* 
+	* @ORM\Column(type="string", nullable=true)
+	*/
+	protected $dpo;
 
-  /**
-   * @var boolean
-   *
-   * @ORM\Column(name="allow_discount", type="boolean")
-   */
-  protected $allow_discount;
+	/**
+	* @var boolean
+	*
+	* @ORM\Column(name="allow_discount", type="boolean")
+	*/
+	protected $allow_discount;
 
-  /**
-   * @var float
-   *
-   * @ORM\Column(name="discount", type="float", nullable=true)
-   */
-  private $discount;
+	/**
+	* @var float
+	*
+	* @ORM\Column(name="discount", type="float", nullable=true)
+	*/
+	private $discount;
 
-  /**
-   * @var boolean
-   *
-   * @ORM\Column(name="in_type", type="boolean")
-   */
-  private $in_type;
+	/**
+	* @var boolean
+	*
+	* @ORM\Column(name="in_type", type="boolean")
+	*/
+	private $in_type;
 
-  /**
-   * @var boolean
-   *
-   * @ORM\Column(name="is_web", type="boolean")
-   */
-  private $is_web;
+	/**
+	* @var boolean
+	*
+	* @ORM\Column(name="is_web", type="boolean")
+	*/
+	private $is_web;
 
-  /**
-   * @var string
-   * 
-   * @ORM\Column(type="string", nullable=true)
-   */
-  private $imgpath;
+	/**
+	* @var string
+	* 
+	* @ORM\Column(type="string", nullable=true)
+	*/
+	private $imgpath;
 
-  /**
-   * @var \DateTime
-   * 
-   * @ORM\Column(type="datetime", type="datetime", nullable=true)
-   */
-  protected $purchase_at;
+	/**
+	* @var \DateTime
+	* 
+	* @ORM\Column(type="datetime", type="datetime", nullable=true)
+	*/
+	protected $purchase_at;
 
-  /**
-   * @var \DateTime
-   * 
-   * @ORM\Column(type="datetime", type="datetime", nullable=true)
-   */
-  protected $expirate_at;
+	/**
+	* @var \DateTime
+	* 
+	* @ORM\Column(type="datetime", type="datetime", nullable=true)
+	*/
+	protected $expirate_at;
 
-  /**
-   * @var \DateTime
-   * 
-   * @ORM\Column(type="datetime", type="datetime")
-   */
-  protected $create_at;
+	/**
+	* @var \DateTime
+	* 
+	* @ORM\Column(type="datetime", type="datetime")
+	*/
+	protected $create_at;
 
-  /**
-   * @var \DateTime
-   *
-   * @ORM\Column(name="update_at", type="datetime")
-   */
-  protected $update_at;
+	/**
+	* @var \DateTime
+	*
+	* @ORM\Column(name="update_at", type="datetime")
+	*/
+	protected $update_at;
 
-  /**
-   * @ORM\PrePersist
-   */
-  public function autoSetCreateAt()
-  {
-    $this->setCreateAt(new \Datetime());
-  }
+	/**
+	* @ORM\PrePersist
+	*/
+	public function autoSetCreateAt()
+	{
+		$this->setCreateAt(new \Datetime());
+	}
 
-  /**
-   * @ORM\PrePersist
-   * @ORM\PreUpdate
-   */
-  public function autoSetUpdateAt()
-  {
-    $this->setUpdateAt(new \Datetime());
-  }
+	/**
+	* @ORM\PrePersist
+	* @ORM\PreUpdate
+	*/
+	public function autoSetUpdateAt()
+	{
+		$this->setUpdateAt(new \Datetime());
+	}
 
-  /**
-   * @ORM\PostPersist
-   */
-  public function autoSetInheritId()
-  {
-    $this->setInheritId($this->getId());
-  }
+	/**
+	* @ORM\PostPersist
+	*/
+	public function autoSetInheritId()
+	{
+		$this->setInheritId($this->getId());
+	}
 
-  /**
-   * @ORM\PostPersist
-   * @ORM\PreUpdate
-   */
-  public function autoSetSnWithReebonzWay() 
-  {
-    $this->setSn($this->getReebonzSn());
-  }
+	/**
+	* @ORM\PostPersist
+	* @ORM\PreUpdate
+	*/
+	public function autoSetSnWithReebonzWay() 
+	{
+		$this->setSn($this->getReebonzSn());
+	}
 
-  /**
-   * 取得 REEBONZ 規則的產編
-   * 
-   * @return string
-   */
-  protected function getReebonzSn()
-  {
-    /**
-     * Reebonz way sn
-     * 
-     * @var string
-     */
-    $sn = null;
+	/**
+	* 取得 REEBONZ 規則的產編
+	* 
+	* @return string
+	*/
+	protected function getReebonzSn()
+	{
+		/**
+		 * Reebonz way sn
+		 * 
+		 * @var string
+		 */
+		$sn = null;
 
-    $sn = $this->getStore()->getSn();
-    $sn.= substr($this->getPurchaseAt()->format('Ymd'), 3);
-    $sn.= $this->getSupplier()->getName();
-    $sn.= str_pad($this->getId(), 5, 0, STR_PAD_LEFT);
+		$sn = $this->getStore()->getSn();
+		$sn.= substr($this->getPurchaseAt()->format('Ymd'), 3);
+		$sn.= $this->getSupplier()->getName();
+		$sn.= str_pad($this->getId(), 5, 0, STR_PAD_LEFT);
 
-    return $sn;
-  }
+		return $sn;
+	}
+
     /**
      * Constructor
      */
@@ -1124,7 +1127,7 @@ class GoodsPassport
      */
     public function getActivity()
     {
-        return $this->activity;
+    	return (!$this->activity) ? new NullActivity : $this->activity;
     }
 
     /**

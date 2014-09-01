@@ -9,6 +9,17 @@ backendCtrls.controller('GoodsSearchCtrl', ['$scope', '$routeParams', '$http', '
   function ($scope, $routeParams, $http, $upload, $timeout, $filter) { 
   
   var GoodsOperator;
+
+  /**
+   * 取得目前的時間，並且格式化為 yyyy-mm-dd
+   * 
+   * @return {string}
+   */
+  var getToday = function () {
+    var today = new Date();
+
+    return today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+  };
   
   /**
    * 初始化資料
@@ -39,6 +50,9 @@ backendCtrls.controller('GoodsSearchCtrl', ['$scope', '$routeParams', '$http', '
       start_at: "2014-08-01T00:00:00+0800",
     };
 
+    $scope.startAt = getToday();
+    $scope.endAt = getToday();
+
     $scope.isAllowEdit = true;
 
     // 取得排序資料
@@ -58,6 +72,16 @@ backendCtrls.controller('GoodsSearchCtrl', ['$scope', '$routeParams', '$http', '
       });
 
     GoodsOperator = new GoodsOperator;
+  };
+
+  $scope.addTimeCondition = function (type) {
+    var attr = type;
+
+    $scope.goods[attr] = $scope.startAt;
+    $scope.addInSearchRePo(type, 'gte');
+
+    $scope.goods[attr] = $scope.endAt;
+    $scope.addInSearchRePo(type, 'lte');
   };
 
   $scope.checkAll = function () {
@@ -92,6 +116,7 @@ backendCtrls.controller('GoodsSearchCtrl', ['$scope', '$routeParams', '$http', '
         }
 
         if (goods.length === 0) {
+          $scope.switchPanelAndRes();
           $scope.isError('查無商品!');
         }
 

@@ -12,7 +12,7 @@ use Doctrine\ORM\EntityRepository;
  */
 class ActivityRepository extends EntityRepository
 {
-	public function findAll()
+    public function findAll()
     {
         return $this->findBy(array(), array('id' => 'DESC'));
     }

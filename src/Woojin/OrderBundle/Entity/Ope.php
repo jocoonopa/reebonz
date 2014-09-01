@@ -6,6 +6,8 @@ use Doctrine\ORM\Mapping as ORM;
 use JMS\Serializer\Annotation\ExclusionPolicy;
 use JMS\Serializer\Annotation\Exclude;
 
+use Woojin\OrderBundle\NullEntity\NullPayType;
+
 /**
  * @ORM\Entity
  * @ORM\Table(name="Ope")
@@ -283,7 +285,7 @@ class Ope
      */
     public function getPayType()
     {
-        return $this->pay_type;
+        return (!$this->pay_type) ? new NullPayType : $this->pay_type;
     }
 
     /**

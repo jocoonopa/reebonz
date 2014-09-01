@@ -2,8 +2,8 @@
 
 /* Controllers */
 
-backendCtrls.controller('OrdersCtrl', ['$scope', '$routeParams', '$http', '$filter', 'OrdersStatus', 'OrdersKind', 'Brand', 'Supplier', 'Store', 'User', 'PayType',
-  function ($scope, $routeParams, $http, $filter, OrdersStatus, OrdersKind, Brand, Supplier, Store, User, PayType) {
+backendCtrls.controller('OrdersCtrl', ['$scope', '$routeParams', '$http', '$filter', 'OrdersStatus', 'OrdersKind', 'Brand', 'Supplier', 'Store', 'User', 'PayType', 'Activity',
+  function ($scope, $routeParams, $http, $filter, OrdersStatus, OrdersKind, Brand, Supplier, Store, User, PayType, Activity) {
   /**
    * 初始化資料
    */
@@ -29,10 +29,14 @@ backendCtrls.controller('OrdersCtrl', ['$scope', '$routeParams', '$http', '$filt
     $scope.kinds = OrdersKind.query();
     $scope.brands = Brand.query();
     $scope.stores = Store.query();
+    $scope.activitys = Activity.query();
     $scope.suppliers = Supplier.query();
     $scope.payTypes = PayType.query();
     $scope.orderBy = {attr: 'id', name: '索引'};
     $scope.orderDir = 'DESC';
+
+    $scope.startAt = getToday();
+    $scope.endAt = getToday();
 
     // 取得 mapping 設定
     $http.get('/bundles/woojinbackend/js/angular-seed/app/js/mapping.json').
@@ -139,14 +143,23 @@ backendCtrls.controller('OrdersCtrl', ['$scope', '$routeParams', '$http', '$filt
         jsonOrderBy: JSON.stringify({attr: $scope.orderBy.attr, dir: $scope.orderDir})
       })).
       success(function (ordersRepo) {
+        if (ordersRepo.length === 0) {
+          $scope.ordersRepo = ordersRepo;
+
+          return isError('無符合條件訂單!');
+        }
+
         for (var key in ordersRepo) {
           $scope.switchPanelAndRes();
         }
 
         $scope.ordersRepo = ordersRepo;
+
+        isSuccess('查詢完成!');
       }).
       error(function (e) {
         console.log(e); 
+        
         isError('Woops! 查詢發生錯誤！');
       });
   };
@@ -163,7 +176,7 @@ backendCtrls.controller('OrdersCtrl', ['$scope', '$routeParams', '$http', '$filt
    * 匯出檔案
    */
   $scope.export = function () {    
-    //window.location = Routing.generate("api_orders_export", {jsonCondition: JSON.stringify($scope.repo)});
+    window.location = Routing.generate("api_orders_export", {jsonCondition: JSON.stringify($scope.repo)});
   };
 
   /**
@@ -181,6 +194,16 @@ backendCtrls.controller('OrdersCtrl', ['$scope', '$routeParams', '$http', '$filt
    */
   $scope.pageChanged = function() {
     $scope.query();
+  };
+
+  $scope.addTimeCondition = function (type) {
+    var attr = type;
+
+    $scope.orders[attr] = $scope.startAt;
+    $scope.addInSearchRePo(type, 'gte');
+
+    $scope.orders[attr] = $scope.endAt;
+    $scope.addInSearchRePo(type, 'lte');
   };
 
   /**
@@ -253,6 +276,17 @@ backendCtrls.controller('OrdersCtrl', ['$scope', '$routeParams', '$http', '$filt
   $scope.emptyMsg = function () {
     $scope.successMsg = null;
     $scope.errorMsg = null;
+  };
+
+  /**
+   * 取得目前的時間，並且格式化為 yyyy-mm-dd
+   * 
+   * @return {string}
+   */
+  var getToday = function () {
+    var today = new Date();
+
+    return today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
   };
 
   /**

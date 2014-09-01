@@ -1,10 +1,16 @@
 {% verbatim %}
+
+<div class="row" ng-show="invoices;">
+	<h4>總售價{{ todayTotalGrade }}元</h4>
+	<hr />
+</div>
+
 <div class="panel panel-success" ng-repeat="invoice in invoices | orderBy:'id':true" ng-if="invoice.id;">
 	<div class="panel-heading">
 		<b>[{{invoice.store.name}}]</b>
 		<i>{{ invoice.sn }}</i>
 		<strong ng-show="invoice.custom">{{ invoice.custom.name }}{{ invoice.custom.sex }}</strong>
-		<small>-{{ formatDate(invoice.create_at, 'yyyy-mm-dd H:mm:ss') }}</small>
+		<small>-{{ formatDate(invoice.create_at, 'yyyy-MM-d H:mm:ss') }}</small>
 		<span class="pull-right">{{invoice.user.username }}&nbsp;&nbsp;&nbsp;&nbsp;</span>
 		<b class="pull-right">總金額{{ invoice.total }}元&nbsp;&nbsp;&nbsp;&nbsp;</b>
 	</div>

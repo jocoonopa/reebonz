@@ -15,7 +15,7 @@
       <span ng-show="activity.start_at && activity.end_at;">
         {{ formatDate(activity.start_at) }} ~ {{ formatDate(activity.end_at) }}
       </span>
-      <a href="#/special">
+      <a href="#/special/{{ activity.id }}">
         <span class="glyphicon glyphicon-arrow-right"></span>活動銷貨
       </a>
     </small>
@@ -85,8 +85,8 @@
     
     <div class="page-header">
       <h4>
-        共<b class="label label-primary">{{ goodses.length }}</b>件
-        ，售出<b class="label label-warning">{{ soldCount }}</b>件
+        共<b class="label label-primary">{{ $parent.totalItems }}</b>件
+        <!-- ，售出<b class="label label-warning">{{ soldCount }}</b>件 -->
       </h4>
     </div>
 

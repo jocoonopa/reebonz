@@ -25931,7 +25931,7 @@ config(['$routeProvider', function ($routeProvider) {
       templateUrl: Routing.generate('move_index'),
       controller: 'MoveCtrl'
     }).
-    when('/special', {
+    when('/special/:id', {
       templateUrl: Routing.generate('orders_special'),
       controller: 'OrdersSpecialCtrl'
     }).
@@ -27650,6 +27650,17 @@ backendCtrls.controller('GoodsSearchCtrl', ['$scope', '$routeParams', '$http', '
   function ($scope, $routeParams, $http, $upload, $timeout, $filter) { 
   
   var GoodsOperator;
+
+  /**
+   * 取得目前的時間，並且格式化為 yyyy-mm-dd
+   * 
+   * @return {string}
+   */
+  var getToday = function () {
+    var today = new Date();
+
+    return today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+  };
   
   /**
    * 初始化資料
@@ -27680,6 +27691,9 @@ backendCtrls.controller('GoodsSearchCtrl', ['$scope', '$routeParams', '$http', '
       start_at: "2014-08-01T00:00:00+0800",
     };
 
+    $scope.startAt = getToday();
+    $scope.endAt = getToday();
+
     $scope.isAllowEdit = true;
 
     // 取得排序資料
@@ -27699,6 +27713,16 @@ backendCtrls.controller('GoodsSearchCtrl', ['$scope', '$routeParams', '$http', '
       });
 
     GoodsOperator = new GoodsOperator;
+  };
+
+  $scope.addTimeCondition = function (type) {
+    var attr = type;
+
+    $scope.goods[attr] = $scope.startAt;
+    $scope.addInSearchRePo(type, 'gte');
+
+    $scope.goods[attr] = $scope.endAt;
+    $scope.addInSearchRePo(type, 'lte');
   };
 
   $scope.checkAll = function () {
@@ -27733,6 +27757,7 @@ backendCtrls.controller('GoodsSearchCtrl', ['$scope', '$routeParams', '$http', '
         }
 
         if (goods.length === 0) {
+          $scope.switchPanelAndRes();
           $scope.isError('查無商品!');
         }
 
@@ -28371,8 +28396,8 @@ backendCtrls.controller('MoveCtrl', [ '$scope', '$http', '$filter', 'Move', 'Ord
 
 /* Controllers */
 
-backendCtrls.controller('OrdersCtrl', ['$scope', '$routeParams', '$http', '$filter', 'OrdersStatus', 'OrdersKind', 'Brand', 'Supplier', 'Store', 'User', 'PayType',
-  function ($scope, $routeParams, $http, $filter, OrdersStatus, OrdersKind, Brand, Supplier, Store, User, PayType) {
+backendCtrls.controller('OrdersCtrl', ['$scope', '$routeParams', '$http', '$filter', 'OrdersStatus', 'OrdersKind', 'Brand', 'Supplier', 'Store', 'User', 'PayType', 'Activity',
+  function ($scope, $routeParams, $http, $filter, OrdersStatus, OrdersKind, Brand, Supplier, Store, User, PayType, Activity) {
   /**
    * 初始化資料
    */
@@ -28398,10 +28423,14 @@ backendCtrls.controller('OrdersCtrl', ['$scope', '$routeParams', '$http', '$filt
     $scope.kinds = OrdersKind.query();
     $scope.brands = Brand.query();
     $scope.stores = Store.query();
+    $scope.activitys = Activity.query();
     $scope.suppliers = Supplier.query();
     $scope.payTypes = PayType.query();
     $scope.orderBy = {attr: 'id', name: '索引'};
     $scope.orderDir = 'DESC';
+
+    $scope.startAt = getToday();
+    $scope.endAt = getToday();
 
     // 取得 mapping 設定
     $http.get('/bundles/woojinbackend/js/angular-seed/app/js/mapping.json').
@@ -28508,14 +28537,23 @@ backendCtrls.controller('OrdersCtrl', ['$scope', '$routeParams', '$http', '$filt
         jsonOrderBy: JSON.stringify({attr: $scope.orderBy.attr, dir: $scope.orderDir})
       })).
       success(function (ordersRepo) {
+        if (ordersRepo.length === 0) {
+          $scope.ordersRepo = ordersRepo;
+
+          return isError('無符合條件訂單!');
+        }
+
         for (var key in ordersRepo) {
           $scope.switchPanelAndRes();
         }
 
         $scope.ordersRepo = ordersRepo;
+
+        isSuccess('查詢完成!');
       }).
       error(function (e) {
         console.log(e); 
+        
         isError('Woops! 查詢發生錯誤！');
       });
   };
@@ -28532,7 +28570,7 @@ backendCtrls.controller('OrdersCtrl', ['$scope', '$routeParams', '$http', '$filt
    * 匯出檔案
    */
   $scope.export = function () {    
-    //window.location = Routing.generate("api_orders_export", {jsonCondition: JSON.stringify($scope.repo)});
+    window.location = Routing.generate("api_orders_export", {jsonCondition: JSON.stringify($scope.repo)});
   };
 
   /**
@@ -28550,6 +28588,16 @@ backendCtrls.controller('OrdersCtrl', ['$scope', '$routeParams', '$http', '$filt
    */
   $scope.pageChanged = function() {
     $scope.query();
+  };
+
+  $scope.addTimeCondition = function (type) {
+    var attr = type;
+
+    $scope.orders[attr] = $scope.startAt;
+    $scope.addInSearchRePo(type, 'gte');
+
+    $scope.orders[attr] = $scope.endAt;
+    $scope.addInSearchRePo(type, 'lte');
   };
 
   /**
@@ -28622,6 +28670,17 @@ backendCtrls.controller('OrdersCtrl', ['$scope', '$routeParams', '$http', '$filt
   $scope.emptyMsg = function () {
     $scope.successMsg = null;
     $scope.errorMsg = null;
+  };
+
+  /**
+   * 取得目前的時間，並且格式化為 yyyy-mm-dd
+   * 
+   * @return {string}
+   */
+  var getToday = function () {
+    var today = new Date();
+
+    return today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
   };
 
   /**
@@ -29486,7 +29545,8 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
         var goods = $scope.goodsRepo[index];
 
         // 商品售價扣去贈送配額即為訂單應付金額
-        goods.orders.required = parseInt(goods.price) - eachGift; 
+        goods.orders.required = ((goods.orders.required && goods.orders.required > 0) ? 
+          parseInt(goods.orders.required) : parseInt(goods.price)) - eachGift; 
         
         // 訂單已付金額預設為訂單售價
         goods.orders.paid = goods.orders.required;
@@ -29524,7 +29584,7 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
         var goods = $scope.goodsRepo[index];
 
         // 訂單的售價設置為 (商品優惠價 * 活動折扣)
-        goods.orders.required = Math.round(parseInt(goods.price) * $scope.myActivity.discount);
+        goods.orders.required = Math.round(parseInt((goods.orders.required && goods.orders.required > 0) ? goods.orders.required : goods.price) * $scope.myActivity.discount);
         
         // 訂單的已付金額預設為訂單的售價
         goods.orders.paid = goods.orders.required;
@@ -29723,7 +29783,8 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
    */
   var setHeading = function (goods) {
     goods.heading = '';
-    goods.heading += goods.name + '  |  ' + goods.sn + '   |   ' + goods.brand.name;
+    goods.heading += goods.name + '  |  ' + goods.sn + '   |   ' + goods.brand.name + '  |  ';
+    goods.heading += '   成本:' + goods.cost + '元 ';
     goods.heading += (goods.fake_price > 0) ? '   |   一般價:      ' + goods.fake_price + '元' : '';
     goods.heading += '   |    優惠價(未含活動折扣):' + goods.price + '元';
     goods.heading += (!goods.allow_discount) ? '    <不允許折扣>     ' : '';
@@ -29942,6 +30003,8 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
       // 重組訂單陣列 [orderses]
       rebuildOrderses(orderses, ordersGroup);
 
+      $scope.todayTotalGrade = 0;
+
       // 迭代每筆訂單已組成每個發票Group
       for (var key in orderses) {
         /**
@@ -29950,6 +30013,8 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
          * @type {object}
          */
         var eachOrders = orderses[key];
+
+        $scope.todayTotalGrade += parseInt(eachOrders.required);
         
         // 設置訂單內涵
         setInvoices(eachOrders);
@@ -29984,6 +30049,16 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
       $scope.activitys = res;
       $scope.myActivity = $scope.activitys[0];
 
+      if ($routeParams.id > 0) {
+        for (var key in $scope.activitys) {
+          if (parseInt($scope.activitys[key].id) === parseInt($routeParams.id)) {
+            $scope.myActivity = $scope.activitys[key];
+
+            break;
+          }
+        }
+      }
+
       initTodayRecord();
     });
 
@@ -30011,6 +30086,8 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
     $scope.prop = 'id';
 
     $scope.ActivityProcessor = new ActivityProcessor;
+
+    $scope.todayTotalGrade = 0;
   };
 
   /**
@@ -30782,6 +30859,17 @@ backendCtrls.controller('GoodsSearchCtrl', ['$scope', '$routeParams', '$http', '
   function ($scope, $routeParams, $http, $upload, $timeout, $filter) { 
   
   var GoodsOperator;
+
+  /**
+   * 取得目前的時間，並且格式化為 yyyy-mm-dd
+   * 
+   * @return {string}
+   */
+  var getToday = function () {
+    var today = new Date();
+
+    return today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+  };
   
   /**
    * 初始化資料
@@ -30812,6 +30900,9 @@ backendCtrls.controller('GoodsSearchCtrl', ['$scope', '$routeParams', '$http', '
       start_at: "2014-08-01T00:00:00+0800",
     };
 
+    $scope.startAt = getToday();
+    $scope.endAt = getToday();
+
     $scope.isAllowEdit = true;
 
     // 取得排序資料
@@ -30831,6 +30922,16 @@ backendCtrls.controller('GoodsSearchCtrl', ['$scope', '$routeParams', '$http', '
       });
 
     GoodsOperator = new GoodsOperator;
+  };
+
+  $scope.addTimeCondition = function (type) {
+    var attr = type;
+
+    $scope.goods[attr] = $scope.startAt;
+    $scope.addInSearchRePo(type, 'gte');
+
+    $scope.goods[attr] = $scope.endAt;
+    $scope.addInSearchRePo(type, 'lte');
   };
 
   $scope.checkAll = function () {
@@ -30865,6 +30966,7 @@ backendCtrls.controller('GoodsSearchCtrl', ['$scope', '$routeParams', '$http', '
         }
 
         if (goods.length === 0) {
+          $scope.switchPanelAndRes();
           $scope.isError('查無商品!');
         }
 

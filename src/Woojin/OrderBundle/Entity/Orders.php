@@ -7,6 +7,9 @@ use Symfony\Component\Validator\Constraints as Assert;
 use JMS\Serializer\Annotation\ExclusionPolicy;
 use JMS\Serializer\Annotation\Exclude;
 
+use Woojin\OrderBundle\NullEntity\NullInvoice;
+use Woojin\OrderBundle\NullEntity\NullPayType;
+
 /**
  * @ORM\Entity(repositoryClass="Woojin\OrderBundle\Entity\OrdersRepository")
  * @ORM\Table(name="Orders")
@@ -14,6 +17,9 @@ use JMS\Serializer\Annotation\Exclude;
  */ 
 class Orders
 {
+    const PT_CASH = 1;
+    const PT_CARD = 2;
+
     /**
      * @Exclude
      * @ORM\ManyToOne(targetEntity="Orders", inversedBy="childrens")
@@ -416,7 +422,7 @@ class Orders
      */
     public function getPayType()
     {
-        return $this->pay_type;
+        return (!$this->pay_type) ? new NullPayType : $this->pay_type;
     }
 
     /**
@@ -508,7 +514,7 @@ class Orders
      */
     public function getInvoice()
     {
-        return $this->invoice;
+        return (!$this->invoice) ? new NullInvoice : $this->invoice;
     }
 
     /**
@@ -575,5 +581,49 @@ class Orders
     public function getOutMoves()
     {
         return $this->out_moves;
+    }
+
+    /**
+     * 取得現金已付總額
+     * 
+     * @return integer
+     */
+    public function getCashPaid()
+    {
+        return $this->getSingleTypeOfPaid(self::PT_CASH);
+    }
+
+    /**
+     * 取得刷卡已付總額
+     * 
+     * @return integer
+     */
+    public function getCardPaid()
+    {
+        return $this->getSingleTypeOfPaid(self::PT_CARD);
+    }
+
+    /**
+     * 取得某種付費方式的已付總額
+     * 
+     * @param  [integer] $type [付費方式的id]
+     * @return [integer] $total
+     */
+    protected function getSingleTypeOfPaid($type)
+    {
+        /**
+         * 總金額
+         * 
+         * @var integer
+         */
+        $total = 0;
+
+        foreach ($this->opes as $ope) {
+            if ($ope->getPayType()->getId() === $type) {
+                $total += $ope->getMoney();
+            }
+        }
+
+        return $total;
     }
 }

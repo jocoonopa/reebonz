@@ -14,70 +14,70 @@ use JMS\Serializer\Annotation\Exclude;
  */
 class Activity
 {
-  /**
-   * @Exclude
-   * @ORM\OneToMany(targetEntity="\Woojin\GoodsBundle\Entity\GoodsPassport", mappedBy="activity")
-   * @var GoodsPassport[]
-   */
-  protected $goods_passports;
+    /**
+    * @Exclude
+    * @ORM\OneToMany(targetEntity="\Woojin\GoodsBundle\Entity\GoodsPassport", mappedBy="activity")
+    * @var GoodsPassport[]
+    */
+    protected $goods_passports;
 
-  /**
-   * @var integer
-   *
-   * @ORM\Column(name="id", type="integer")
-   * @ORM\Id
-   * @ORM\GeneratedValue(strategy="AUTO")
-   */
-  private $id;
+    /**
+    * @var integer
+    *
+    * @ORM\Column(name="id", type="integer")
+    * @ORM\Id
+    * @ORM\GeneratedValue(strategy="AUTO")
+    */
+    private $id;
 
-  /**
-   * @var string
-   *
-   * @ORM\Column(name="name", type="string", length=255, unique=true)
-   */
-  private $name;
+    /**
+    * @var string
+    *
+    * @ORM\Column(name="name", type="string", length=255, unique=true)
+    */
+    private $name;
 
-  /**
-   * @var string
-   *
-   * @ORM\Column(name="discount", type="integer", nullable=true)
-   */
-  private $discount;
+    /**
+    * @var string
+    *
+    * @ORM\Column(name="discount", type="integer", nullable=true)
+    */
+    private $discount;
 
-  /**
-   * @var string
-   *
-   * @ORM\Column(name="exceed", type="integer", nullable=true)
-   */
-  private $exceed;
+    /**
+    * @var string
+    *
+    * @ORM\Column(name="exceed", type="integer", nullable=true)
+    */
+    private $exceed;
 
-  /**
-   * @var string
-   *
-   * @ORM\Column(name="minus", type="integer", nullable=true)
-   */
-  private $minus;
+    /**
+    * @var string
+    *
+    * @ORM\Column(name="minus", type="integer", nullable=true)
+    */
+    private $minus;
 
-  /**
-   * @var \DateTime
-   *
-   * @ORM\Column(name="start_at", type="datetime")
-   */
-  private $start_at;
+    /**
+    * @var \DateTime
+    *
+    * @ORM\Column(name="start_at", type="datetime")
+    */
+    private $start_at;
 
-  /**
-   * @var \DateTime
-   *
-   * @ORM\Column(name="end_at", type="datetime")
-   */
-  private $end_at;
+    /**
+    * @var \DateTime
+    *
+    * @ORM\Column(name="end_at", type="datetime")
+    */
+    private $end_at;
 
-  /**
-   * @var string
-   *
-   * @ORM\Column(name="description", type="text", nullable=true)
-   */
-  private $description;
+    /**
+    * @var string
+    *
+    * @ORM\Column(name="description", type="text", nullable=true)
+    */
+    private $description;
     /**
      * Constructor
      */
@@ -288,5 +288,21 @@ class Activity
     public function getMinus()
     {
         return $this->minus;
+    }
+
+    /**
+     * 取得活動優惠內容描述
+     * 
+     * @return string
+     */
+    public function getActivityGiffDes()
+    {
+    	if ($this->minus > 0 && $this->exceed > 0) {
+    		return '滿' . $this->exceed . '送'. $this->minus;
+    	} 
+
+    	if ($this->exceed > 0 && $this->discount > 0) {
+    		return '滿' . $this->exceed . '送' . $this->discount;
+    	}
     }
 }

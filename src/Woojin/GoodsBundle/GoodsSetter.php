@@ -82,11 +82,7 @@ class GoodsSetter
         if ($memo = $request->request->get('memo')) {
             $accessor->setValue($this->settings, '[setMemo]', $memo);
         }
-        
-        if ($isWeb = $request->request->get('is_web')) {
-            $accessor->setValue($this->settings, '[setIsWeb]', $isWeb);
-        }
-        
+                
         if ($purchaseAt = $request->request->get('purchase_at')) {
             $accessor->setValue($this->settings, '[setPurchaseAt]', new \DateTime($purchaseAt));
         }
@@ -95,9 +91,9 @@ class GoodsSetter
             $accessor->setValue($this->settings, '[setExpirateAt]', new \DateTime($expirateAt));
         }     
         
-        if ($allowDiscount = $request->request->get('allow_discount')) {
-            $accessor->setValue($this->settings, '[setAllowDiscount]', $allowDiscount);   
-        }
+        $accessor->setValue($this->settings, '[setAllowDiscount]', $request->request->get('allow_discount'));   
+
+        $accessor->setValue($this->settings, '[setIsWeb]', $request->request->get('is_web'));   
 
         // 若是404表示移除圖片，需要更新，其他的動作都交給ImgController.php，
         // 這邊會這樣處理的原因是，移除圖片本身沒有檔案上傳，所以ImgController.php 不會被呼叫，
@@ -196,6 +192,7 @@ class GoodsSetter
         $accessor->setValue($settings, '[setDes]', $request->request->get('des'));
         $accessor->setValue($settings, '[setMemo]', $request->request->get('memo'));
         $accessor->setValue($settings, '[setIsWeb]', $request->request->get('is_web'));
+        $accessor->setValue($settings, '[setAllowDiscount]', $request->request->get('allow_discount'));
         $accessor->setValue($settings, '[setPurchaseAt]', new \DateTime($request->request->get('purchase_at')));
         $accessor->setValue($settings, '[setExpirateAt]', new \DateTime($request->request->get('expirate_at')));
         $accessor->setValue($settings, '[setImgpath]', self::NO_IMG); 
@@ -214,7 +211,6 @@ class GoodsSetter
      */
     protected function setCreateSettingsWithEntity($accessor, &$settings, $request, $em)
     {
-        $accessor->setValue($settings, '[setAllowDiscount]', $request->request->get('allow_discount'));
         $accessor->setValue($settings, '[setBrand]', $em->find('WoojinGoodsBundle:Brand', $request->request->get('brand', self::NONE_ENTITY)));
         $accessor->setValue($settings, '[setColor]', $em->find('WoojinGoodsBundle:Color', $request->request->get('color', self::NONE_ENTITY)));
         $accessor->setValue($settings, '[setPattern]', $em->find('WoojinGoodsBundle:Pattern', $request->request->get('pattern', self::NONE_ENTITY)));

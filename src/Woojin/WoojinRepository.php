@@ -96,7 +96,7 @@ class WoojinRepository extends EntityRepository
                         $orx = $qb->expr()->orX();
 
                         foreach ($val as $each) {
-                            $orx->add($qb->expr()->lte($attr, $qb->expr()->literal($each . " 00:00:00")));
+                            $orx->add($qb->expr()->lte($attr, $qb->expr()->literal($each . " 23:59:59")));
                         }
 
                         $qb->andWhere($orx);
@@ -162,7 +162,7 @@ class WoojinRepository extends EntityRepository
      */
     protected function attrDecode($attr)
     {
-        $upper = array('G', 'O', 'P', 'C', 'M', 'R', 'S');
+        $upper = array('G', 'O', 'P', 'C', 'M', 'R', 'S', 'I');
 
         if (!in_array(substr($attr, 0, 1), $upper)) {
             return 'G' . $attr;

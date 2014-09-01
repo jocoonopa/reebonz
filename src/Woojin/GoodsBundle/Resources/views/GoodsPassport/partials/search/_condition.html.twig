@@ -254,7 +254,7 @@
 	    </div>
 	  </div>
 
-	  <div class="form-group">
+	  <!-- <div class="form-group">
 	  	<label class="col-sm-2 control-label">進貨時間</label>
 
 	  	<div class="col-sm-10">
@@ -282,20 +282,48 @@
 		      <input my-datepicker ng-model="goods.Gexpirate_at" type="text" class="form-control" placeholder="過期時間" readonly />
 
 		      <div class="input-group-btn">
-	          <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" tabindex="-1">
-	            <span class="caret"></span>
-	            <span class="sr-only">&nbsp;</span>
-	          </button>
-	          <ul class="dropdown-menu dropdown-menu-right" role="menu">
-	            <li><a class="pointer" ng-click="addInSearchRePo('Gexpirate_at', 'lte');">之前</a></li>
-	            <li><a class="pointer" ng-click="addInSearchRePo('Gexpirate_at', 'gte');">之後</a></li>
-	          </ul>
-	        </div>
-        </div>
+    	          <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" tabindex="-1">
+    	            <span class="caret"></span>
+    	            <span class="sr-only">&nbsp;</span>
+    	          </button>
+    	          <ul class="dropdown-menu dropdown-menu-right" role="menu">
+    	            <li><a class="pointer" ng-click="addInSearchRePo('Gexpirate_at', 'lte');">之前</a></li>
+    	            <li><a class="pointer" ng-click="addInSearchRePo('Gexpirate_at', 'gte');">之後</a></li>
+    	          </ul>
+	           </div>
+            </div>
 	    </div>
-	  </div>
+	  </div> -->
 
-	  <div class="form-group">
+      <div class="form-group">
+        <label class="col-sm-2 control-label">時間查詢</label>
+
+        <div class="col-sm-4">
+            <input my-datepicker ng-model="startAt" type="text" class="form-control" placeholder="開始" readonly>
+        </div>  
+        
+        <div class="col-sm-4">
+            <div class="input-group">
+                <input my-datepicker ng-model="endAt" type="text" class="form-control" placeholder="結束" readonly>
+
+                <div class="input-group-btn">
+                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" tabindex="-1">
+                        <span class="caret"></span>
+                        <span class="sr-only">&nbsp;</span>
+                    </button>
+
+                    <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                        <li><a class="pointer" ng-click="addTimeCondition('Gcreate_at');">建立時間</a></li>
+                        <li><a class="pointer" ng-click="addTimeCondition('Gpurchase_at');">進貨時間</a></li>
+                        <li><a class="pointer" ng-click="addTimeCondition('Gupdate_at');">更新時間</a></li>
+                        <li><a class="pointer" ng-click="addTimeCondition('Gexpirate_at');">過期時間</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+      </div>
+
+	  <!-- <div class="form-group">
 	  	<label class="col-sm-2 control-label">建立時間</label>
 
 	  	<div class="col-sm-10">
@@ -335,7 +363,7 @@
 	        </div>
         </div>
 	  	</div>
-	  </div>
+	  </div> -->
 
 	  <div class="form-group">
 	    <label class="col-sm-2 control-label">是否允許折扣</label>
@@ -458,18 +486,18 @@
 	    <div class="col-sm-10">
 	    	
 	    	<div class="input-group">					
-					<select ng-model="goods.Gmt" name="goodsMTs" class="form-control" ng-options="mt.name for mt in $parent.entity.mts"></select>
+				<select ng-model="goods.Gmt" name="goodsMTs" class="form-control" ng-options="mt.name for mt in $parent.entity.mts"></select>
 
-					<div class="input-group-btn">
-            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" tabindex="-1">
-              <span class="caret"></span>
-              <span class="sr-only">&nbsp;</span>
-            </button>
-            <ul class="dropdown-menu dropdown-menu-right" role="menu">
-              <li><a class="pointer" ng-click="addInSearchRePo('Gmt', 'in');">是</a></li>
-              <li><a class="pointer" ng-click="addInSearchRePo('Gmt', 'notIn');">不是</a></li>
-            </ul>
-          </div>
+				<div class="input-group-btn">
+                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" tabindex="-1">
+                      <span class="caret"></span>
+                      <span class="sr-only">&nbsp;</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                      <li><a class="pointer" ng-click="addInSearchRePo('Gmt', 'in');">是</a></li>
+                      <li><a class="pointer" ng-click="addInSearchRePo('Gmt', 'notIn');">不是</a></li>
+                    </ul>
+                  </div>
 	    	</div>
 	    </div>
 	  </div>

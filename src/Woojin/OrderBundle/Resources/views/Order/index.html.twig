@@ -9,7 +9,7 @@
 		<div ng-show="queryDes;" class="queryDes">
 			<button class="btn btn-default btn-sm pull-right" type="button" ng-click="reset();">還原</button>
 			<button class="btn btn-success btn-sm pull-right" type="button" ng-click="query(); pageInit();">查詢</button>
-<!-- 			<button class="btn btn-primary btn-sm pull-right" type="button" ng-click="export(); pageInit();">匯出</button> -->
+			<button class="btn btn-primary btn-sm pull-right" type="button" ng-click="export(); pageInit();">匯出</button>
 			<div ng-bind-html="queryDes" class="alert alert-info no-margin" role="alert">{{ queryDes }}</div>
 		</div>
 
@@ -35,11 +35,34 @@
 		    	</div>
 		    </div>
 		  </div>		
+
+		  <div class="form-group">
+		  	<label class="col-sm-2 control-label">發票號碼</label>
+
+		  	<div class="col-sm-10">
+		  		<div class="input-group">
+		  			<!-- <input type="text" ng-model="orders.Oinvoice" name="invoice" class="form-control" /> -->
+		  			<input type="text" ng-model="orders.Isn" name="invoice" class="form-control">
+
+		  			<div class="input-group-btn">
+	            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" tabindex="-1">
+	              <span class="caret"></span>
+	              <span class="sr-only">&nbsp;</span>
+	            </button>
+	            <ul class="dropdown-menu dropdown-menu-right" role="menu">
+	              <li><a class="pointer" ng-click="addInSearchRePo('Isn', 'in');">是</a></li>
+	              <li><a class="pointer" ng-click="addInSearchRePo('Isn', 'notIn');">不是</a></li>
+	            </ul>
+	          </div>
+		  		</div>
+				
+		  	</div>
+		  </div>
 	
 			<div class="form-group">
 		    <label class="col-sm-2 control-label">訂單種類</label>
+		   
 		    <div class="col-sm-10">
-
 		    	<div class="input-group">
 						
 						<select ng-model="orders.Okind" name="kind" class="form-control" ng-options="kind.name for kind in kinds"></select>
@@ -124,7 +147,7 @@
 		    </div>
 		  </div>
 
-		  <div class="form-group">
+		  <!-- <div class="form-group">
 		  	<label class="col-sm-2 control-label">建立時間</label>
 
 		  	<div class="col-sm-10">
@@ -143,9 +166,35 @@
 		        </div>
 	        </div>
 		  	</div>
-		  </div>
+		  </div> -->
 
-		  <div class="form-group">
+		<div class="form-group">
+	        <label class="col-sm-2 control-label">時間查詢</label>
+
+	        <div class="col-sm-4">
+	            <input my-datepicker ng-model="startAt" type="text" class="form-control" placeholder="開始" readonly>
+	        </div>  
+	        
+	        <div class="col-sm-4">
+	            <div class="input-group">
+	                <input my-datepicker ng-model="endAt" type="text" class="form-control" placeholder="結束" readonly>
+
+	                <div class="input-group-btn">
+	                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" tabindex="-1">
+	                        <span class="caret"></span>
+	                        <span class="sr-only">&nbsp;</span>
+	                    </button>
+
+	                    <ul class="dropdown-menu dropdown-menu-right" role="menu">
+	                        <li><a class="pointer" ng-click="addTimeCondition('Ocreate_at');">建立時間</a></li>
+	                        <li><a class="pointer" ng-click="addTimeCondition('Oupdate_at');">更新時間</a></li>
+	                    </ul>
+	                </div>
+	            </div>
+	        </div>
+	      </div>
+
+		  <!-- <div class="form-group">
 		  	<label class="col-sm-2 control-label">更新時間</label>
 
 		  	<div class="col-sm-10">
@@ -164,7 +213,7 @@
 		        </div>
 	        </div>
 		  	</div>
-		  </div>
+		  </div> -->
 
 		  <div class="form-group">
 		    <label class="col-sm-2 control-label">品牌</label>
@@ -209,7 +258,7 @@
 		    </div>
 		  </div>			
 
-		   <div class="form-group">
+		  <div class="form-group">
 		    <label class="col-sm-2 control-label">商店</label>
 		    <div class="col-sm-10">
 		    	
@@ -224,6 +273,27 @@
 	            <ul class="dropdown-menu dropdown-menu-right" role="menu">
 	              <li><a class="pointer" ng-click="addInSearchRePo('Gstore', 'in');">是</a></li>
 	              <li><a class="pointer" ng-click="addInSearchRePo('Gstore', 'notIn');">不是</a></li>
+	            </ul>
+	          </div>
+		    	</div>
+		    </div>
+		  </div>
+
+		  <div class="form-group">
+		    <label class="col-sm-2 control-label">活動</label>
+		    <div class="col-sm-10">
+		    	
+		    	<div class="input-group">					
+						<select ng-model="orders.Gactivity" name="activity" class="form-control" ng-options="activity.name for activity in activitys"></select>
+
+						<div class="input-group-btn">
+	            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" tabindex="-1">
+	              <span class="caret"></span>
+	              <span class="sr-only">&nbsp;</span>
+	            </button>
+	            <ul class="dropdown-menu dropdown-menu-right" role="menu">
+	              <li><a class="pointer" ng-click="addInSearchRePo('Gactivity', 'in');">是</a></li>
+	              <li><a class="pointer" ng-click="addInSearchRePo('Gactivity', 'notIn');">不是</a></li>
 	            </ul>
 	          </div>
 		    	</div>
@@ -279,7 +349,7 @@
 		<msg-footer success="successMsg" error="errorMsg" on-empty="emptyMsg();"></msg-footer>
 
 		<div class="row" ng-repeat="orders in ordersRepo">
-			<h4 class="pointer"
+			<h4 class="pointer font_size_12"
 				ng-click="switchDisplay(orders);" 
 				ng-class="{dropup: !orders.isDisplay}" 
 			>
@@ -346,7 +416,7 @@
 				<div class="form-group">
 					<label class="col-sm-2 control-label">每頁顯示筆數</label>
 					
-					<div class="col-sm-10">
+					<div class="col-sm-9">
 						<select ng-model="perPage" name="per-page" class="form-control" ng-change="currentPage=1; query();">
 							<option value="10">10</option>
 							<option value="20">20</option>
@@ -354,6 +424,10 @@
 							<option value="50">50</option>
 							<option value="100">100</option>
 						</select>
+					</div>
+
+					<div class="col-sm-1">
+						<button class="btn btn-info" type="button" ng-click="export();">匯出</button>
 					</div>
 				</div>
 			</form>

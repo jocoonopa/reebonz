@@ -12,6 +12,10 @@
 		</button>
 	</div>
 
+	<div class="row">
+		<h4><span style="label label-succuess">{% verbatim %}共{{ totalItems }}件符合結果{% endverbatim %}</span></h4>
+	</div>
+
 	<div class="row" ng-repeat="goods in searchRepo">
 		<goods-list-title goods="goods" allow="true" set-lazy-img="setLazyImg(goods);"></goods-list-title><hr/>
 
@@ -29,7 +33,7 @@
 			<div class="form-group">
 				<label class="col-sm-2 control-label">每頁顯示筆數</label>
 				
-				<div class="col-sm-10">
+				<div class="col-sm-9">
 					<select ng-model="perPage" name="per-page" class="form-control" ng-change="currentPage=1; query();">
 						<option value="10">10</option>
 						<option value="20">20</option>
@@ -37,6 +41,10 @@
 						<option value="50">50</option>
 						<option value="100">100</option>
 					</select>
+				</div>
+
+				<div class="col-sm-1">
+					<button class="btn btn-info" type="button" ng-click="export();">匯出</button>
 				</div>
 			</div>
 

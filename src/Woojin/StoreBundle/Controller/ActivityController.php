@@ -18,24 +18,24 @@ use Woojin\StoreBundle\Entity\Activity;
  */
 class ActivityController extends Controller
 {
-  /**
-   * @Route("", name="activity_index", options={"expose"=true})
-   * @Method("GET")
-   * @Template()
-   */
-  public function indexAction()
-  {
-    return array();
-  }
+    /**
+    * @Route("", name="activity_index", options={"expose"=true})
+    * @Method("GET")
+    * @Template()
+    */
+    public function indexAction()
+    {
+        return array();
+    }
 
-  /**
-   * @Route("/{id}/platform", name="activity_platform", options={"expose"=true})
-   * @ParamConverter("Activity", class="WoojinStoreBundle:Activity")
-   * @Method("GET")
-   * @Template()
-   */
-  public function platformAction(Activity $activity)
-  {
-    return array('activity' => $activity);
-  }
+    /**
+    * @Route("/{id}/platform", name="activity_platform", options={"expose"=true})
+    * @ParamConverter("Activity", class="WoojinStoreBundle:Activity")
+    * @Method("GET")
+    * @Template()
+    */
+    public function platformAction(Activity $activity)
+    {
+        return array('activity' => $activity);
+    }
 }

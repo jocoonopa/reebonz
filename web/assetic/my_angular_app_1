@@ -113,7 +113,7 @@ config(['$routeProvider', function ($routeProvider) {
       templateUrl: Routing.generate('move_index'),
       controller: 'MoveCtrl'
     }).
-    when('/special', {
+    when('/special/:id', {
       templateUrl: Routing.generate('orders_special'),
       controller: 'OrdersSpecialCtrl'
     }).

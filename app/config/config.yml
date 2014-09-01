@@ -109,6 +109,10 @@ swiftmailer:
 nelmio_api_doc: ~
 
 services: 
+    orders.exporter:
+        class: Woojin\OrderBundle\OrdersExporter
+        arguments: ['@service_container', '@security.context']
+
     goods.sale.switcher:
         class: Woojin\GoodsBundle\SaleSwitcher 
         arguments: ['@doctrine']
