@@ -1,11 +1,34 @@
 {% verbatim %}
 
 <div class="row" ng-show="invoices;">
-	<h4>總售價{{ todayTotalGrade }}元</h4>
+	
+	<table class="table">
+		<tr ng-show="!isEmpty(departments);" class="active">
+			<td>部門</td>
+			<td>營業額</td>
+			<td>商品數</td>
+			<td>發票數</td>
+		</tr>
+
+		<tr ng-repeat="department in departments">
+			<td>{{ department.name }}</td>
+			<td>{{ department.required }}</td>
+			<td>{{ department.amount }}</td>
+			<td>-</td>
+		</tr>
+
+		<tr class="success" ng-show="!isEmpty(departments);">
+			<td>總計</td>
+			<td>{{ getDepartmentsTotal('required') }}</td>
+			<td>{{ getDepartmentsTotal('amount') }}</td>
+			<td>{{ countObj(invoices) }}</td>
+		</tr>
+	</table>
+
 	<hr />
 </div>
 
-<div class="panel panel-success" ng-repeat="invoice in invoices | orderBy:'id':true" ng-if="invoice.id;">
+<div class="panel panel-success" ng-repeat="invoice in invoices" ng-if="invoice.id;">
 	<div class="panel-heading">
 		<b>[{{invoice.store.name}}]</b>
 		<i>{{ invoice.sn }}</i>

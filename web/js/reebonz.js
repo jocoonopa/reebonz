@@ -26703,7 +26703,7 @@ backendCtrls.controller('ActivityPlatformCtrl', ['$scope', '$routeParams', '$fil
           $scope.list.push({id: goods.id, sn: goods.sn});
           $scope.barcode = null;
 
-          setSuccess(goods.sn + '資料取得成功!');
+          setSuccess(goods.sn + '資料取得成功，目前狀態為' + goods.status.name + '!');
         })
         .error(function (e) {
           console.log('error');
@@ -26804,6 +26804,13 @@ backendCtrls.controller('ActivityPlatformCtrl', ['$scope', '$routeParams', '$fil
 
     $scope.add = function () {
       get($scope.barcode);
+    };
+
+    /**
+     * 匯出檔案
+     */
+    $scope.export = function () {    
+      window.location = Routing.generate("api_goodsPassport_export", {jsonCondition: JSON.stringify(condition)});
     };
 
     $scope.init();
@@ -28756,7 +28763,7 @@ backendCtrls.controller('OrdersCtrl', ['$scope', '$routeParams', '$http', '$filt
   };
 
   var openPanel = function (index) {
-    $scope.ordersRepo[index]
+    $scope.ordersRepo[index];
   };
 
   $scope.init();
@@ -28838,10 +28845,7 @@ backendCtrls.controller('OrdersNormalCtrl', ['$scope', '$routeParams', '$http', 
      * @type {object}
      */
     var post = {
-      Gsn: {}, // 產編
-      Gstatus: {
-        in: [GS_ON_SALE] // 商品狀態為活動中
-      }
+      Gsn: {} // 產編
     };
 
     // 若存在條碼，則條件產編加入該條碼產編
@@ -29234,11 +29238,17 @@ backendCtrls.controller('OrdersNormalCtrl', ['$scope', '$routeParams', '$http', 
      */
     var post = getGoodsFilterPost(barcode);
 
+    var GS_ON_SALE = 1;
+
     $http.get(Routing.generate('api_goodsPassport_filter', {jsonCondition: JSON.stringify(post)}))
       .success(function (goodsGroup) {
         // 若商品資料為空，報錯終止後續動作
         if (goodsGroup.length === 0) {
-          return isError(barcode + '資料無法取得，請確定該商品狀態為上架!'); 
+          return isError(barcode + '資料無法取得，請確定該商品確實存在!'); 
+        }
+
+        if (parseInt(goodsGroup[0].status.id) !== GS_ON_SALE) {
+          return isError(barcode + '為' + goodsGroup[0].status.name + '，非上架狀態!'); 
         }
 
         // 初始化此商品的訂單屬性
@@ -29436,6 +29446,11 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
   var PT_CARD = 2;
 
   /**
+   * 訂單狀態: 取消
+   */
+  var OS_CANCEL = 3;
+
+  /**
    * 修改成功函式
    */
   var isSuccess = function (msg) {
@@ -29477,9 +29492,11 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
         // 如果該商品允許折扣，
         // 則將其 id 加入 tmp.indexArr
         // 並且增加允許折扣總額
-        if ($scope.goodsRepo[key].allow_discount) {
+        if ($scope.goodsRepo[key].allow_discount && $scope.goodsRepo[key].price >= $scope.myActivity.exceed) {
           tmp.indexArr.push(key);
           tmp.allowTotal += parseInt($scope.goodsRepo[key].price);
+        } else {
+          $scope.goodsRepo[key].orders.paid = $scope.goodsRepo[key].price;
         }
       }
     };
@@ -29545,8 +29562,7 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
         var goods = $scope.goodsRepo[index];
 
         // 商品售價扣去贈送配額即為訂單應付金額
-        goods.orders.required = ((goods.orders.required && goods.orders.required > 0) ? 
-          parseInt(goods.orders.required) : parseInt(goods.price)) - eachGift; 
+        goods.orders.required = parseInt(goods.price) - eachGift; 
         
         // 訂單已付金額預設為訂單售價
         goods.orders.paid = goods.orders.required;
@@ -29703,12 +29719,6 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
      */
     var post = {
       Gsn: {}, // 產編
-      Gactivity: {
-        in: $scope.myActivity // 活動為目前選擇的活動
-      },
-      Gstatus: {
-        in: [GS_ACTIVITY] // 商品狀態為活動中
-      }
     };
 
     // 若存在條碼，則條件產編加入該條碼產編
@@ -29781,7 +29791,7 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
    *
    * @param {object} goods
    */
-  var setHeading = function (goods) {
+  $scope.setHeading = function (goods) {
     goods.heading = '';
     goods.heading += goods.name + '  |  ' + goods.sn + '   |   ' + goods.brand.name + '  |  ';
     goods.heading += '   成本:' + goods.cost + '元 ';
@@ -29798,7 +29808,7 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
     $scope.total.sale = 0;
 
     for (var key in $scope.goodsRepo) {
-      $scope.total.org += $scope.goodsRepo[key].price;
+      $scope.total.org += $scope.goodsRepo[key].org_price;
       $scope.total.sale += $scope.goodsRepo[key].orders.required;
     }
   };
@@ -29942,12 +29952,12 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
      * 
      * @type {object || boolean} boolean when non declared
      */
-    var eachInvoice = $scope.invoices[orders.invoice.id.toString()];
+    var eachInvoice = $scope.invoices[(999999 - orders.invoice.id).toString()];
 
     // 如果發票物件尚未宣告，
     // 則初始化其各屬性
     if (!eachInvoice) {
-      $scope.invoices[orders.invoice.id.toString()] = eachInvoice = getInitInvoice(orders);
+      $scope.invoices[(999999 - orders.invoice.id).toString()] = eachInvoice = getInitInvoice(orders);
     }
 
     // 發票總金額
@@ -29965,13 +29975,16 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
   /**
    * 初始化今日活動銷貨記錄
    */
-  var initTodayRecord = function () {
-    // 取得今日特殊銷貨記錄
+  var initThisActivityRecord = function () {
+    // 取得活動銷貨記錄
     var condition = {
-      Ocreate_at: {
-        gte: {
-          in: getTodayDate()
-        }
+      // Ocreate_at: {
+      //   gte: {
+      //     in: getTodayDate()
+      //   }
+      // },
+      Gactivity: {
+        in: [$scope.myActivity]
       },
       Okind: {
         in: [OK_SPECIAL_SOLDOUT]
@@ -29984,7 +29997,7 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
      * @type {Object}
      */
     var orderBy = {
-      attr: 'create_at',
+      attr: 'invoice',
       dir: 'DESC'
     };
 
@@ -30003,8 +30016,6 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
       // 重組訂單陣列 [orderses]
       rebuildOrderses(orderses, ordersGroup);
 
-      $scope.todayTotalGrade = 0;
-
       // 迭代每筆訂單已組成每個發票Group
       for (var key in orderses) {
         /**
@@ -30014,7 +30025,21 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
          */
         var eachOrders = orderses[key];
 
-        $scope.todayTotalGrade += parseInt(eachOrders.required);
+        var department = $scope.departments[eachOrders.goods_passport.store.id.toString()];
+
+        if (!department) {
+          department = $scope.departments[eachOrders.goods_passport.store.id.toString()] = {
+            required: 0,
+            amount: 0,
+            name: eachOrders.goods_passport.store.name
+          };
+        }
+
+        if (eachOrders.status.id !== OS_CANCEL) {
+          department.required += parseInt(eachOrders.required);
+
+          department.amount += 1; 
+        }
         
         // 設置訂單內涵
         setInvoices(eachOrders);
@@ -30027,12 +30052,34 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
     });
   };
 
+  $scope.isEmpty = function (obj) {
+    return Object.keys(obj).length === 0;
+  };    
+
+  $scope.countObj = function (obj) {
+    return Object.keys(obj).length;
+  }
+
+  $scope.getDepartmentsTotal = function (type) {
+    var sum = 0;
+
+    for (var key in $scope.departments) {
+      sum += $scope.departments[key][type];
+    }
+
+    return sum;
+  };
+
   /**
    * 清空回饋訊息
    */
   $scope.emptyMsg = function () {
     isSuccess(null);
     isError(null);
+  };
+
+  $scope.changeActivity = function () {
+    initThisActivityRecord();
   };
 
   /**
@@ -30043,6 +30090,9 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
   $scope.init = function () {
     // 發票
     $scope.invoices = {};
+
+    // 部門群
+    $scope.departments = {};
 
     // 取得活動選項
     Activity.query(function (res) {
@@ -30059,7 +30109,7 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
         }
       }
 
-      initTodayRecord();
+      initThisActivityRecord();
     });
 
     // 宣告商品刷件容器
@@ -30124,18 +30174,30 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
      */
     var post = getGoodsFilterPost(barcode);
 
+    var GS_ACTIVITY = 6;
+
     $http.get(Routing.generate('api_goodsPassport_filter', {jsonCondition: JSON.stringify(post)}))
       .success(function (goodsGroup) {
         // 若商品資料為空，報錯終止後續動作
         if (goodsGroup.length === 0) {
-          return isError(barcode + '資料無法取得，請確定該商品狀態為活動!'); 
+          return isError(barcode + '資料無法取得，請確定該商品確實存在!'); 
+        }
+
+        if (parseInt(goodsGroup[0].status.id) !== GS_ACTIVITY) {
+          return isError(barcode + '狀態為' + goodsGroup[0].status.name + ', 活動銷貨僅允許活動狀態商品!')
+        }
+
+        if (!goodsGroup[0].activity || parseInt(goodsGroup[0].activity.id) !== parseInt($scope.myActivity.id)) {
+          return isError(barcode +  '為' + goodsGroup[0].activity.name  + '之商品，非' + $scope.myActivity.name + '之商品!');
         }
 
         // 初始化此商品的訂單屬性
         setGoodsOrders(goodsGroup[0]);
 
         // 設置該商品的標題，品名，產編, 品牌，價格等文字敘述
-        setHeading(goodsGroup[0]);
+        $scope.setHeading(goodsGroup[0]);
+
+        goodsGroup[0].org_price = goodsGroup[0].price;
         
         // 將該商品加入商品刷件容器中
         $scope.goodsRepo.push(goodsGroup[0]);

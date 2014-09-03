@@ -362,7 +362,7 @@ backendCtrls.controller('OrdersCtrl', ['$scope', '$routeParams', '$http', '$filt
   };
 
   var openPanel = function (index) {
-    $scope.ordersRepo[index]
+    $scope.ordersRepo[index];
   };
 
   $scope.init();

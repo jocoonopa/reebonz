@@ -100,7 +100,7 @@ backendCtrls.controller('ActivityPlatformCtrl', ['$scope', '$routeParams', '$fil
           $scope.list.push({id: goods.id, sn: goods.sn});
           $scope.barcode = null;
 
-          setSuccess(goods.sn + '資料取得成功!');
+          setSuccess(goods.sn + '資料取得成功，目前狀態為' + goods.status.name + '!');
         })
         .error(function (e) {
           console.log('error');
@@ -201,6 +201,13 @@ backendCtrls.controller('ActivityPlatformCtrl', ['$scope', '$routeParams', '$fil
 
     $scope.add = function () {
       get($scope.barcode);
+    };
+
+    /**
+     * 匯出檔案
+     */
+    $scope.export = function () {    
+      window.location = Routing.generate("api_goodsPassport_export", {jsonCondition: JSON.stringify(condition)});
     };
 
     $scope.init();

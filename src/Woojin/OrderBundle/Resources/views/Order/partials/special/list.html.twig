@@ -18,7 +18,7 @@
 				</label>
 
 				<div class="col-sm-10">
-					<input type="number" class="form-control" ng-model="goods.orders.required" ng-blur="countActivitySale();" />
+					<input type="number" class="form-control" ng-model="goods.orders.required" ng-blur="goods.price=goods.orders.required; countActivitySale(); setHeading(goods);" />
 				</div>
 			</div>
 

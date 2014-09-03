@@ -5,7 +5,7 @@
 		<label class="col-sm-2 control-label">活動</label>
 
 		<div class="col-sm-10">
-			<select name="activity" ng-model="myActivity" class="form-control" ng-options="activity.name for activity in activitys"></select>
+			<select name="activity" ng-model="myActivity" ng-change="changeActivity();" class="form-control" ng-options="activity.name for activity in activitys"></select>
 		</div>
 	</div>
 	
