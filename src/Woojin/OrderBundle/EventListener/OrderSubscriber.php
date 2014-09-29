@@ -114,12 +114,6 @@ class OrderSubscriber implements EventSubscriber
 		$user = $this->container->get('security.context')->getToken()->getUser();
 
 		/**
-		 * 提供給工廠的參數陣列
-		 * @var array
-		 */
-		$settings = array();
-
-		/**
 		 * Serializer
 		 * @var object
 		 */

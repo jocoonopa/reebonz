@@ -26,7 +26,7 @@ use Woojin\OrderBundle\Entity\Invoice;
  *
  * @Route("/invoice")
  */
-class InvoiceController extends Controller
+class InvoiceController extends ApiController
 {
     /**
      * @Route("", name="api_invoice_list", options={"expose"=true})
@@ -53,10 +53,8 @@ class InvoiceController extends Controller
     public function listAction()
     {
         $invoices = $this->getDoctrine()->getRepository('WoojinOrderBundle:Invoice')->findAll();
-
-        $serializer = \JMS\Serializer\SerializerBuilder::create()->build();
         
-        $jsonInvoices = $serializer->serialize($invoices, 'json');
+        $jsonInvoices = $this->getSerializer()->serialize($invoices, 'json');
 
         return new Response($jsonInvoices);
     }
@@ -86,11 +84,9 @@ class InvoiceController extends Controller
      */
     public function showAction(Invoice $invoice, $_format)
     {
-        $serializer = \JMS\Serializer\SerializerBuilder::create()->build();
-
         $orderses = $this->getDoctrine()->getManager()->getRepository('WoojinOrderBundle:Orders')->findBy(array('invoice' => $invoice->getId()));
         
-        $response = $serializer->serialize($orderses, $_format);
+        $response = $this->getSerializer()->serialize($orderses, $_format);
 
         return new Response($response);
     }
@@ -120,11 +116,9 @@ class InvoiceController extends Controller
      */
     public function showBySnAction(Invoice $invoice, $_format)
     {
-        $serializer = \JMS\Serializer\SerializerBuilder::create()->build();
-
         $orderses = $this->getDoctrine()->getManager()->getRepository('WoojinOrderBundle:Orders')->findBy(array('invoice' => $invoice->getId()));
         
-        $response = $serializer->serialize($orderses, $_format);
+        $response = $this->getSerializer()->serialize($orderses, $_format);
 
         return new Response($response);
     }
@@ -153,17 +147,19 @@ class InvoiceController extends Controller
      */
     public function latestAction($_format)
     {
-        $serializer = \JMS\Serializer\SerializerBuilder::create()->build();
-
         $em = $this->getDoctrine()->getManager();
 
         $invoices = $em->getRepository('WoojinOrderBundle:Invoice')->findBy(array(), array('id' => 'DESC'), 1, 0);
         
+        if (!$invoices) {
+            return new Response(json_encode(array('error' => 'No invoices exists!')));
+        }
+
         $invoice = $invoices[0];
 
         $orderses = $em->getRepository('WoojinOrderBundle:Orders')->findBy(array('invoice' => $invoice->getId()));
         
-        $response = $serializer->serialize($orderses, $_format);
+        $response = $this->getSerializer()->serialize($orderses, $_format);
 
         return new Response($response);
     }
