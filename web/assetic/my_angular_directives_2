@@ -318,8 +318,8 @@ myApp.directive('ngConfirmClick', [
     };
 }]);
 
-myApp.directive('myOpeList', [ '$filter',
-  function ($filter) {
+myApp.directive('myOpeList', ['$filter', '$http',
+  function ($filter, $http) {
     return {
       restrict: 'E',
       scope: {
@@ -342,3 +342,19 @@ myApp.directive('myOpeList', [ '$filter',
       templateUrl: Routing.generate('ope_partials_list')
     };
 }]);
+
+myApp.directive('myTitleSymlinkA', function () {
+  return {
+    restrict: 'A',
+    link: function (scope, element, attr) {
+      element.bind('click',function (event) {
+        if (element.text().indexOf('Reebonz') !== -1) {
+          return $('title').text(element.text());
+        }
+        $('title').text('Reebonz-' + element.text());
+      });
+    },
+  }; 
+});
+
+

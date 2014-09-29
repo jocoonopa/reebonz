@@ -1,13 +1,39 @@
 {% verbatim %}
 
+<div class="row" ng-show="isOrderSpecial">
+	<form role="form">
+		<select class="form-control" ng-change="getActivityReocrdWithDate(true);" ng-model="dateSelected" ng-options="eachdate.val for eachdate in dateRepo"></select>
+	</form>
+</div>
+
+<div class="row" ng-show="isOrderNormal">
+	<form role="form">
+		<div class="form-group">
+			<div class="col-sm-4">
+				<select class="form-control" ng-model="yearSelected" ng-options="eachyear.name for eachyear in years"></select>
+			</div>
+
+			<div class="col-sm-4">
+				<select class="form-control" ng-model="monthSelected" ng-options="eachmonth.name for eachmonth in months"></select>
+			</div>
+
+			<div class="col-sm-2">
+				<button ng-click="getAssignMonthRecord();" class="btn btn-success">確定</button>
+			</div>
+		</div>
+	</form>
+</div>
+
+<div class="row">&nbsp;</div>
+
 <div class="row" ng-show="invoices;">
-	
 	<table class="table">
 		<tr ng-show="!isEmpty(departments);" class="active">
 			<td>部門</td>
 			<td>營業額</td>
 			<td>商品數</td>
 			<td>發票數</td>
+			<td></td>
 		</tr>
 
 		<tr ng-repeat="department in departments">
@@ -15,16 +41,27 @@
 			<td>{{ department.required }}</td>
 			<td>{{ department.amount }}</td>
 			<td>-</td>
+			<td></td>
 		</tr>
 
-		<tr class="success" ng-show="!isEmpty(departments);">
+		<tr class="active" ng-show="!isEmpty(departments);">
 			<td>總計</td>
 			<td>{{ getDepartmentsTotal('required') }}</td>
 			<td>{{ getDepartmentsTotal('amount') }}</td>
 			<td>{{ countObj(invoices) }}</td>
+			
+			<!-- 內銷 -->
+			<td class="text-right" ng-show="isOrderNormal">
+				<button ng-click="export(true);" class="btn btn-info btn-sm">單月匯出</button>
+			</td>
+
+			<!-- 活動 -->
+			<td class="text-right" ng-show="isOrderSpecial">
+				<button ng-click="export(true);" class="btn btn-info btn-sm">單日匯出</button>
+				<button ng-click="export();" class="btn btn-success btn-sm">全部匯出</button>
+			</td>
 		</tr>
 	</table>
-
 	<hr />
 </div>
 
@@ -68,41 +105,47 @@
 			</h4><hr/>
 			
 			<tabset justified="true" ng-show="orders.isDisplay">
-		    <tab heading="補款">
-					
+			    <tab heading="補款">
+						
 					<div ng-show="orders.status.id == 3;" class="alert alert-danger" role="alert">訂單已經取消</div>
 
-		    	<form ng-show="orders.status.id != 3;" novalidate class="form-horizontal" role="form">
-			    	<br />
-			    	<br />
-						
+			    	<form ng-show="orders.status.id != 3;" novalidate class="form-horizontal" role="form">
+				    	<br />
+				    	<br />
+							
 						<my-form-textarea model="orders" label="'訂單備註'" name="'memo'"></my-form-textarea>
-			    	<my-form-span model="orders" label="'應付'" name="'required'"></my-form-span>
+				    	<my-form-span model="orders" label="'應付'" name="'required'"></my-form-span>
 						<my-form-span model="orders" label="'已付'" name="'paid'"></my-form-span>
 						<my-form-number ng-show="orders.status.id == 1;" model="orders" label="'補付'" name="'diff'" isPrice="1" isRequired="1"></my-form-number>
 						<my-form-select model="orders" entitys="payTypes" name="'pay_type'" label="'付費方式'"></my-form-select>
-						
+							
 						<my-form-input model="orders" name="'content'" label="'操作備註'"></my-form-input>
+
+						<my-form-input model="orders" name="'card_sn'" label="'卡號'"></my-form-input>
 
 						<div class="form-group">
 							<label class="col-sm-2 control-label">&nbsp;</label>
 
 							<div class="col-sm-10">
-								<button ng-show="orders.status.id != 3;" confirmed-click="_cancel(orders);" ng-confirm-click="確定取消此訂單嘛?" class="btn btn-danger"><span class="glyphicon glyphicon-remove-circle"></span>取消訂單</button>
+								<button ng-show="orders.status.id != 1;" confirmed-click="_cancel(orders);" ng-confirm-click="確定取消此訂單嘛?" class="btn btn-danger"><span class="glyphicon glyphicon-remove-circle"></span>取消訂單</button>
+
 								<button ng-show="orders.status.id == 1;" ng-click="update(orders);" class="btn btn-success">
-									<span class="glyphicon glyphicon-ok-circle"></span>確認補付金額
+									<span class="glyphicon glyphicon-ok-circle"></span>更新帳單
 								</button>
 							</div>	
 						</div>
 					</form>
 
 					<hr/>
-		    </tab>
+			    </tab>
 
-		    <tab heading="歷程記錄">
-		    	<my-ope-list orders="orders"></my-ope-list>
-		    </tab>
-		  </tabset>
+			    <tab heading="歷程記錄">
+			    	<!-- <my-ope-list orders="orders" editOpe="$parent.editOpe" save="saveEditOpe();" init="initEditOpe(orders.opes);"></my-ope-list> -->
+					{% endverbatim %}
+			    		{% include('WoojinOrderBundle:Ope:list.html.twig') %}
+			    	{% verbatim %}
+			    </tab>
+			</tabset>
 		</div>
 	</div>
 </div>

@@ -150,13 +150,6 @@ class OrdersExporter
          */
         $page = 0;
 
-        /**
-         * 售出商品數量
-         * 
-         * @var integer
-         */
-        $amount = 0;
-
         foreach ($ordersesGroupWithStore as $storeName => $orderses) {
             /**
              * 最後一行的行數
@@ -164,6 +157,13 @@ class OrdersExporter
              * @var [integer]
              */
             $finalRow = $this->getLastRowNum($orderses);
+
+            /**
+             * 售出商品數量
+             * 
+             * @var integer
+             */
+            $amount = 0;
 
             $this
                 ->createTab($page)
@@ -245,24 +245,19 @@ class OrdersExporter
      */
     protected function setFirstRow($page = 0)
     {
-        // 設置各欄位名稱
         $this
             ->phpExcelObj
             ->setActiveSheetIndex($page)
-            ->setCellValue('A1', '原價')
-            ->setCellValue('B1', '優惠價')
-            ->setCellValue('C1', '折扣')
-            ->setCellValue('D1', '現金')
-            ->setCellValue('E1', '刷卡')
-            ->setCellValue('F1', '實付總計')
-            ->setCellValue('G1', '成本')
-            ->setCellValue('H1', '含稅成本')
-            ->setCellValue('I1', '產編')
-            ->setCellValue('J1', 'SKU')
-            ->setCellValue('K1', '活動')
-            ->setCellValue('L1', '折扣')
-            ->setCellValue('M1', '發票')
-            ->setCellValue('N1', '建立日期')
+            ->setCellValue('A1', '產編')
+            ->setCellValue('B1', 'SKU')
+            ->setCellValue('C1', '廠商')
+            ->setCellValue('D1', '品牌')
+            ->setCellValue('E1', '品名')
+            ->setCellValue('F1', '成本')
+            ->setCellValue('G1', 'Margin')
+            ->setCellValue('H1', '原價')
+            ->setCellValue('I1', '折扣金額')
+            ->setCellValue('J1', '實付')
         ;
 
         return $this;
@@ -279,7 +274,7 @@ class OrdersExporter
      * @param [integer] $amount
      */
     protected function setCellViaIterateOrders($ordersGroup, $page = 0, &$amount)
-    {
+    {        
         foreach ($ordersGroup as $key => $orders) {
             /**
              * 欄位對應陣列
@@ -420,20 +415,16 @@ class OrdersExporter
         $activityContent = $orders->getGoodsPassport()->getActivity()->getActivityGiffDes();
 
         return array(
-            'A' => $price,
-            'B' => $discountPrice,
-            'C' => $giff,
-            'D' => $cashPaid,
-            'E' => $cardPaid,
-            'F' => $paid,
-            'G' => $cost,
-            'H' => $costWithTex,
-            'I' => $sn,
-            'J' => $sku,
-            'K' => $activityName,
-            'L' => $activityContent,
-            'M' => $invoiceSn,
-            'N' => $createAt
+            'A' => $sn,
+            'B' => $sku,
+            'C' => $orders->getGoodsPassport()->getSupplier()->getName(),
+            'D' => $orders->getGoodsPassport()->getBrand()->getName(),
+            'E' => $orders->getGoodsPassport()->getName(),
+            'F' => $orders->getGoodsPassport()->getCost(),
+            'G' => ($orders->getPaid() - $orders->getGoodsPassport()->getCost())/$orders->getPaid(),
+            'H' => $orders->getGoodsPassport()->getPrice(),
+            'I' => $orders->getGoodsPassport()->getPrice() - $orders->getPaid(),
+            'J' => $orders->getPaid()
         );
     }
 
@@ -486,7 +477,7 @@ class OrdersExporter
         
         // adding headers
         $response->headers->set('Content-Type', 'text/vnd.ms-excel; charset=utf-8');
-        $response->headers->set('Content-Disposition', 'attachment;filename=orders_export.xlsx');
+        $response->headers->set('Content-Disposition', 'attachment;filename=orders_export_' . date("YmdHis") . '.xlsx');
         $response->headers->set('Pragma', 'public');
         $response->headers->set('Cache-Control', 'maxage=1');
 

@@ -6,6 +6,8 @@ use Doctrine\ORM\Mapping as ORM;
 use JMS\Serializer\Annotation\ExclusionPolicy;
 use JMS\Serializer\Annotation\Exclude;
 
+use Woojin\OrderBundle\NullEntity\NullPayType;
+
 /**
  * @ORM\Entity
  * @ORM\Table(name="Ope")
@@ -29,7 +31,6 @@ class Ope
     protected $pay_type;
 
     /**
-     * @Exclude
      * @ORM\ManyToOne(targetEntity="\Woojin\UserBundle\Entity\User", inversedBy="opes")
      * @ORM\JoinColumn(name="user_id", referencedColumnName="id")
      * @var User
@@ -64,6 +65,11 @@ class Ope
      * @ORM\Column(type="datetime", length=50)
      */
     protected $update_at;
+
+    /**
+     * @ORM\Column(type="string", length=20)
+     */
+    protected $card_sn;
 
     /**
      * @ORM\Column(type="text", nullable=true)
@@ -284,7 +290,7 @@ class Ope
      */
     public function getPayType()
     {
-        return $this->pay_type;
+        return (!$this->pay_type) ? new NullPayType : $this->pay_type;
     }
 
     /**

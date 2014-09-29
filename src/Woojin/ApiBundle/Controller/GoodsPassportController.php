@@ -563,7 +563,6 @@ class GoodsPassportController extends Controller
      * 
      * @Route("/import/{jsonIds}", name="api_goodsPassport_reverse", options={"expose"=true})
      * @Method("DELETE")
-     * 
      */
     public function reverseAction(Request $request, $jsonIds)
     {

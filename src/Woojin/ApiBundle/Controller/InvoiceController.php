@@ -16,6 +16,8 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 
+use Woojin\OrderBundle\Entity\Invoice;
+
 /**
  * 關於 Invoice CRUD 動作，這個實體直接依賴 Order 的狀態，
  * 因此不具備新增和刪除的動作，由於和客戶端的發票機直接溝通，難以透過 session 驗證，
@@ -60,7 +62,7 @@ class InvoiceController extends Controller
     }
 
     /**
-     * @Route("/{id}", name="api_invoice_show", options={"expose"=true})
+     * @Route("/{id}/{_format}", name="api_invoice_show", requirements={"id"="\d+"}, defaults={"_format"="json"}, options={"expose"=true})
      * @ParamConverter("invoice", class="WoojinOrderBundle:Invoice")
      * @Method("GET")
      *
@@ -69,8 +71,7 @@ class InvoiceController extends Controller
      *  description="根據傳入的 id 取得單一指定發票(invoice)",
      *  requirements={
      *      {"name"="id", "dataType"="integer", "required"=true, "description"="發票的 id "},
-     *      {"name"="apiKey", "dataType"="string", "required"=true, "description"="Used to validate permission"},
-     *      {"name"="_format", "dataType"="string", "required"=true, "description"="Decide type of return MIME, default is json"}
+     *      {"name"="_format", "dataType"="string", "required"=true, "description"="格式"}
      *  },
      *  statusCodes={
      *    200="Returned when successful",
@@ -83,8 +84,88 @@ class InvoiceController extends Controller
      *  }
      * )
      */
-    public function showAction(Invoice $invoice, $apiKey)
+    public function showAction(Invoice $invoice, $_format)
     {
+        $serializer = \JMS\Serializer\SerializerBuilder::create()->build();
+
+        $orderses = $this->getDoctrine()->getManager()->getRepository('WoojinOrderBundle:Orders')->findBy(array('invoice' => $invoice->getId()));
+        
+        $response = $serializer->serialize($orderses, $_format);
+
+        return new Response($response);
+    }
+
+    /**
+     * @Route("/{sn}/{_format}", name="api_invoice_showBySn", defaults={"_format"="json"}, options={"expose"=true})
+     * @ParamConverter("invoice", class="WoojinOrderBundle:Invoice", options={"mapping": {"sn":"sn"}})
+     * @Method("GET")
+     *
+     * @ApiDoc(
+     *  resource=true,
+     *  description="根據傳入的 sn 取得單一指定發票(invoice)",
+     *  requirements={
+     *      {"name"="sn", "dataType"="string", "required"=true, "description"="發票的 sn "},
+     *      {"name"="_format", "dataType"="string", "required"=true, "description"="格式"}
+     *  },
+     *  statusCodes={
+     *    200="Returned when successful",
+     *    404={
+     *     "Returned when something else is not found"
+     *    },
+     *    500={
+     *     "Please contact author to fix it"
+     *    }
+     *  }
+     * )
+     */
+    public function showBySnAction(Invoice $invoice, $_format)
+    {
+        $serializer = \JMS\Serializer\SerializerBuilder::create()->build();
+
+        $orderses = $this->getDoctrine()->getManager()->getRepository('WoojinOrderBundle:Orders')->findBy(array('invoice' => $invoice->getId()));
+        
+        $response = $serializer->serialize($orderses, $_format);
+
+        return new Response($response);
+    }
+
+    /**
+     * @Route("/latest/one/{_format}", name="api_invoice_latest_one", defaults={"_format"="json"}, options={"expose"=true})
+     * @Method("GET")
+     *
+     * @ApiDoc(
+     *  resource=true,
+     *  description="根據傳入的 sn 取得單一指定發票(invoice)",
+     *  requirements={
+     *      {"name"="amount", "dataType"="integer", "required"=true, "description"="發票的數量"},
+     *      {"name"="_format", "dataType"="string", "required"=true, "description"="格式"}
+     *  },
+     *  statusCodes={
+     *    200="Returned when successful",
+     *    404={
+     *     "Returned when something else is not found"
+     *    },
+     *    500={
+     *     "Please contact author to fix it"
+     *    }
+     *  }
+     * )
+     */
+    public function latestAction($_format)
+    {
+        $serializer = \JMS\Serializer\SerializerBuilder::create()->build();
+
+        $em = $this->getDoctrine()->getManager();
+
+        $invoices = $em->getRepository('WoojinOrderBundle:Invoice')->findBy(array(), array('id' => 'DESC'), 1, 0);
+        
+        $invoice = $invoices[0];
+
+        $orderses = $em->getRepository('WoojinOrderBundle:Orders')->findBy(array('invoice' => $invoice->getId()));
+        
+        $response = $serializer->serialize($orderses, $_format);
+
+        return new Response($response);
     }
 
     /**
@@ -126,7 +207,6 @@ class InvoiceController extends Controller
 
         $em->persist($invoice);
         $em->flush();
-
 
         return new Response(json_encode($tmp));
     }

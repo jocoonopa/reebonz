@@ -67,6 +67,11 @@ class Ope
     protected $update_at;
 
     /**
+     * @ORM\Column(type="string", length=20, nullable=true)
+     */
+    protected $card_sn;
+
+    /**
      * @ORM\Column(type="text", nullable=true)
      */
     protected $memo;
@@ -309,5 +314,28 @@ class Ope
     public function getUser()
     {
         return $this->user;
+    }
+
+    /**
+     * Set card_sn
+     *
+     * @param string $cardSn
+     * @return Ope
+     */
+    public function setCardSn($cardSn)
+    {
+        $this->card_sn = $cardSn;
+    
+        return $this;
+    }
+
+    /**
+     * Get card_sn
+     *
+     * @return string 
+     */
+    public function getCardSn()
+    {
+        return $this->card_sn;
     }
 }

@@ -17,7 +17,22 @@
       <small>{{ formatDate(ope.create_at) }}</small><b>取消</b>
     </span>
 
-    <strong ng-show="ope.user" class="pull-right">操作人員: {{ ope.user.username }}</strong>  
+    <span ng-show="ope.card_sn.length > 0;">
+      <i>&nbsp;&nbsp;{{ ope.card_sn }}</i>
+    </span>
+
+    <button ng-click="setEditOpe(ope);" class="btn btn-xs btn-primary pull-right">修改</button>
+
+    <strong ng-show="ope.user" class="pull-right">操作人員: {{ ope.user.username }}&nbsp;&nbsp;</strong> 
+  </li>
+
+  <li ng-show="editOpe" class="list-group-item label-info">
+    <select name="payType" ng-model="editOpe.pay_type" ng-options="payType.name for payType in payTypes"></select>
+
+    <input ng-model="editOpe.card_sn" type="text" />
+
+    <button ng-click="saveEditOpe();" class="pull-right btn btn-success btn-xs">儲存</button>
+    <button ng-click="setEditOpe(null);" class="pull-right btn btn-default btn-xs">取消</button>
   </li>
 </ul>
 {% endverbatim %}

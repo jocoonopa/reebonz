@@ -311,7 +311,25 @@ backendCtrls.controller('GoodsSearchCtrl', ['$scope', '$routeParams', '$http', '
     };
     
     this.deleteChecked = function () {
-      $http.delete(Routing.generate('api_goodsPassport_reverse'), {goodsPost: this.selectChecked()})
+      /**
+       * id 陣列
+       * 
+       * @type {Array}
+       */
+      var ids = [];
+
+      /**
+       * 商品實體陣列
+       * 
+       * @type {array}
+       */
+      var goodses = this.selectChecked();
+
+      for (var key in goodses) {
+        ids.push(goodses[key].id);
+      }
+
+      $http.delete(Routing.generate('api_goodsPassport_reverse', {jsonIds: JSON.stringify(ids)}))
         .success(function (res) {
           $scope.isSuccess('批次刪除完成！');
 

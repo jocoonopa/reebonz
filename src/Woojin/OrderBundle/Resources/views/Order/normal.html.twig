@@ -4,12 +4,12 @@
 	</div>
 
 	<div class="panel-body" ng-show="isBrushPanelVisible">
-  	{% include 'WoojinOrderBundle:Order/partials/normal:condition.html.twig' %}
-  	{% include 'WoojinOrderBundle:Order/partials/special:list.html.twig' %}
+  		{% include 'WoojinOrderBundle:Order/partials/normal:condition.html.twig' %}
+  		{% include 'WoojinOrderBundle:Order/partials/special:list.html.twig' %}
 	</div>
 
 	<div class="panel-heading">
-		<h2 class="panel-title pointer" ng-click="isRecordPanelVisible=!isRecordPanelVisible;" ng-class="{dropup: !isRecordPanelVisible}"><span class="caret"></span>&nbsp; 本日記錄</h2>
+		<h2 class="panel-title pointer" ng-click="isRecordPanelVisible=!isRecordPanelVisible;" ng-class="{dropup: !isRecordPanelVisible}"><span class="caret"></span>&nbsp;內銷記錄</h2>
 	</div>
 
 	<div class="panel-body" ng-show="isRecordPanelVisible">

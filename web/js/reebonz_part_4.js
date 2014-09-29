@@ -464,8 +464,8 @@ myApp.directive('ngConfirmClick', [
     };
 }]);
 
-myApp.directive('myOpeList', [ '$filter',
-  function ($filter) {
+myApp.directive('myOpeList', ['$filter', '$http',
+  function ($filter, $http) {
     return {
       restrict: 'E',
       scope: {
@@ -489,6 +489,22 @@ myApp.directive('myOpeList', [ '$filter',
     };
 }]);
 
+myApp.directive('myTitleSymlinkA', function () {
+  return {
+    restrict: 'A',
+    link: function (scope, element, attr) {
+      element.bind('click',function (event) {
+        if (element.text().indexOf('Reebonz') !== -1) {
+          return $('title').text(element.text());
+        }
+        $('title').text('Reebonz-' + element.text());
+      });
+    },
+  }; 
+});
+
+
+
 'use strict';
 
 /* Services */
@@ -499,7 +515,7 @@ backendServices.factory('Brand', ['$resource',
   function ($resource) {
   return $resource(Routing.generate('api_brand_list') + '/:id', null, 
     {
-    	update: { method: 'PUT'}
+    	update: {method: 'PUT'}
     });
 }]);
 
@@ -507,7 +523,7 @@ backendServices.factory('Pattern', ['$resource',
   function ($resource) {
   return $resource(Routing.generate('api_pattern_list') + '/:id', null, 
     {
-    	update: { method: 'PUT'}
+    	update: {method: 'PUT'}
     });
 }]);
 
@@ -515,7 +531,7 @@ backendServices.factory('Color', ['$resource',
   function ($resource) {
   return $resource(Routing.generate('api_color_list') + '/:id', null, 
     {
-    	update: { method: 'PUT'}
+    	update: {method: 'PUT'}
     });
 }]);
 
@@ -523,7 +539,7 @@ backendServices.factory('GoodsLevel', ['$resource',
   function ($resource) {
   return $resource(Routing.generate('api_goodsLevel_list') + '/:id', null, 
     {
-    	update: { method: 'PUT'}
+    	update: {method: 'PUT'}
     });
 }]);
 
@@ -531,7 +547,7 @@ backendServices.factory('GoodsSource', ['$resource',
   function ($resource) {
   return $resource(Routing.generate('api_goodsSource_list') + '/:id', null, 
     {
-      update: { method: 'PUT'}
+      update: {method: 'PUT'}
     });
 }]);
 
@@ -539,7 +555,7 @@ backendServices.factory('Supplier', ['$resource',
   function ($resource) {
   return $resource(Routing.generate('api_supplier_list') + '/:id', null, 
     {
-    	update: { method: 'PUT'}
+    	update: {method: 'PUT'}
     });
 }]);
 
@@ -547,7 +563,7 @@ backendServices.factory('PayType', ['$resource',
   function ($resource) {
   return $resource(Routing.generate('api_payType_list') + '/:id', null, 
     {
-    	update: { method: 'PUT'}
+    	update: {method: 'PUT'}
     });
 }]);
 
@@ -555,7 +571,7 @@ backendServices.factory('GoodsMT', ['$resource',
   function ($resource) {
   return $resource(Routing.generate('api_goodsMT_list') + '/:id', null, 
     {
-    	update: { method: 'PUT'}
+    	update: {method: 'PUT'}
     });
 }]);
 
@@ -568,7 +584,7 @@ backendServices.factory('OrdersStatus', ['$resource',
   function ($resource) {
   return $resource(Routing.generate('api_ordersStatus_list') + '/:id', null, 
     {
-      update: { method: 'PUT'}
+      update: {method: 'PUT'}
     });
 }]);
 
@@ -576,7 +592,7 @@ backendServices.factory('OrdersKind', ['$resource',
   function ($resource) {
   return $resource(Routing.generate('api_ordersKind_list') + '/:id', null, 
     {
-      update: { method: 'PUT'}
+      update: {method: 'PUT'}
     });
 }]);
 
@@ -584,7 +600,7 @@ backendServices.factory('Store', ['$resource',
   function ($resource) {
   return $resource(Routing.generate('api_store_list') + '/:id', null, 
     {
-      update: { method: 'PUT'}
+      update: {method: 'PUT'}
     });
 }]);
 
@@ -592,7 +608,7 @@ backendServices.factory('User', ['$resource',
   function ($resource) {
   return $resource(Routing.generate('api_user_list') + '/:id', null, 
     {
-      update: { method: 'PUT'}
+      update: {method: 'PUT'}
     });
 }]);
 
@@ -600,7 +616,7 @@ backendServices.factory('Role', ['$resource',
   function ($resource) {
   return $resource(Routing.generate('api_role_list') + '/:id', null, 
     {
-      update: { method: 'PUT'}
+      update: {method: 'PUT'}
     });
 }]);
 
@@ -608,7 +624,7 @@ backendServices.factory('Custom', ['$resource',
   function ($resource) {
   return $resource(Routing.generate('api_custom_list') + '/:id', null, 
     {
-      update: { method: 'PUT'}
+      update: {method: 'PUT'}
     });
 }]);
 
@@ -616,7 +632,7 @@ backendServices.factory('PayType', ['$resource',
   function ($resource) {
   return $resource(Routing.generate('api_payType_list') + '/:id', null, 
     {
-      update: { method: 'PUT'}
+      update: {method: 'PUT'}
     });
 }]);
 
@@ -624,7 +640,7 @@ backendServices.factory('Move', ['$resource',
   function ($resource) {
   return $resource(Routing.generate('api_move_list') + '/:id', null, 
     {
-      update: { method: 'PUT'}
+      update: {method: 'PUT'}
     });
 }]);
 
@@ -632,9 +648,19 @@ backendServices.factory('Activity', ['$resource',
   function ($resource) {
   return $resource(Routing.generate('api_activity_list') + '/:id', null, 
     {
-      update: { method: 'PUT'}
+      update: {method: 'PUT'}
     });
 }]);
+
+// For todays date;
+Date.prototype.today = function () { 
+  return this.getFullYear() + '-' + (((this.getMonth() + 1) < 10) ? '0' : '') + (this.getMonth() + 1) + '-' + ((this.getDate() < 10) ? '0' : '') + this.getDate();
+};
+
+// For the time now
+Date.prototype.timeNow = function () {
+  return ((this.getHours() < 10) ? '0' : '') + this.getHours() + ':' + ((this.getMinutes() < 10)? '0' : '') + this.getMinutes() + ':' + ((this.getSeconds() < 10)? '0' : '') + this.getSeconds();
+};
 
 'use strict';
 
@@ -2141,7 +2167,25 @@ backendCtrls.controller('GoodsSearchCtrl', ['$scope', '$routeParams', '$http', '
     };
     
     this.deleteChecked = function () {
-      $http.delete(Routing.generate('api_goodsPassport_reverse'), {goodsPost: this.selectChecked()})
+      /**
+       * id 陣列
+       * 
+       * @type {Array}
+       */
+      var ids = [];
+
+      /**
+       * 商品實體陣列
+       * 
+       * @type {array}
+       */
+      var goodses = this.selectChecked();
+
+      for (var key in goodses) {
+        ids.push(goodses[key].id);
+      }
+
+      $http.delete(Routing.generate('api_goodsPassport_reverse', {jsonIds: JSON.stringify(ids)}))
         .success(function (res) {
           $scope.isSuccess('批次刪除完成！');
 
@@ -2988,6 +3032,13 @@ backendCtrls.controller('OrdersNormalCtrl', ['$scope', '$routeParams', '$http', 
   var PT_CARD = 2;
 
   /**
+   * 訂單狀態取消
+   * 
+   * @type {integer}
+   */
+  var OS_CANCEL = 3;
+
+  /**
    * 修改成功函式
    */
   var isSuccess = function (msg) {
@@ -3109,6 +3160,17 @@ backendCtrls.controller('OrdersNormalCtrl', ['$scope', '$routeParams', '$http', 
   };
 
   /**
+   * 計算目前總價及優惠金額
+   */
+  $scope.countActivitySale = function () {
+    // 根據活動設置商品訂單的金額
+    //$scope.ActivityProcessor.setActivityProcessPrice();
+
+    // 計算總金額
+    setTotal();
+  };
+
+  /**
    * 設置原總金額
    */
   var setTotal = function () {
@@ -3175,6 +3237,9 @@ backendCtrls.controller('OrdersNormalCtrl', ['$scope', '$routeParams', '$http', 
     $http.get(Routing.generate('api_orders_filter', post))
       .success(function (ordersGroup) {
         for (var key in ordersGroup) {
+          // 刷新小table
+          setDepartment(ordersGroup[key]);
+
           setInvoices(ordersGroup[key]);
         }
 
@@ -3258,12 +3323,12 @@ backendCtrls.controller('OrdersNormalCtrl', ['$scope', '$routeParams', '$http', 
      * 
      * @type {object || boolean} boolean when non declared
      */
-    var eachInvoice = $scope.invoices[orders.invoice.id.toString()];
+    var eachInvoice = $scope.invoices[(999999 - orders.invoice.id).toString()];
 
     // 如果發票物件尚未宣告，
     // 則初始化其各屬性
     if (!eachInvoice) {
-      $scope.invoices[orders.invoice.id.toString()] = eachInvoice = getInitInvoice(orders);
+      $scope.invoices[(999999 - orders.invoice.id).toString()] = eachInvoice = getInitInvoice(orders);
     }
 
     // 發票總金額
@@ -3278,6 +3343,40 @@ backendCtrls.controller('OrdersNormalCtrl', ['$scope', '$routeParams', '$http', 
     eachInvoice.orders[orders.id.toString()] = orders;
   };
 
+  var getOrderFilerCondition = function () {
+    var firstDate = new Date($scope.yearSelected.val, $scope.monthSelected.val - 1, 1);
+    
+    var lastDate = new Date($scope.yearSelected.val, $scope.monthSelected.val, 0);
+    
+    /**
+     * 訂單條件物件
+     * 
+     * @type {Object}
+     */
+    var condition = {
+      Ocreate_at: {
+        gte: {
+          in: firstDate.today() + ' 00:00:00'
+        },
+        lte: {
+          in: lastDate.today() + ' 23:59:59'
+        }
+      },
+      Okind: {
+        in: OK_SOLDOUT
+      },
+      Ostatus: {
+        notIn: [OS_CANCEL]
+      }
+    };
+
+    return condition;
+  };
+
+  $scope.getAssignMonthRecord = function () {
+    return initTodayRecord();
+  };
+
   /**
    * 初始化今日一般銷貨記錄
    */
@@ -3287,16 +3386,7 @@ backendCtrls.controller('OrdersNormalCtrl', ['$scope', '$routeParams', '$http', 
      * 
      * @type {Object}
      */
-    var condition = {
-      Ocreate_at: {
-        gte: {
-          in: getTodayDate()
-        }
-      },
-      Okind: {
-        in: OK_SOLDOUT
-      }
-    };
+    var condition = getOrderFilerCondition();
 
     /**
      * 排序條件
@@ -3310,9 +3400,18 @@ backendCtrls.controller('OrdersNormalCtrl', ['$scope', '$routeParams', '$http', 
 
     $http.get(Routing.generate('api_orders_filter', {
       jsonCondition: JSON.stringify(condition), 
-      jsonOrderBy: JSON.stringify(orderBy)
+      jsonOrderBy: JSON.stringify(orderBy),
+      page: 1,
+      perPage: 1000
     }))
     .success(function (ordersGroup) {
+      $scope.departments = {};
+      $scope.invoices = {};
+
+      if (ordersGroup.length === 0) {
+        return isSuccess('取得指定月份內銷記錄完成');
+      }
+
       /**
        * 訂單陣列
        * 
@@ -3331,10 +3430,15 @@ backendCtrls.controller('OrdersNormalCtrl', ['$scope', '$routeParams', '$http', 
          * @type {object}
          */
         var eachOrders = orderses[key];
+
+        // 刷新小table
+        setDepartment(eachOrders);
         
         // 設置訂單內涵
         setInvoices(eachOrders);
       }
+
+      isSuccess('取得指定月份內銷記錄完成');
     })
     .error(function (e) {
       console.log(e);
@@ -3360,11 +3464,16 @@ backendCtrls.controller('OrdersNormalCtrl', ['$scope', '$routeParams', '$http', 
     // 發票
     $scope.invoices = {};
 
+    // 部門群
+    $scope.departments = {};
+
     // 宣告商品刷件容器
     $scope.goodsRepo = [];
 
     // 取得付費方式選項
     $scope.payTypes = PayType.query();
+
+    $scope.isOrderNormal = true;
 
     // 初始化客戶物件
     $scope.custom = {
@@ -3383,7 +3492,41 @@ backendCtrls.controller('OrdersNormalCtrl', ['$scope', '$routeParams', '$http', 
     // 排序依據
     $scope.prop = 'id';
 
-    initTodayRecord();
+    $scope.months = [];
+    $scope.years = [];
+
+    initMonths();
+    initYears();
+    setYearMonth();
+    
+    initTodayRecord();    
+  };
+
+  var initMonths = function () {
+    for (var i = 1; i <= 12; i ++) {
+      $scope.months.push({val: i, name: i + '月'});
+    }
+
+    return;
+  };
+
+  var initYears = function () {
+    var date = new Date();
+
+    for (var i = 0; i <= date.getFullYear() - '2012'; i ++) {
+      var year = date.getFullYear() - i;
+
+      $scope.years.push({val: year, name: year + '年'});
+    }
+
+    return;
+  };
+
+  var setYearMonth = function () {
+    var date = new Date();
+
+    $scope.yearSelected = $scope.years[0];
+    $scope.monthSelected = $scope.months[date.getMonth()];
   };
 
   /**
@@ -3588,6 +3731,43 @@ backendCtrls.controller('OrdersNormalCtrl', ['$scope', '$routeParams', '$http', 
     orders.isDisplay = !orders.isDisplay;
   };
 
+  /**
+   * 設置 $scope.deDpartment
+   * 
+   * @param {object} eachOrders
+   */
+  var setDepartment = function (eachOrders) {
+    if (typeof eachOrders === 'undefined') {
+      return false;
+    }
+    
+    var department = $scope.departments[eachOrders.goods_passport.store.id.toString()];
+
+    if (!department) {
+      department = $scope.departments[eachOrders.goods_passport.store.id.toString()] = {
+        required: 0,
+        amount: 0,
+        name: eachOrders.goods_passport.store.name
+      };
+    }
+
+    if (eachOrders.status.id !== OS_CANCEL) {
+      department.required += parseInt(eachOrders.required);
+
+      department.amount += 1; 
+    }
+  };
+
+  $scope.export = function (assign) {
+    var condition = getOrderFilerCondition();
+    
+    window.location = Routing.generate('api_orders_export', {jsonCondition: JSON.stringify(condition)});
+  };
+
+  $scope.countObj = function (obj) {
+    return Object.keys(obj).length;
+  }
+
   $scope.init();
 }]);
 'use strict';
@@ -3782,7 +3962,7 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
         var goods = $scope.goodsRepo[index];
 
         // 訂單的售價設置為 (商品優惠價 * 活動折扣)
-        goods.orders.required = Math.round(parseInt((goods.orders.required && goods.orders.required > 0) ? goods.orders.required : goods.price) * $scope.myActivity.discount);
+        goods.orders.required = Math.round(goods.price * $scope.myActivity.discount / 10);
         
         // 訂單的已付金額預設為訂單的售價
         goods.orders.paid = goods.orders.required;
@@ -3882,9 +4062,9 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
    * @return {string}
    */
   var getTodayDate = function () {
-    var today = new Date();
+    var date = new Date();
 
-    return today.getFullYear() + '-' + (today.getMonth()+1) + '-' + today.getDate();
+    return date.today();
   };
 
   /**
@@ -4049,6 +4229,10 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
     $http.get(Routing.generate('api_orders_filter', post))
       .success(function (ordersGroup) {
         for (var key in ordersGroup) {
+          // 刷新小table
+          setDepartment(ordersGroup[key]);
+
+          // 刷新整個銷貨記錄的顯現
           setInvoices(ordersGroup[key]);
         }
 
@@ -4107,8 +4291,6 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
       });
   };
 
-  
-
   /**
    * 將訂單陣列重組成鍵值為訂單id 的陣列 
    * -> [{id: orders}]
@@ -4154,22 +4336,87 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
     eachInvoice.orders[orders.id.toString()] = orders;
   };
 
+  var setDateSelected = function (callback) {
+    var date = new Date();
+    var today = date.today();
+    var isIn = false;
+
+    angular.forEach($scope.dateRepo, function (eachDate, index) {
+      if (today === eachDate.val) {
+        $scope.dateSelected = eachDate;
+
+        return isIn = true;
+      }
+    });
+
+    if (!isIn) {
+      $scope.dateSelected = {};
+      $scope.dateSelected = $scope.dateRepo[0];
+    }
+
+    if (!!callback && typeof callback === 'function') {
+      callback();
+    }
+  };
+
+  var setScopeDateRepo = function () {
+    var startAt = $filter('date')($scope.myActivity.start_at, 'yyyy-MM-dd') + ' 00:00:00';
+    var endAt = $filter('date')($scope.myActivity.end_at, 'yyyy-MM-dd') + ' 23:59:59';
+
+    var startDate = new Date(startAt);
+    var endDate = new Date(endAt);
+    var now = new Date(Date.now());
+
+    $scope.dateRepo = [];
+
+    for (startDate; startDate <= endDate; startDate.setDate(startDate.getDate() + 1)) {
+      $scope.dateRepo.push({val: startDate.today(), key: startDate.today()});
+    }
+  };
+
+  var selectConditionTime = function () {
+    if (isTodayInActivity) {
+      var date = new Date();
+
+      return date.today();
+    }
+
+    return $filter('date')($scope.myActivity.start_at, 'yyyy-MM-dd');
+  };
+
+  var isTodayInActivity = function () {
+    var startAt = $filter('date')($scope.myActivity.start_at, 'yyyy-MM-dd') + ' 00:00:00';
+    var endAt = $filter('date')($scope.myActivity.end_at, 'yyyy-MM-dd') + ' 23:59:59';
+
+    var startDate = new Date(startAt);
+    var endDate = new Date(endAt);
+    var todayDate = new Date();
+
+    return (todayDate >= startDate && todayDate <= endDate);
+  };
+
+  $scope.getActivityReocrdWithDate = function (assign) {
+    initThisActivityRecord(assign);
+  };
+
   /**
    * 初始化今日活動銷貨記錄
    */
-  var initThisActivityRecord = function () {
+  var initThisActivityRecord = function (assign) {
     // 取得活動銷貨記錄
     var condition = {
-      // Ocreate_at: {
-      //   gte: {
-      //     in: getTodayDate()
-      //   }
-      // },
       Gactivity: {
         in: [$scope.myActivity]
       },
       Okind: {
         in: [OK_SPECIAL_SOLDOUT]
+      },
+      Ostatus: {
+        notIn: [OS_CANCEL]
+      },
+      IcreateAt: {
+        gte: [$scope.dateSelected.val],
+        lte: [$scope.dateSelected.val]
       }
     };
 
@@ -4185,9 +4432,18 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
 
     $http.get(Routing.generate('api_orders_filter', {
       jsonCondition: JSON.stringify(condition), 
-      jsonOrderBy: JSON.stringify(orderBy)
+      jsonOrderBy: JSON.stringify(orderBy),
+      page: 1,
+      perPage: 99999
     }))
     .success(function (ordersGroup) {
+      $scope.departments = {};
+      $scope.invoices = {};
+
+      if (ordersGroup.length === 0) {
+        return isSuccess('取得指定日期記錄完成');
+      }
+
       /**
        * 訂單陣列
        * 
@@ -4207,31 +4463,46 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
          */
         var eachOrders = orderses[key];
 
-        var department = $scope.departments[eachOrders.goods_passport.store.id.toString()];
-
-        if (!department) {
-          department = $scope.departments[eachOrders.goods_passport.store.id.toString()] = {
-            required: 0,
-            amount: 0,
-            name: eachOrders.goods_passport.store.name
-          };
-        }
-
-        if (eachOrders.status.id !== OS_CANCEL) {
-          department.required += parseInt(eachOrders.required);
-
-          department.amount += 1; 
-        }
+        setDepartment(eachOrders);
         
         // 設置訂單內涵
         setInvoices(eachOrders);
       }
+
+      isSuccess('取得指定日期記錄完成');
     })
     .error(function (e) {
       console.log(e);
 
-      isError('取得今日記錄時發生錯誤!');
+      isError('取得指定日期記錄發生錯誤!');
     });
+  };
+
+  /**
+   * 設置 $scope.deDpartment
+   * 
+   * @param {object} eachOrders
+   */
+  var setDepartment = function (eachOrders) {
+    if (typeof eachOrders === 'undefined') {
+      return false;
+    }
+
+    var department = $scope.departments[eachOrders.goods_passport.store.id.toString()];
+
+    if (!department) {
+      department = $scope.departments[eachOrders.goods_passport.store.id.toString()] = {
+        required: 0,
+        amount: 0,
+        name: eachOrders.goods_passport.store.name
+      };
+    }
+
+    if (eachOrders.status.id !== OS_CANCEL) {
+      department.required += parseInt(eachOrders.required);
+
+      department.amount += 1; 
+    }
   };
 
   $scope.isEmpty = function (obj) {
@@ -4261,7 +4532,11 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
   };
 
   $scope.changeActivity = function () {
-    initThisActivityRecord();
+    $scope.invoices = {};
+    $scope.departments = {};
+    
+    setScopeDateRepo();
+    setDateSelected(initThisActivityRecord);
   };
 
   /**
@@ -4275,6 +4550,10 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
 
     // 部門群
     $scope.departments = {};
+
+    $scope.dateRepo = [];
+
+    $scope.isOrderSpecial = true;
 
     // 取得活動選項
     Activity.query(function (res) {
@@ -4291,7 +4570,8 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
         }
       }
 
-      initThisActivityRecord();
+      setScopeDateRepo();
+      setDateSelected(initThisActivityRecord);
     });
 
     // 宣告商品刷件容器
@@ -4320,6 +4600,38 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
     $scope.ActivityProcessor = new ActivityProcessor;
 
     $scope.todayTotalGrade = 0;
+
+    $scope.dateSelected = {};
+  };
+
+  $scope.saveEditOpe = function () {
+    $http.put(Routing.generate('api_ope_update', {id: $scope.editOpe.id}), $scope.editOpe)
+      .success(function () {
+        isSuccess('操作記錄修改完成!');
+
+        $scope.setEditOpe(null);
+      })
+      .error(function (e) {
+        console.log(e);
+
+        isError('操作記錄修改失敗!');
+      });
+  };
+
+  $scope.setEditOpe = function (ope) {
+    $scope.editOpe = ope;
+
+    if (!ope) {
+      return;
+    }
+
+    for (var index in $scope.payTypes) {
+      if ($scope.editOpe.pay_type.id === $scope.payTypes[index].id) {
+        $scope.editOpe.pay_type = $scope.payTypes[index];
+
+        break;
+      }
+    }
   };
 
   /**
@@ -4561,10 +4873,33 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
    */
   $scope.countActivitySale = function () {
     // 根據活動設置商品訂單的金額
-    $scope.ActivityProcessor.setActivityProcessPrice();
+    //$scope.ActivityProcessor.setActivityProcessPrice();
 
     // 計算總金額
     setTotal();
+  };
+
+  $scope.export = function (assign) {
+    var condition = {
+      Gactivity: {
+        in: [$scope.myActivity]
+      },
+      Okind: {
+        in: [OK_SPECIAL_SOLDOUT]
+      },
+      Ostatus: {
+        notIn: [OS_CANCEL]
+      }
+    };
+
+    if (assign) {
+      condition.IcreateAt = {
+        gte: [$scope.dateSelected.val],
+        lte: [$scope.dateSelected.val]
+      };
+    }
+    
+    window.location = Routing.generate('api_orders_export', {jsonCondition: JSON.stringify(condition)});
   };
 
   $scope.init();
@@ -5405,7 +5740,25 @@ backendCtrls.controller('GoodsSearchCtrl', ['$scope', '$routeParams', '$http', '
     };
     
     this.deleteChecked = function () {
-      $http.delete(Routing.generate('api_goodsPassport_reverse'), {goodsPost: this.selectChecked()})
+      /**
+       * id 陣列
+       * 
+       * @type {Array}
+       */
+      var ids = [];
+
+      /**
+       * 商品實體陣列
+       * 
+       * @type {array}
+       */
+      var goodses = this.selectChecked();
+
+      for (var key in goodses) {
+        ids.push(goodses[key].id);
+      }
+
+      $http.delete(Routing.generate('api_goodsPassport_reverse', {jsonIds: JSON.stringify(ids)}))
         .success(function (res) {
           $scope.isSuccess('批次刪除完成！');
 

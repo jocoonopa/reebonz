@@ -62,7 +62,7 @@ class OrdersRepository extends \Woojin\WoojinRepository
         if ($page && $perPage) {
         	$qb->setFirstResult(($page - 1) * $perPage)->setMaxResults($perPage);
         }
-   
+
         return $qb->getQuery()->getResult();
     }
 

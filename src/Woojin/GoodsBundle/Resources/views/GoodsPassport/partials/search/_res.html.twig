@@ -68,7 +68,7 @@
 			</div>
 
 			<div ng-show="actType == 'punchInChecked' || actType == 'punchOutChecked'" class="form-group">
-				<label class="col-sm-2 control-label">欲刷入之活動</label>
+				<label class="col-sm-2 control-label">欲刷入或刷出之活動</label>
 
 				<div class="col-sm-10">
 					<select ng-model="punchActivity" ng-options="activity.id as activity.name for activity in entity.activitys" class="form-control"></select>					

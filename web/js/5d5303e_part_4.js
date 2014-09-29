@@ -2141,7 +2141,25 @@ backendCtrls.controller('GoodsSearchCtrl', ['$scope', '$routeParams', '$http', '
     };
     
     this.deleteChecked = function () {
-      $http.delete(Routing.generate('api_goodsPassport_reverse'), {goodsPost: this.selectChecked()})
+      /**
+       * id 陣列
+       * 
+       * @type {Array}
+       */
+      var ids = [];
+
+      /**
+       * 商品實體陣列
+       * 
+       * @type {array}
+       */
+      var goodses = this.selectChecked();
+
+      for (var key in goodses) {
+        ids.push(goodses[key].id);
+      }
+
+      $http.delete(Routing.generate('api_goodsPassport_reverse', {jsonIds: JSON.stringify(ids)}))
         .success(function (res) {
           $scope.isSuccess('批次刪除完成！');
 
@@ -4049,6 +4067,10 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
     $http.get(Routing.generate('api_orders_filter', post))
       .success(function (ordersGroup) {
         for (var key in ordersGroup) {
+          // 刷新小table
+          setDepartment(ordersGroup[key]);
+
+          // 刷新整個銷貨記錄的顯現
           setInvoices(ordersGroup[key]);
         }
 
@@ -4207,21 +4229,7 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
          */
         var eachOrders = orderses[key];
 
-        var department = $scope.departments[eachOrders.goods_passport.store.id.toString()];
-
-        if (!department) {
-          department = $scope.departments[eachOrders.goods_passport.store.id.toString()] = {
-            required: 0,
-            amount: 0,
-            name: eachOrders.goods_passport.store.name
-          };
-        }
-
-        if (eachOrders.status.id !== OS_CANCEL) {
-          department.required += parseInt(eachOrders.required);
-
-          department.amount += 1; 
-        }
+        setDepartment(eachOrders);
         
         // 設置訂單內涵
         setInvoices(eachOrders);
@@ -4232,6 +4240,29 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
 
       isError('取得今日記錄時發生錯誤!');
     });
+  };
+
+  /**
+   * 設置 $scope.deDpartment
+   * 
+   * @param {object} eachOrders
+   */
+  var setDepartment = function (eachOrders) {
+    var department = $scope.departments[eachOrders.goods_passport.store.id.toString()];
+
+    if (!department) {
+      department = $scope.departments[eachOrders.goods_passport.store.id.toString()] = {
+        required: 0,
+        amount: 0,
+        name: eachOrders.goods_passport.store.name
+      };
+    }
+
+    if (eachOrders.status.id !== OS_CANCEL) {
+      department.required += parseInt(eachOrders.required);
+
+      department.amount += 1; 
+    }
   };
 
   $scope.isEmpty = function (obj) {
@@ -4261,6 +4292,10 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
   };
 
   $scope.changeActivity = function () {
+    $scope.invoices = {};
+
+    $scope.departments = {};
+    
     initThisActivityRecord();
   };
 
@@ -4565,6 +4600,19 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
 
     // 計算總金額
     setTotal();
+  };
+
+  $scope.export = function () {
+    var condition = {
+      Gactivity: {
+        in: [$scope.myActivity]
+      },
+      Okind: {
+        in: [OK_SPECIAL_SOLDOUT]
+      }
+    };
+
+    window.location = Routing.generate('api_orders_export', {jsonCondition: JSON.stringify(condition)});
   };
 
   $scope.init();
@@ -5405,7 +5453,25 @@ backendCtrls.controller('GoodsSearchCtrl', ['$scope', '$routeParams', '$http', '
     };
     
     this.deleteChecked = function () {
-      $http.delete(Routing.generate('api_goodsPassport_reverse'), {goodsPost: this.selectChecked()})
+      /**
+       * id 陣列
+       * 
+       * @type {Array}
+       */
+      var ids = [];
+
+      /**
+       * 商品實體陣列
+       * 
+       * @type {array}
+       */
+      var goodses = this.selectChecked();
+
+      for (var key in goodses) {
+        ids.push(goodses[key].id);
+      }
+
+      $http.delete(Routing.generate('api_goodsPassport_reverse', {jsonIds: JSON.stringify(ids)}))
         .success(function (res) {
           $scope.isSuccess('批次刪除完成！');
 

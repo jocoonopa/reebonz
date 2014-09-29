@@ -198,6 +198,9 @@ class OrderController extends Controller
                 ->setInvoice($invoice)
             ;
 
+            $request->request->set('pay_type', $accessor->getValue($eachGoods, '[orders][pay_type]'));
+            $request->request->set('card_sn', $accessor->getValue($eachGoods, '[orders][card_sn]'));
+
             // 加入回傳商品陣列
             array_push($ordersRepo, $orders);
 
@@ -364,6 +367,9 @@ class OrderController extends Controller
                 ->setPaid($accessor->getValue($eachGoods, '[orders][paid]'))
                 ->setMemo($accessor->getValue($eachGoods, '[orders][memo]'))
             ;
+
+            $request->request->set('pay_type', $accessor->getValue($eachGoods, '[orders][pay_type]'));
+            $request->request->set('card_sn', $accessor->getValue($eachGoods, '[orders][card_sn]'));
 
             // 加入回傳商品陣列
             array_push($ordersRepo, $orders);

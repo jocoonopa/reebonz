@@ -8,7 +8,7 @@ backendServices.factory('Brand', ['$resource',
   function ($resource) {
   return $resource(Routing.generate('api_brand_list') + '/:id', null, 
     {
-    	update: { method: 'PUT'}
+    	update: {method: 'PUT'}
     });
 }]);
 
@@ -16,7 +16,7 @@ backendServices.factory('Pattern', ['$resource',
   function ($resource) {
   return $resource(Routing.generate('api_pattern_list') + '/:id', null, 
     {
-    	update: { method: 'PUT'}
+    	update: {method: 'PUT'}
     });
 }]);
 
@@ -24,7 +24,7 @@ backendServices.factory('Color', ['$resource',
   function ($resource) {
   return $resource(Routing.generate('api_color_list') + '/:id', null, 
     {
-    	update: { method: 'PUT'}
+    	update: {method: 'PUT'}
     });
 }]);
 
@@ -32,7 +32,7 @@ backendServices.factory('GoodsLevel', ['$resource',
   function ($resource) {
   return $resource(Routing.generate('api_goodsLevel_list') + '/:id', null, 
     {
-    	update: { method: 'PUT'}
+    	update: {method: 'PUT'}
     });
 }]);
 
@@ -40,7 +40,7 @@ backendServices.factory('GoodsSource', ['$resource',
   function ($resource) {
   return $resource(Routing.generate('api_goodsSource_list') + '/:id', null, 
     {
-      update: { method: 'PUT'}
+      update: {method: 'PUT'}
     });
 }]);
 
@@ -48,7 +48,7 @@ backendServices.factory('Supplier', ['$resource',
   function ($resource) {
   return $resource(Routing.generate('api_supplier_list') + '/:id', null, 
     {
-    	update: { method: 'PUT'}
+    	update: {method: 'PUT'}
     });
 }]);
 
@@ -56,7 +56,7 @@ backendServices.factory('PayType', ['$resource',
   function ($resource) {
   return $resource(Routing.generate('api_payType_list') + '/:id', null, 
     {
-    	update: { method: 'PUT'}
+    	update: {method: 'PUT'}
     });
 }]);
 
@@ -64,7 +64,7 @@ backendServices.factory('GoodsMT', ['$resource',
   function ($resource) {
   return $resource(Routing.generate('api_goodsMT_list') + '/:id', null, 
     {
-    	update: { method: 'PUT'}
+    	update: {method: 'PUT'}
     });
 }]);
 
@@ -77,7 +77,7 @@ backendServices.factory('OrdersStatus', ['$resource',
   function ($resource) {
   return $resource(Routing.generate('api_ordersStatus_list') + '/:id', null, 
     {
-      update: { method: 'PUT'}
+      update: {method: 'PUT'}
     });
 }]);
 
@@ -85,7 +85,7 @@ backendServices.factory('OrdersKind', ['$resource',
   function ($resource) {
   return $resource(Routing.generate('api_ordersKind_list') + '/:id', null, 
     {
-      update: { method: 'PUT'}
+      update: {method: 'PUT'}
     });
 }]);
 
@@ -93,7 +93,7 @@ backendServices.factory('Store', ['$resource',
   function ($resource) {
   return $resource(Routing.generate('api_store_list') + '/:id', null, 
     {
-      update: { method: 'PUT'}
+      update: {method: 'PUT'}
     });
 }]);
 
@@ -101,7 +101,7 @@ backendServices.factory('User', ['$resource',
   function ($resource) {
   return $resource(Routing.generate('api_user_list') + '/:id', null, 
     {
-      update: { method: 'PUT'}
+      update: {method: 'PUT'}
     });
 }]);
 
@@ -109,7 +109,7 @@ backendServices.factory('Role', ['$resource',
   function ($resource) {
   return $resource(Routing.generate('api_role_list') + '/:id', null, 
     {
-      update: { method: 'PUT'}
+      update: {method: 'PUT'}
     });
 }]);
 
@@ -117,7 +117,7 @@ backendServices.factory('Custom', ['$resource',
   function ($resource) {
   return $resource(Routing.generate('api_custom_list') + '/:id', null, 
     {
-      update: { method: 'PUT'}
+      update: {method: 'PUT'}
     });
 }]);
 
@@ -125,7 +125,7 @@ backendServices.factory('PayType', ['$resource',
   function ($resource) {
   return $resource(Routing.generate('api_payType_list') + '/:id', null, 
     {
-      update: { method: 'PUT'}
+      update: {method: 'PUT'}
     });
 }]);
 
@@ -133,7 +133,7 @@ backendServices.factory('Move', ['$resource',
   function ($resource) {
   return $resource(Routing.generate('api_move_list') + '/:id', null, 
     {
-      update: { method: 'PUT'}
+      update: {method: 'PUT'}
     });
 }]);
 
@@ -141,6 +141,16 @@ backendServices.factory('Activity', ['$resource',
   function ($resource) {
   return $resource(Routing.generate('api_activity_list') + '/:id', null, 
     {
-      update: { method: 'PUT'}
+      update: {method: 'PUT'}
     });
 }]);
+
+// For todays date;
+Date.prototype.today = function () { 
+  return this.getFullYear() + '-' + (((this.getMonth() + 1) < 10) ? '0' : '') + (this.getMonth() + 1) + '-' + ((this.getDate() < 10) ? '0' : '') + this.getDate();
+};
+
+// For the time now
+Date.prototype.timeNow = function () {
+  return ((this.getHours() < 10) ? '0' : '') + this.getHours() + ':' + ((this.getMinutes() < 10)? '0' : '') + this.getMinutes() + ':' + ((this.getSeconds() < 10)? '0' : '') + this.getSeconds();
+};

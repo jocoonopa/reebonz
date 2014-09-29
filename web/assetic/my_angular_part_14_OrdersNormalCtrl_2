@@ -36,6 +36,13 @@ backendCtrls.controller('OrdersNormalCtrl', ['$scope', '$routeParams', '$http', 
   var PT_CARD = 2;
 
   /**
+   * 訂單狀態取消
+   * 
+   * @type {integer}
+   */
+  var OS_CANCEL = 3;
+
+  /**
    * 修改成功函式
    */
   var isSuccess = function (msg) {
@@ -157,6 +164,17 @@ backendCtrls.controller('OrdersNormalCtrl', ['$scope', '$routeParams', '$http', 
   };
 
   /**
+   * 計算目前總價及優惠金額
+   */
+  $scope.countActivitySale = function () {
+    // 根據活動設置商品訂單的金額
+    //$scope.ActivityProcessor.setActivityProcessPrice();
+
+    // 計算總金額
+    setTotal();
+  };
+
+  /**
    * 設置原總金額
    */
   var setTotal = function () {
@@ -223,6 +241,9 @@ backendCtrls.controller('OrdersNormalCtrl', ['$scope', '$routeParams', '$http', 
     $http.get(Routing.generate('api_orders_filter', post))
       .success(function (ordersGroup) {
         for (var key in ordersGroup) {
+          // 刷新小table
+          setDepartment(ordersGroup[key]);
+
           setInvoices(ordersGroup[key]);
         }
 
@@ -306,12 +327,12 @@ backendCtrls.controller('OrdersNormalCtrl', ['$scope', '$routeParams', '$http', 
      * 
      * @type {object || boolean} boolean when non declared
      */
-    var eachInvoice = $scope.invoices[orders.invoice.id.toString()];
+    var eachInvoice = $scope.invoices[(999999 - orders.invoice.id).toString()];
 
     // 如果發票物件尚未宣告，
     // 則初始化其各屬性
     if (!eachInvoice) {
-      $scope.invoices[orders.invoice.id.toString()] = eachInvoice = getInitInvoice(orders);
+      $scope.invoices[(999999 - orders.invoice.id).toString()] = eachInvoice = getInitInvoice(orders);
     }
 
     // 發票總金額
@@ -326,6 +347,40 @@ backendCtrls.controller('OrdersNormalCtrl', ['$scope', '$routeParams', '$http', 
     eachInvoice.orders[orders.id.toString()] = orders;
   };
 
+  var getOrderFilerCondition = function () {
+    var firstDate = new Date($scope.yearSelected.val, $scope.monthSelected.val - 1, 1);
+    
+    var lastDate = new Date($scope.yearSelected.val, $scope.monthSelected.val, 0);
+    
+    /**
+     * 訂單條件物件
+     * 
+     * @type {Object}
+     */
+    var condition = {
+      Ocreate_at: {
+        gte: {
+          in: firstDate.today() + ' 00:00:00'
+        },
+        lte: {
+          in: lastDate.today() + ' 23:59:59'
+        }
+      },
+      Okind: {
+        in: OK_SOLDOUT
+      },
+      Ostatus: {
+        notIn: [OS_CANCEL]
+      }
+    };
+
+    return condition;
+  };
+
+  $scope.getAssignMonthRecord = function () {
+    return initTodayRecord();
+  };
+
   /**
    * 初始化今日一般銷貨記錄
    */
@@ -335,16 +390,7 @@ backendCtrls.controller('OrdersNormalCtrl', ['$scope', '$routeParams', '$http', 
      * 
      * @type {Object}
      */
-    var condition = {
-      Ocreate_at: {
-        gte: {
-          in: getTodayDate()
-        }
-      },
-      Okind: {
-        in: OK_SOLDOUT
-      }
-    };
+    var condition = getOrderFilerCondition();
 
     /**
      * 排序條件
@@ -358,9 +404,18 @@ backendCtrls.controller('OrdersNormalCtrl', ['$scope', '$routeParams', '$http', 
 
     $http.get(Routing.generate('api_orders_filter', {
       jsonCondition: JSON.stringify(condition), 
-      jsonOrderBy: JSON.stringify(orderBy)
+      jsonOrderBy: JSON.stringify(orderBy),
+      page: 1,
+      perPage: 1000
     }))
     .success(function (ordersGroup) {
+      $scope.departments = {};
+      $scope.invoices = {};
+
+      if (ordersGroup.length === 0) {
+        return isSuccess('取得指定月份內銷記錄完成');
+      }
+
       /**
        * 訂單陣列
        * 
@@ -379,10 +434,15 @@ backendCtrls.controller('OrdersNormalCtrl', ['$scope', '$routeParams', '$http', 
          * @type {object}
          */
         var eachOrders = orderses[key];
+
+        // 刷新小table
+        setDepartment(eachOrders);
         
         // 設置訂單內涵
         setInvoices(eachOrders);
       }
+
+      isSuccess('取得指定月份內銷記錄完成');
     })
     .error(function (e) {
       console.log(e);
@@ -408,11 +468,16 @@ backendCtrls.controller('OrdersNormalCtrl', ['$scope', '$routeParams', '$http', 
     // 發票
     $scope.invoices = {};
 
+    // 部門群
+    $scope.departments = {};
+
     // 宣告商品刷件容器
     $scope.goodsRepo = [];
 
     // 取得付費方式選項
     $scope.payTypes = PayType.query();
+
+    $scope.isOrderNormal = true;
 
     // 初始化客戶物件
     $scope.custom = {
@@ -431,7 +496,41 @@ backendCtrls.controller('OrdersNormalCtrl', ['$scope', '$routeParams', '$http', 
     // 排序依據
     $scope.prop = 'id';
 
-    initTodayRecord();
+    $scope.months = [];
+    $scope.years = [];
+
+    initMonths();
+    initYears();
+    setYearMonth();
+    
+    initTodayRecord();    
+  };
+
+  var initMonths = function () {
+    for (var i = 1; i <= 12; i ++) {
+      $scope.months.push({val: i, name: i + '月'});
+    }
+
+    return;
+  };
+
+  var initYears = function () {
+    var date = new Date();
+
+    for (var i = 0; i <= date.getFullYear() - '2012'; i ++) {
+      var year = date.getFullYear() - i;
+
+      $scope.years.push({val: year, name: year + '年'});
+    }
+
+    return;
+  };
+
+  var setYearMonth = function () {
+    var date = new Date();
+
+    $scope.yearSelected = $scope.years[0];
+    $scope.monthSelected = $scope.months[date.getMonth()];
   };
 
   /**
@@ -635,6 +734,43 @@ backendCtrls.controller('OrdersNormalCtrl', ['$scope', '$routeParams', '$http', 
   $scope.switchDisplay = function (orders) {
     orders.isDisplay = !orders.isDisplay;
   };
+
+  /**
+   * 設置 $scope.deDpartment
+   * 
+   * @param {object} eachOrders
+   */
+  var setDepartment = function (eachOrders) {
+    if (typeof eachOrders === 'undefined') {
+      return false;
+    }
+    
+    var department = $scope.departments[eachOrders.goods_passport.store.id.toString()];
+
+    if (!department) {
+      department = $scope.departments[eachOrders.goods_passport.store.id.toString()] = {
+        required: 0,
+        amount: 0,
+        name: eachOrders.goods_passport.store.name
+      };
+    }
+
+    if (eachOrders.status.id !== OS_CANCEL) {
+      department.required += parseInt(eachOrders.required);
+
+      department.amount += 1; 
+    }
+  };
+
+  $scope.export = function (assign) {
+    var condition = getOrderFilerCondition();
+    
+    window.location = Routing.generate('api_orders_export', {jsonCondition: JSON.stringify(condition)});
+  };
+
+  $scope.countObj = function (obj) {
+    return Object.keys(obj).length;
+  }
 
   $scope.init();
 }]);

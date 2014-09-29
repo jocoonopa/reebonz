@@ -300,7 +300,7 @@ class ActivityController extends Controller
             ->where(
                 $qb->expr()->andX(
                     $qb->expr()->in('g.id', $goodsIds),
-                    $qb->expr()->eq('g.status', self::GS_ONSALE)
+                    $qb->expr()->in('g.status', array(self::GS_ONSALE, self::GS_ACTIVITY))
                 )
             )
         ;
