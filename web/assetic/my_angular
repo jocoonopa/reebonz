@@ -2125,6 +2125,9 @@ backendCtrls.controller('GoodsSearchCtrl', ['$scope', '$routeParams', '$http', '
     }
   };
 
+  /**
+   * Goods Operator
+   */
   var GoodsOperator = function () {
     this.selectChecked = function () {
       var tmp = [];
@@ -5700,6 +5703,9 @@ backendCtrls.controller('GoodsSearchCtrl', ['$scope', '$routeParams', '$http', '
     }
   };
 
+  /**
+   * Goods Operator
+   */
   var GoodsOperator = function () {
     this.selectChecked = function () {
       var tmp = [];

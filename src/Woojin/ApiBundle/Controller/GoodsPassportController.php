@@ -630,7 +630,7 @@ class GoodsPassportController extends Controller
          * 
          * @var array
          */
-        $goodses = $this->getGoodsesFromGoodsIds($goodsIds, $em);
+        $goodses = $em->getRepository('WoojinGoodsBundle:GoodsPassport')->findByIds($goodsIds);
 
         $this->setEachGoodsStatusToOnOfSale($goodses, $status, $em);
 
@@ -673,32 +673,6 @@ class GoodsPassportController extends Controller
         $em->flush();
 
         return $this;
-    }
-
-    protected function getGoodsesFromGoodsIds($goodsIds, $em)
-    {
-        /**
-         * QueryBuilder
-         * 
-         * @var object
-         */
-        $qb = $em->createQueryBuilder();
-
-        // 將商品選擇出來
-        $qb
-            ->select('g')
-            ->from('WoojinGoodsBundle:GoodsPassport', 'g')
-            ->where($qb->expr()->in('g.id', $goodsIds))
-        ;
-
-        /**
-         * 商品實體陣列
-         * 
-         * @var array{object}
-         */
-        $goodses = $qb->getQuery()->getResult();
-
-        return $goodses;
     }
 
     /**
