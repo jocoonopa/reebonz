@@ -215,13 +215,6 @@ class OrderSubscriber implements EventSubscriber
 		 */
 		$settings = array();
 
-		/**
-		 * Serializer
-		 * 
-		 * @var object
-		 */
-		$serializer = \JMS\Serializer\SerializerBuilder::create()->build();
-
 		// 若不是 Orders 得實體則不動作
 		if (!($order instanceof Orders)) {   
 			return;

@@ -617,44 +617,21 @@ class GoodsPassportController extends Controller
          */
         $goodsIds = $this->getGoodsIdsFromPost($request);
 
+        /**
+         * Entity Manager
+         * 
+         * @var [object]
+         */
         $em = $this->getDoctrine()->getManager();
 
+        /**
+         * 商品上架狀態實體
+         * 
+         * @var [\Woojin\GoodsBundle\Entity\GoodsStatus]
+         */
         $offSaleStatus = $em->find('WoojinGoodsBundle:GoodsStatus', self::GS_OFFSALE);
 
-        /**
-         * QueryBuilder
-         * 
-         * @var object
-         */
-        $qb = $em->createQueryBuilder();
-
-        // 將商品選擇出來
-        $qb
-            ->select('g')
-            ->from('WoojinGoodsBundle:GoodsPassport', 'g')
-            ->where(
-                $qb->expr()->andX(
-                    $qb->expr()->in('g.id', $goodsIds),
-                    $qb->expr()->eq('g.status', self::GS_ONSALE)
-                )   
-            )
-        ;
-
-        /**
-         * 商品實體陣列
-         * 
-         * @var array{object}
-         */
-        $goodses = $qb->getQuery()->getResult();
-
-        array_map(function ($goods) use ($em, $offSaleStatus){
-            // update 商品屬性
-            $goods->setStatus($offSaleStatus);
-
-            $em->persist($goods);
-        }, $goodses);
-
-        $em->flush();
+        $this->setGoodsToSaleStatus($goodsIds, $offSaleStatus, $em);
 
         return new Response(json_encode(array('status' => 'ok')));
     }
@@ -674,10 +651,51 @@ class GoodsPassportController extends Controller
          */
         $goodsIds = $this->getGoodsIdsFromPost($request);
 
+        /**
+         * Entity Manager
+         * 
+         * @var [object]
+         */
         $em = $this->getDoctrine()->getManager();
 
+        /**
+         * 商品上架狀態實體
+         * 
+         * @var [\Woojin\GoodsBundle\Entity\GoodsStatus]
+         */
         $onSaleStatus = $em->find('WoojinGoodsBundle:GoodsStatus', self::GS_ONSALE);
 
+        $this->setGoodsToSaleStatus($goodsIds, $onSaleStatus, $em);
+
+        return new Response(json_encode(array('status' => 'ok')));
+    }
+
+    /**
+     * Get Goods ids from Post
+     * 
+     * @param  [obj] $request 
+     * @return [array] $goodsIds 
+     */
+    protected function getGoodsIdsFromPost(Request $request)
+    {
+        $goodsIds = array();
+
+        array_map(function ($row) use (&$goodsIds) {
+            array_push($goodsIds, $row['id']);
+        }, $request->request->get('goodsPost'));
+
+        return $goodsIds;
+    }
+
+    /**
+     * 設置商品實體狀態屬性為上架或下架
+     *
+     * @param [array] $goodsIds
+     * @param [\Woojin\GoodsBundle\Entity\GoodsStatus] $status
+     * @param [object] $em
+     */
+    protected function setGoodsToSaleStatus($goodsIds, $status, $em)
+    {
         /**
          * QueryBuilder
          * 
@@ -689,12 +707,7 @@ class GoodsPassportController extends Controller
         $qb
             ->select('g')
             ->from('WoojinGoodsBundle:GoodsPassport', 'g')
-            ->where(
-                $qb->expr()->andX(
-                    $qb->expr()->in('g.id', $goodsIds),
-                    $qb->expr()->eq('g.status', self::GS_OFFSALE)
-                )   
-            )
+            ->where($qb->expr()->in('g.id', $goodsIds))
         ;
 
         /**
@@ -704,25 +717,14 @@ class GoodsPassportController extends Controller
          */
         $goodses = $qb->getQuery()->getResult();
 
-        array_map(function ($goods) use ($em, $onSaleStatus) {
+        array_map(function ($goods) use (&$em, $status) {
             // update 商品屬性
-            $goods->setStatus($onSaleStatus);
+            $goods->setStatus($status);
 
             $em->persist($goods);
         }, $goodses);
 
         $em->flush();
-
-        return new Response(json_encode(array('status' => 'ok')));
-    }
-
-    protected function getGoodsIdsFromPost($request)
-    {
-        $goodsIds = array();
-
-        return array_map(function ($row) use (&$goodsIds) {
-            array_push($goodsIds, $row['id']);
-        }, $request->request->get('goodsPost'));
     }
 
     /**

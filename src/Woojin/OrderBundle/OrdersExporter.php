@@ -258,7 +258,10 @@ class OrdersExporter
             ->setCellValue('H1', '原價')
             ->setCellValue('I1', '折扣金額')
             ->setCellValue('J1', '實付')
-        ;
+			->setCellValue('K1', '發票號碼')
+			->setCellValue('L1', '備註')
+			->setCellValue('M1', '信用卡號')       
+		;
 
         return $this;
     }
@@ -414,6 +417,24 @@ class OrdersExporter
          */
         $activityContent = $orders->getGoodsPassport()->getActivity()->getActivityGiffDes();
 
+        /**
+         * 操作記錄實體陣列
+         * 
+         * @var [\Woojin\OrderBundle\Entity\Ope]
+         */
+        $opes = $orders->getOpes();
+
+        /**
+         * 信用卡號全部合起來的字串
+         */
+        $cardSnOfAll = false;
+
+        array_map(function ($ope) use (&$cardSnOfAll) {
+            if ($cardSn = $ope->getCardSn()) {
+                $cardSnOfAll += $ope->getCardSn() . ',';
+            }
+        }, $opes->toArray());
+
         return array(
             'A' => $sn,
             'B' => $sku,
@@ -424,7 +445,10 @@ class OrdersExporter
             'G' => ($orders->getPaid() - $orders->getGoodsPassport()->getCost())/$orders->getPaid(),
             'H' => $orders->getGoodsPassport()->getPrice(),
             'I' => $orders->getGoodsPassport()->getPrice() - $orders->getPaid(),
-            'J' => $orders->getPaid()
+            'J' => $orders->getPaid(),
+            'K' => $orders->getInvoice()->getSn(), 
+            'L' => $orders->getMemo(),
+            'M' => ($cardSnOfAll) ? substr($cardSnOfAll, 0, -1) : ''
         );
     }
 
