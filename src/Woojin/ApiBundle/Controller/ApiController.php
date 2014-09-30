@@ -11,4 +11,3 @@ class ApiController extends Controller
         return \JMS\Serializer\SerializerBuilder::create()->build();
     }
 }
-

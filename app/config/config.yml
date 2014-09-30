@@ -123,8 +123,15 @@ services:
     entity.pro.getter:
         class: Woojin\Entity\ProGetter
 
-    goods.setter:
-        class: Woojin\GoodsBundle\GoodsSetter
+    goods.setting.handler:
+        class: Woojin\GoodsBundle\GoodsSettingHandler\GoodsSettingHandler
+        arguments: ['@goods.setting.handler.related.entity.handler', '@goods.setting.handler.self.not.related.handler']
+
+    goods.setting.handler.related.entity.handler:
+        class: Woojin\GoodsBundle\GoodsSettingHandler\RelatedEntityHandler
+
+    goods.setting.handler.self.not.related.handler:
+        class: Woojin\GoodsBundle\GoodsSettingHandler\NotRelatedEntityHandler
 
     goods.exporter:
         class: Woojin\GoodsBundle\GoodsExporter

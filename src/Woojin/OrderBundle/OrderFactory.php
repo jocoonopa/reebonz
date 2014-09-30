@@ -84,6 +84,8 @@ class OrderFactory implements \Woojin\BackendBundle\EntityFactory
    */
   public function update($settings, $order)
   {
+    $em = $this->registry->getManager();
+    
     // 使用交易機制以防萬一
     $em->getConnection()->beginTransaction();
 

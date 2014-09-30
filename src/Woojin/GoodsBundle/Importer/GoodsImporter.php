@@ -697,7 +697,7 @@ class GoodsImporter
      */
     protected function setNullElementWithAssignVal($accessor, &$settings, $methodName, $setVal)
     {
-        if ($accessor->getValue($settings, $methodName) === false || $accessor->getValue($settings, $methodName) === '') {
+        if ($accessor->getValue($settings, $methodName) === false || $accessor->getValue($settings, $methodName) === '' || $accessor->getValue($settings, $methodName) === NULL) {
             $accessor->setValue($settings, $methodName, $setVal);
         }
 

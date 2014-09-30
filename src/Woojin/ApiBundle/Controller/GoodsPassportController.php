@@ -415,9 +415,9 @@ class GoodsPassportController extends Controller
         /**
          * 商品屬性設定者，專責處理傳入工廠的 $settings
          * 
-         * @var \Woojin\GoodsBundle\GoodsSetter
+         * @var \Woojin\GoodsBundle\GoodsSettingHandler
          */
-        $GoodsSetter = $this->get('goods.setter');
+        $GoodsSettingHandler = $this->get('goods.setting.handler');
 
         /**
          * 這個工廠將會替我們創建新的商品實體
@@ -430,7 +430,7 @@ class GoodsPassportController extends Controller
          * 
          * @var array
          */
-        $settings = $GoodsSetter->setCreateSettings($accessor, $request, $em)->getSettings();
+        $settings = $GoodsSettingHandler->run($request, $accessor, $em)->get();
 
         /**
          * 商品實體
@@ -494,9 +494,9 @@ class GoodsPassportController extends Controller
         /**
          * 商品屬性設定者，專責處理傳入工廠的 $settings
          * 
-         * @var \Woojin\GoodsBundle\GoodsSetter
+         * @var \Woojin\GoodsBundle\GoodsSettingHandler
          */
-        $GoodsSetter = $this->get('goods.setter');
+        $GoodsSettingHandler = $this->get('goods.setting.handler');
 
         /**
          * 這個工廠將會替我們創建新的商品實體
@@ -509,7 +509,7 @@ class GoodsPassportController extends Controller
          * 
          * @var array
          */
-        $settings = $GoodsSetter->setUpdateSettings($accessor, $request, $em)->getSettings();
+        $settings = $GoodsSettingHandler->run($request, $accessor, $em)->get();
         
         $jsonGoodsPassports = $serializer->serialize($GoodsFactory->update($settings, $goodsPassport), 'json');
 
@@ -608,9 +608,53 @@ class GoodsPassportController extends Controller
      * @Route("/offsale", name="api_goodsPassport_offsale", options={"expose"=true})
      * @Method("PUT")
      */
-    public function onSaleAction() 
+    public function offSaleAction(Request $request) 
     {
-        $this->switchGoodesSaleStatusTo(self::GS_ONSALE);
+        /**
+         * 商品產編陣列
+         * 
+         * @var array
+         */
+        $goodsIds = $this->getGoodsIdsFromPost($request);
+
+        $em = $this->getDoctrine()->getManager();
+
+        $offSaleStatus = $em->find('WoojinGoodsBundle:GoodsStatus', self::GS_OFFSALE);
+
+        /**
+         * QueryBuilder
+         * 
+         * @var object
+         */
+        $qb = $em->createQueryBuilder();
+
+        // 將商品選擇出來
+        $qb
+            ->select('g')
+            ->from('WoojinGoodsBundle:GoodsPassport', 'g')
+            ->where(
+                $qb->expr()->andX(
+                    $qb->expr()->in('g.id', $goodsIds),
+                    $qb->expr()->eq('g.status', self::GS_ONSALE)
+                )   
+            )
+        ;
+
+        /**
+         * 商品實體陣列
+         * 
+         * @var array{object}
+         */
+        $goodses = $qb->getQuery()->getResult();
+
+        array_map(function ($goods) use ($em, $offSaleStatus){
+            // update 商品屬性
+            $goods->setStatus($offSaleStatus);
+
+            $em->persist($goods);
+        }, $goodses);
+
+        $em->flush();
 
         return new Response(json_encode(array('status' => 'ok')));
     }
@@ -621,11 +665,64 @@ class GoodsPassportController extends Controller
      * @Route("/onsale", name="api_goodsPassport_onsale", options={"expose"=true})
      * @Method("PUT")
      */
-    public function offSaleAction() 
+    public function onSaleAction(Request $request) 
     {
-        $this->switchGoodesSaleStatusTo(self::GS_OFFSALE);
+        /**
+         * 商品產編陣列
+         * 
+         * @var array
+         */
+        $goodsIds = $this->getGoodsIdsFromPost($request);
+
+        $em = $this->getDoctrine()->getManager();
+
+        $onSaleStatus = $em->find('WoojinGoodsBundle:GoodsStatus', self::GS_ONSALE);
+
+        /**
+         * QueryBuilder
+         * 
+         * @var object
+         */
+        $qb = $em->createQueryBuilder();
+
+        // 將商品選擇出來
+        $qb
+            ->select('g')
+            ->from('WoojinGoodsBundle:GoodsPassport', 'g')
+            ->where(
+                $qb->expr()->andX(
+                    $qb->expr()->in('g.id', $goodsIds),
+                    $qb->expr()->eq('g.status', self::GS_OFFSALE)
+                )   
+            )
+        ;
+
+        /**
+         * 商品實體陣列
+         * 
+         * @var array{object}
+         */
+        $goodses = $qb->getQuery()->getResult();
+
+        array_map(function ($goods) use ($em, $onSaleStatus) {
+            // update 商品屬性
+            $goods->setStatus($onSaleStatus);
+
+            $em->persist($goods);
+        }, $goodses);
+
+        $em->flush();
 
         return new Response(json_encode(array('status' => 'ok')));
+    }
+
+    protected function getGoodsIdsFromPost($request)
+    {
+        $goodsIds = array();
+
+        return array_map(function ($row) use (&$goodsIds) {
+            array_push($goodsIds, $row['id']);
+        }, $request->request->get('goodsPost'));
     }
 
     /**

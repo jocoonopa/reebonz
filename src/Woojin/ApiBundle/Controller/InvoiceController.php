@@ -155,7 +155,7 @@ class InvoiceController extends ApiController
             return new Response(json_encode(array('error' => 'No invoices exists!')));
         }
 
-        $invoice = $invoices[0];
+        $invoice = array_shift($invoices);
 
         $orderses = $em->getRepository('WoojinOrderBundle:Orders')->findBy(array('invoice' => $invoice->getId()));
         
