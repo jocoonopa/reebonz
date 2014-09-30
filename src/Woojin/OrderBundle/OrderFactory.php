@@ -66,10 +66,7 @@ class OrderFactory implements \Woojin\BackendBundle\EntityFactory
 		return $this->save($settings, $order);
 	}
 
-	public function copy($orders, $amount)
-	{
-
-	}
+	public function copy($orders, $amount){}
 
 	protected function save($order)
 	{
@@ -80,20 +77,30 @@ class OrderFactory implements \Woojin\BackendBundle\EntityFactory
 
 		try {
 			// 根據傳入的設定進行屬性設置
-			foreach ($settings as $key => $val) {
-				$order->$key($val);
-			}
+			$this->iterateSetting($settings, &$order);
 
 			// 將結果保存，迴圈結束後再一次執行
 			$em->persist($order);
 
 			$em->flush();
+
 			$em->getConnection()->commit();
 		} catch (\Exception $e) {
 			$em->getConnection()->rollback();
+			
 			throw $e;
 		}    
 
 		return $order;
+	}
+
+	protected function iterateSetting($settings, &$order)
+	{
+		// 根據傳入的設定進行屬性設置
+		foreach ($settings as $key => $val) {
+			$order->$key($val);
+		}
+
+		return $this;
 	}
 }

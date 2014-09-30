@@ -603,20 +603,14 @@ class GoodsPassportController extends Controller
     }
 
     /**
-     * 批次下架
+     * 批次上下架
      *
-     * @Route("/offsale", name="api_goodsPassport_offsale", options={"expose"=true})
+     * @Route("/{id}/status", name="api_goodsPassport_batchSetStatus", options={"expose"=true})
+     * @ParamConverter("status", class="WoojinGoodsBundle:GoodsStatus")
      * @Method("PUT")
      */
-    public function offSaleAction(Request $request) 
+    public function batchSetStatusAction(Request $request, $status) 
     {
-        /**
-         * 商品產編陣列
-         * 
-         * @var array
-         */
-        $goodsIds = $this->getGoodsIdsFromPost($request);
-
         /**
          * Entity Manager
          * 
@@ -625,26 +619,6 @@ class GoodsPassportController extends Controller
         $em = $this->getDoctrine()->getManager();
 
         /**
-         * 商品上架狀態實體
-         * 
-         * @var [\Woojin\GoodsBundle\Entity\GoodsStatus]
-         */
-        $offSaleStatus = $em->find('WoojinGoodsBundle:GoodsStatus', self::GS_OFFSALE);
-
-        $this->setGoodsToSaleStatus($goodsIds, $offSaleStatus, $em);
-
-        return new Response(json_encode(array('status' => 'ok')));
-    }
-
-    /**
-     * 批次上架
-     *
-     * @Route("/onsale", name="api_goodsPassport_onsale", options={"expose"=true})
-     * @Method("PUT")
-     */
-    public function onSaleAction(Request $request) 
-    {
-        /**
          * 商品產編陣列
          * 
          * @var array
@@ -652,20 +626,13 @@ class GoodsPassportController extends Controller
         $goodsIds = $this->getGoodsIdsFromPost($request);
 
         /**
-         * Entity Manager
+         * 商品實體陣列
          * 
-         * @var [object]
+         * @var array
          */
-        $em = $this->getDoctrine()->getManager();
+        $goodses = $this->getGoodsesFromGoodsIds($goodsIds, $em);
 
-        /**
-         * 商品上架狀態實體
-         * 
-         * @var [\Woojin\GoodsBundle\Entity\GoodsStatus]
-         */
-        $onSaleStatus = $em->find('WoojinGoodsBundle:GoodsStatus', self::GS_ONSALE);
-
-        $this->setGoodsToSaleStatus($goodsIds, $onSaleStatus, $em);
+        $this->setEachGoodsStatusToOnOfSale($goodses, $status, $em);
 
         return new Response(json_encode(array('status' => 'ok')));
     }
@@ -694,7 +661,21 @@ class GoodsPassportController extends Controller
      * @param [\Woojin\GoodsBundle\Entity\GoodsStatus] $status
      * @param [object] $em
      */
-    protected function setGoodsToSaleStatus($goodsIds, $status, $em)
+    protected function setEachGoodsStatusToOnOfSale($goodses, $status, $em)
+    {
+        array_map(function ($goods) use (&$em, $status) {
+            // update 商品屬性
+            $goods->setStatus($status);
+
+            $em->persist($goods);
+        }, $goodses);
+
+        $em->flush();
+
+        return $this;
+    }
+
+    protected function getGoodsesFromGoodsIds($goodsIds, $em)
     {
         /**
          * QueryBuilder
@@ -717,14 +698,7 @@ class GoodsPassportController extends Controller
          */
         $goodses = $qb->getQuery()->getResult();
 
-        array_map(function ($goods) use (&$em, $status) {
-            // update 商品屬性
-            $goods->setStatus($status);
-
-            $em->persist($goods);
-        }, $goodses);
-
-        $em->flush();
+        return $goodses;
     }
 
     /**

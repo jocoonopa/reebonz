@@ -68,6 +68,7 @@ backendCtrls.controller('OrdersCtrl', ['$scope', '$routeParams', '$http', '$filt
 
   $scope.formatDate = function (date, format) {
     var format = format || 'yyyy-MM-dd';
+    
     return $filter('date')(date, format);
   };
 
@@ -342,6 +343,7 @@ backendCtrls.controller('OrdersCtrl', ['$scope', '$routeParams', '$http', '$filt
 
   $scope.formatDate = function (date, format) {
     var format = format || 'yyyy-MM-dd';
+    
     return $filter('date')(date, format);
   };
 

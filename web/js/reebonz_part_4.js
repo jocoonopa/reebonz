@@ -2139,7 +2139,7 @@ backendCtrls.controller('GoodsSearchCtrl', ['$scope', '$routeParams', '$http', '
     };
 
     this.onSaleChecked = function () {
-      $http.put(Routing.generate('api_goodsPassport_onsale'), {goodsPost: this.selectChecked()})
+      $http.put(Routing.generate('api_goodsPassport_batchSetStatus', {id: 1}), {goodsPost: this.selectChecked()})
         .success(function (res) {
           $scope.isSuccess('批次上架完成！');
 
@@ -2153,7 +2153,7 @@ backendCtrls.controller('GoodsSearchCtrl', ['$scope', '$routeParams', '$http', '
     };
 
     this.offSaleChecked = function () {
-      $http.put(Routing.generate('api_goodsPassport_offsale'), {goodsPost: this.selectChecked()})
+      $http.put(Routing.generate('api_goodsPassport_batchSetStatus', {id: 4}), {goodsPost: this.selectChecked()})
         .success(function (res) {
           $scope.isSuccess('批次下架完成！');
 
@@ -2695,6 +2695,7 @@ backendCtrls.controller('OrdersCtrl', ['$scope', '$routeParams', '$http', '$filt
 
   $scope.formatDate = function (date, format) {
     var format = format || 'yyyy-MM-dd';
+    
     return $filter('date')(date, format);
   };
 
@@ -2969,6 +2970,7 @@ backendCtrls.controller('OrdersCtrl', ['$scope', '$routeParams', '$http', '$filt
 
   $scope.formatDate = function (date, format) {
     var format = format || 'yyyy-MM-dd';
+    
     return $filter('date')(date, format);
   };
 
@@ -5712,7 +5714,7 @@ backendCtrls.controller('GoodsSearchCtrl', ['$scope', '$routeParams', '$http', '
     };
 
     this.onSaleChecked = function () {
-      $http.put(Routing.generate('api_goodsPassport_onsale'), {goodsPost: this.selectChecked()})
+      $http.put(Routing.generate('api_goodsPassport_batchSetStatus', {id: 1}), {goodsPost: this.selectChecked()})
         .success(function (res) {
           $scope.isSuccess('批次上架完成！');
 
@@ -5726,7 +5728,7 @@ backendCtrls.controller('GoodsSearchCtrl', ['$scope', '$routeParams', '$http', '
     };
 
     this.offSaleChecked = function () {
-      $http.put(Routing.generate('api_goodsPassport_offsale'), {goodsPost: this.selectChecked()})
+      $http.put(Routing.generate('api_goodsPassport_batchSetStatus', {id: 4}), {goodsPost: this.selectChecked()})
         .success(function (res) {
           $scope.isSuccess('批次下架完成！');
 
