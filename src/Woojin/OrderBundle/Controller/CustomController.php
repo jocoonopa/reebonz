@@ -34,7 +34,7 @@ class CustomController extends Controller
 		 */
 		$serializer = \JMS\Serializer\SerializerBuilder::create()->build();
         
-    $jsonStores = $serializer->serialize($stores, 'json');
+    	$jsonStores = $serializer->serialize($stores, 'json');
 
 		return array('stores' => $jsonStores);
 	}

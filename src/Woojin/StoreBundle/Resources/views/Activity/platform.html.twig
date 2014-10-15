@@ -93,15 +93,67 @@
     <br />
 
     <div class="row">
-      <form novalidate class="form-horizontal" role="form">
+      <form novalidate class="form-horizontal" role="form">        
         <div class="form-group">
+          <label class="col-sm-2 control-label">品牌</label>
+
+          <div class="col-sm-10">
+            <select ng-model="$parent.brand" name="brand" class="form-control data-repo" ng-options="brand.name for brand in $parent.brands">
+              <option value=""></option>
+            </select>
+          </div>  
+        </div>
+
+        <div class="form-group">
+          <label class="col-sm-2 control-label">部門</label>
+
+          <div class="col-sm-10">
+            <select ng-model="$parent.store" name="store" class="form-control data-repo" ng-options="store.name for store in $parent.stores">
+              <option value=""></option>
+            </select>
+          </div>  
+        </div>
+
+        <div class="form-group">
+          <label class="col-sm-2 control-label">廠商</label>
+
+          <div class="col-sm-10">
+            <select ng-model="$parent.supplier" name="supplier" class="form-control data-repo" ng-options="supplier.name for supplier in $parent.suppliers">
+              <option value=""></option>
+            </select>
+          </div>  
+        </div>
+
+        <div class="form-group">
+          <label class="col-sm-2 control-label">排序條件</label>
+          
+          <div class="col-sm-5">
+            <select name="orderAttr" class="form-control" ng-model="$parent.orderBy" ng-options="orderBy.name for orderBy in orderBys"></select>
+          </div>
+
+          <div class="col-sm-5">
+            <div class="btn-group">
+              <label class="btn btn-default" ng-model="$parent.orderDir" btn-radio="'ASC'" uncheckable>A>Z</label>
+              <label class="btn btn-default" ng-model="$parent.orderDir" btn-radio="'DESC'" uncheckable>Z>A</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="col-sm-2 control-label">&nbsp;</label>
+          
+          <div class="col-sm-10">
+            <button class="btn btn-info pull-right" ng-click="$parent.pageInit(); $parent._query();">查詢</button>
+          </div>
+        </div>
+
+        <!-- <div class="form-group">
           <label class="col-sm-2 control-label"><span class="glyphicon glyphicon-filter"></span>產編過濾</label>
 
           <div class="col-sm-10">
             <input type="text" ng-model="query.sn" class="form-control" placeholder="產編過濾" />
           </div>
-        </div>
-        
+        </div> -->
       </form>
     </div>
 

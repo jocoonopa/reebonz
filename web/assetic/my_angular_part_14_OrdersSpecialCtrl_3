@@ -1107,6 +1107,13 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
     setTotal();
   };
 
+  $scope.assignTotalToEachAndSepByPrice = function () {
+    for (var index in $scope.goodsRepo) {
+      $scope.goodsRepo[index].orders.required = parseInt($scope.total.sale * $scope.goodsRepo[index].price/$scope.total.org);
+      $scope.goodsRepo[index].orders.paid = parseInt($scope.total.sale * $scope.goodsRepo[index].price/$scope.total.org);
+    }
+  };
+
   $scope.export = function (assign) {
     var condition = {
       Gactivity: {

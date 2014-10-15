@@ -15,17 +15,17 @@ class GoodsPassportRepository extends \Woojin\WoojinRepository
 	 */
 	public function findByIds($ids)
 	{
-		$qb = $this->getEntityManager()->createQueryBuilder();
+        $qb = $this->getEntityManager()->createQueryBuilder();
 
-    	$qb
+        $qb
             ->select('g')
             ->from('WoojinGoodsBundle:GoodsPassport', 'g')
             ->where($qb->expr()->in('g.id', $ids))
         ;
 
-    	$goods = $qb->getQuery()->getResult();
+        $goods = $qb->getQuery()->getResult();
 
-    	return $goods;
+        return $goods;
 	}
 
 	/**

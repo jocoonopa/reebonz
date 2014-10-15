@@ -1,7 +1,8 @@
 {% verbatim %}
 <h4 ng-show="goodsRepo.length > 0;">
 	<span>原總價 <span class="label label-default">{{ total.org }}</span>元</span>
-	<span>優惠總價 <span class="label label-warning">{{ total.sale }}</span> 元</span>
+	<span>優惠總價</span>
+	<input type="text" ng-model="total.sale" ng-change="assignTotalToEachAndSepByPrice();" style="text-align: center; border: 0; width: 80px;" />元
 </h4>
 
 <accordion close-others="oneAtATime">

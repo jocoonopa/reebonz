@@ -26631,8 +26631,8 @@ backendCtrls.controller('ActivityCtrl', ['$scope', '$routeParams', '$filter', '$
 
 /* Controllers */
 
-backendCtrls.controller('ActivityPlatformCtrl', ['$scope', '$routeParams', '$filter', '$http', 'Activity',
-  function ($scope, $routeParams, $filter, $http, Activity) {
+backendCtrls.controller('ActivityPlatformCtrl', ['$scope', '$routeParams', '$filter', '$http', 'Activity', 'Store', 'Brand', 'Supplier',
+  function ($scope, $routeParams, $filter, $http, Activity, Store, Brand, Supplier) {
     var GS_ONSALE = 1;
     var GS_ACTIVITY = 6;
 
@@ -26646,6 +26646,61 @@ backendCtrls.controller('ActivityPlatformCtrl', ['$scope', '$routeParams', '$fil
       attr: 'update_at',
       dir: 'DESC'
     };
+
+    var setCondition = function () {
+      condition = {
+        Gactivity: {
+          in: [$routeParams.id]
+        }
+      };
+
+      if ($scope.brand && $scope.brand.id) {
+        condition.Gbrand = {};
+
+        condition.Gbrand.in = [$scope.brand];
+      }
+
+      if ($scope.supplier && $scope.supplier.id) {
+        condition.Gsupplier = {};
+
+        condition.Gsupplier.in = [$scope.supplier];
+      }
+
+      if ($scope.store && $scope.store.id) {
+        condition.Gstore = {};
+
+        condition.Gstore.in = [$scope.store];
+      }
+    };
+
+    var setOrderBy = function () {
+      if (typeof $scope.orderBy === 'undefined') {
+        return false;
+      }
+
+      orderBy = {
+        attr: $scope.orderBy.attr,
+        dir: ($scope.orderDir === '') ? 'DESC' : $scope.orderDir
+      }   
+    };
+
+    $http.get('/bundles/woojinbackend/js/angular-seed/app/js/goods/order_conditions.json').
+      success(function (res) {
+        $scope.orderBys = res;
+
+        $scope.orderBy = $scope.orderBys[0]
+      });
+
+    $scope.stores = Store.query();
+    $scope.store = {};
+
+    $scope.suppliers = Supplier.query();
+    $scope.supplier = {};
+
+    $scope.brands = Brand.query();
+    $scope.brand = {};
+
+    $scope.orderDir = "";
 
     var initPost = function (barcode) {
       var post = {
@@ -26717,7 +26772,8 @@ backendCtrls.controller('ActivityPlatformCtrl', ['$scope', '$routeParams', '$fil
 
       var post = initPost(barcode);
 
-      $http.get(Routing.generate('api_goodsPassport_filter', {jsonCondition: JSON.stringify(post)}))
+      $http.get(Routing.generate('api_goodsPassport_filter', {
+        jsonCondition: JSON.stringify(post)}))
         .success(function (goodsGroup) {
           if (goodsGroup.length === 0) {
             setError(barcode + '資料無法取得，請確認該商品是否為上架或活動狀態!');
@@ -26769,6 +26825,9 @@ backendCtrls.controller('ActivityPlatformCtrl', ['$scope', '$routeParams', '$fil
     };
 
     $scope._query = function () {
+      setCondition();
+      setOrderBy();
+
       $http.get(Routing.generate('api_goodsPassport_filter', {jsonCondition: JSON.stringify(condition), jsonOrderBy: JSON.stringify(orderBy), page: $scope.currentPage, perPage: $scope.perPage}))
       .success(function (data) {
         $scope.goodses = data;
@@ -26785,6 +26844,9 @@ backendCtrls.controller('ActivityPlatformCtrl', ['$scope', '$routeParams', '$fil
      * 換頁時觸發動作，這邊是執行 query() 方法取得資料
      */
     $scope.pageChanged = function() {
+      setCondition();
+      setOrderBy();
+
       $scope._query();
     };
 
@@ -26796,6 +26858,8 @@ backendCtrls.controller('ActivityPlatformCtrl', ['$scope', '$routeParams', '$fil
      * 初始化頁籤
      */
     $scope.pageInit = function () {
+      setCondition();
+
       $http.get(Routing.generate("api_goodsPassport_filter_count", {jsonCondition: JSON.stringify(condition)})).
         success(function (total) {
           $scope.totalItems = total;
@@ -26836,6 +26900,9 @@ backendCtrls.controller('ActivityPlatformCtrl', ['$scope', '$routeParams', '$fil
      * 匯出檔案
      */
     $scope.export = function () {    
+      setCondition();
+      setOrderBy();
+
       window.location = Routing.generate("api_goodsPassport_export", {jsonCondition: JSON.stringify(condition)});
     };
 
@@ -30700,6 +30767,13 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
 
     // 計算總金額
     setTotal();
+  };
+
+  $scope.assignTotalToEachAndSepByPrice = function () {
+    for (var index in $scope.goodsRepo) {
+      $scope.goodsRepo[index].orders.required = parseInt($scope.total.sale * $scope.goodsRepo[index].price/$scope.total.org);
+      $scope.goodsRepo[index].orders.paid = parseInt($scope.total.sale * $scope.goodsRepo[index].price/$scope.total.org);
+    }
   };
 
   $scope.export = function (assign) {

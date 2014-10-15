@@ -40,7 +40,7 @@ class OrderFactory implements \Woojin\BackendBundle\EntityFactory
 	{
 		$order = new Orders;
 		
-		return $this->save($settings, $order);
+		return $this->save($order, $settings);
 	}
 
 	/**
@@ -68,7 +68,7 @@ class OrderFactory implements \Woojin\BackendBundle\EntityFactory
 
 	public function copy($orders, $amount){}
 
-	protected function save($order)
+	protected function save($order, $settings)
 	{
 		$em = $this->registry->getManager();
 
@@ -77,7 +77,7 @@ class OrderFactory implements \Woojin\BackendBundle\EntityFactory
 
 		try {
 			// 根據傳入的設定進行屬性設置
-			$this->iterateSetting($settings, &$order);
+			$this->iterateSetting($settings, $order);
 
 			// 將結果保存，迴圈結束後再一次執行
 			$em->persist($order);

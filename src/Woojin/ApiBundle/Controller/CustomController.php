@@ -160,7 +160,7 @@ class CustomController extends Controller
         $accessor->setValue($settings, '[setAddress]', $request->request->get('password'));
         $accessor->setValue($settings, '[setBirthday]', new \Datetime($request->request->get('birthday')));
         $accessor->setValue($settings, '[setMemo]', $request->request->get('memo'));
-       $accessor->setValue($settings, '[setStore]', $this->getDoctrine()->getRepository('WoojinStoreBundle:Store')->find($accessor->getValue($request->request->get('store'), '[id]')));
+        $accessor->setValue($settings, '[setStore]', $this->getDoctrine()->getRepository('WoojinStoreBundle:Store')->find($accessor->getValue($request->request->get('store'), '[id]')));
         
         // 透過工廠產生新的使用者
         $CustomFactory->update($settings, $custom);

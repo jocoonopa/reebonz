@@ -260,7 +260,8 @@ class OrdersExporter
             ->setCellValue('J1', '實付')
 			->setCellValue('K1', '發票號碼')
 			->setCellValue('L1', '備註')
-			->setCellValue('M1', '信用卡號')       
+			->setCellValue('M1', '信用卡號')  
+            ->setCellValue('N1', '時間')     
 		;
 
         return $this;
@@ -404,20 +405,6 @@ class OrdersExporter
         $sku = $orders->getGoodsPassport()->getOrgSn();
 
         /**
-         * 活動名稱
-         * 
-         * @var string
-         */
-        $activityName = $orders->getGoodsPassport()->getActivity()->getName(); 
-
-        /**
-         * 活動優惠方式
-         * 
-         * @var string
-         */
-        $activityContent = $orders->getGoodsPassport()->getActivity()->getActivityGiffDes();
-
-        /**
          * 操作記錄實體陣列
          * 
          * @var [\Woojin\OrderBundle\Entity\Ope]
@@ -448,7 +435,8 @@ class OrdersExporter
             'J' => $orders->getPaid(),
             'K' => $orders->getInvoice()->getSn(), 
             'L' => $orders->getMemo(),
-            'M' => ($cardSnOfAll) ? substr($cardSnOfAll, 0, -1) : ''
+            'M' => ($cardSnOfAll) ? substr($cardSnOfAll, 0, -1) : '',
+            'N' => $orders->getCreateAt()->format('Y-m-d H:i:s')
         );
     }
 
