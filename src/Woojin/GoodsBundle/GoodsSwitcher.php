@@ -80,7 +80,7 @@ class GoodsSaleSwitcher
             $goods->setStatus($status);
 
             $em->persist($goods);
-        }, $goodses);
+        }, $goodses->toArray());
 
         $em->flush();
 

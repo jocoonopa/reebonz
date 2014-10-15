@@ -4952,10 +4952,27 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
   };
 
   $scope.assignTotalToEachAndSepByPrice = function () {
-    for (var index in $scope.goodsRepo) {
-      $scope.goodsRepo[index].orders.required = parseInt($scope.total.sale * $scope.goodsRepo[index].price/$scope.total.org);
-      $scope.goodsRepo[index].orders.paid = parseInt($scope.total.sale * $scope.goodsRepo[index].price/$scope.total.org);
+    if ($scope.goodsRepo.length === 0) {
+      return false;
     }
+
+    var tmpTotal = 0;
+
+    for (var index in $scope.goodsRepo) {
+      var price = parseInt($scope.total.sale * $scope.goodsRepo[index].price/$scope.total.org);
+      setGoodsOrdersPaidAndRequired(index, price);
+
+      tmpTotal = tmpTotal + price;
+    }
+
+    return setGoodsOrdersPaidAndRequired(0, $scope.goodsRepo[0].orders.required + ($scope.total.sale - tmpTotal));
+  };
+
+  var setGoodsOrdersPaidAndRequired = function (index, price) {
+    $scope.goodsRepo[index].orders.required = price;
+    $scope.goodsRepo[index].orders.paid = price;
+
+    return this;
   };
 
   $scope.export = function (assign) {

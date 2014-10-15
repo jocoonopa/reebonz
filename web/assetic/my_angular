@@ -3842,7 +3842,1164 @@ backendCtrls.controller('OrdersNormalCtrl', ['$scope', '$routeParams', '$http', 
 
   $scope.init();
 }]);
+'use strict';
 
+/* Controllers */
+
+/**
+ * 一般販售
+ */
+backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http', '$filter', 'PayType', 'Activity',
+  function ($scope, $routeParams, $http, $filter, PayType, Activity) { 
+  /**
+   * 商品狀態:活動
+   * 
+   * @type {integer}
+   */
+  var GS_ACTIVITY = 6;
+
+  /**
+   * 不允許
+   * 
+   * @type {integer}
+   */
+  var NOT_ALLOWED = 0;
+
+  /**
+   * 售出訂單
+   * 
+   * @type {integer}
+   */
+  var OK_SPECIAL_SOLDOUT = 12;
+
+  /**
+   * 付款方式: 刷卡
+   * 
+   * @type {integer}
+   */
+  var PT_CARD = 2;
+
+  /**
+   * 訂單狀態: 取消
+   */
+  var OS_CANCEL = 3;
+
+  /**
+   * 修改成功函式
+   */
+  var isSuccess = function (msg) {
+    $scope.successMsg = msg;
+    $scope.errorMsg = false;
+  };
+
+  /**
+   * 修改失敗函式
+   */
+  var isError = function (msg) {
+    $scope.successMsg = false;
+    $scope.errorMsg = msg;
+  };
+
+  /**
+   * 活動處理訂單價格
+   */
+  var ActivityProcessor = function () {
+    /**
+     * 暫存資料初始設置，
+     * 
+     * 資料有:
+     * 
+     * 1.哪些商品可折扣
+     * 2.其總售價為多少
+     * 
+     * @param {object} tmp
+     *
+     * {
+     *   indexArr: [array], // 刷件容器中允許折扣商品的 id 組成之陣列
+     *   allowToal: [integer], // 刷件容器中所有允許折扣的商品們的合計售價
+     *   gift: [integer] // 刷件容器中所有商品計算後的滿額送金額
+     * }
+     */
+    var setIndexAndAllowTotal = function (tmp) {
+      // 迭代刷入商品容器
+      for (var key in $scope.goodsRepo) {
+        // 如果該商品允許折扣，
+        // 則將其 id 加入 tmp.indexArr
+        // 並且增加允許折扣總額
+        if ($scope.goodsRepo[key].allow_discount && $scope.goodsRepo[key].price >= $scope.myActivity.exceed) {
+          tmp.indexArr.push(key);
+          tmp.allowTotal += parseInt($scope.goodsRepo[key].price);
+        } else {
+          $scope.goodsRepo[key].orders.paid = $scope.goodsRepo[key].price;
+        }
+      }
+    };
+
+    /**
+     * 檢查是否有滿額贈活動
+     * 
+     * @return {Boolean}
+     */
+    var isHadExceedGift = function () {
+      return ($scope.myActivity.exceed > 0 && $scope.myActivity.minus > 0);
+    };
+
+    /**
+     * 設置滿額送總贈送金額，
+     * 其邏輯為 滿一萬送一千的話，則滿兩萬送兩千，
+     * 
+     * Example:
+     *
+     * 小明買了一個15000的包包和一個17000的背包，兩個商品都允許折扣的話，則滿額送3000元，
+     * 應付金額 = 15000 + 17000 - 3000 = 29000
+     * 
+     * @param {object} tmp [詳細格式請見line 111 ~ 118]
+     */
+    var setExceedGift = function (tmp) {
+      // 優惠贈送總金額
+      tmp.gift = parseInt($scope.myActivity.minus) * Math.floor(tmp.allowTotal / $scope.myActivity.exceed);
+    };
+
+    /**
+     * 將贈送金額按照比例分給每個商品
+     * 
+     * @param  {object} tmp [詳細格式請見line 111 ~ 118]
+     */
+    var setAssignGift = function (tmp) {
+      for (var key in tmp.indexArr) {
+        /**
+         * 此商品的分配贈送比例
+         * 
+         * @type {float}
+         */
+        var fraction = (parseInt($scope.goodsRepo[tmp.indexArr[key]].price) / parseInt(tmp.allowTotal));
+        
+        /**
+         * 此商品的贈送配額
+         * 
+         * @type {integer}
+         */
+        var eachGift = Math.round(tmp.gift * fraction);
+
+        /**
+         * goods $index in $scope.goodsRepo
+         * 
+         * @type {object}
+         */
+        var index = tmp.indexArr[key];
+
+        /**
+         * 商品
+         * 
+         * @type {object}
+         */
+        var goods = $scope.goodsRepo[index];
+
+        // 商品售價扣去贈送配額即為訂單應付金額
+        goods.orders.required = parseInt(goods.price) - eachGift; 
+        
+        // 訂單已付金額預設為訂單售價
+        goods.orders.paid = goods.orders.required;
+      }
+    };
+
+    /**
+     * 檢查活動是否有折扣
+     * 
+     * @return {Boolean}
+     */
+    var isHadDiscount = function () {
+      return ($scope.myActivity.discount > 0 && $scope.myActivity.exceed > 0);
+    };
+
+    /**
+     * 對允許折扣的商品進行折扣
+     * 
+     * @param {object} tmp [詳細格式請見line 111 ~ 118]
+     */
+    var setAssignDiscount = function (tmp) {
+      for (var key in tmp.indexArr) {
+        /**
+         * goods $index in $scope.goodsRepo
+         * 
+         * @type {object}
+         */
+        var index = tmp.indexArr[key];
+
+        /**
+         * 商品
+         * 
+         * @type {object}
+         */
+        var goods = $scope.goodsRepo[index];
+
+        // 訂單的售價設置為 (商品優惠價 * 活動折扣)
+        goods.orders.required = Math.round(goods.price * $scope.myActivity.discount / 10);
+        
+        // 訂單的已付金額預設為訂單的售價
+        goods.orders.paid = goods.orders.required;
+      }
+    };
+
+    /**
+     * 根據商品原始的優惠價設置訂單資訊
+     */
+    var setWithOrgPrice = function () {
+      for (var key in $scope.goodsRepo) {
+        /**
+         * 商品
+         * 
+         * @type {object}
+         */
+        var goods = $scope.goodsRepo[key];
+
+        // 訂單的售價設置為商品的優惠價
+        goods.orders.required = goods.price;
+
+        // 訂單的已付金額預設為訂單的售價
+        goods.orders.paid = goods.price;
+      }
+    };
+
+    /**
+     * 按比例對商品進行折扣( 小數點四捨五入到整數位 )
+     *
+     * <大概作法>
+     * 
+     * 1. 先把可以折扣的商品挑出來, 挑出來意思為丟在一個tmp 陣列裡
+     * 2. 算出總和，比對滿x送y 或是折扣規則( 折扣因為是單獨對應商品，比較沒有問題 )
+     * 3. 求得 y 以後，按照tmp陣列的每個商品售價照比例分派
+     * 4. orders.required = goods.price - y * fraction || goods.price * (activity.discount/10)
+     * ps:
+     *   1. 只允許一種折價方式，兩種都有則滿額贈優先!!!!
+     *   2. 每次刷入商品都會自動將商品的已付改成應付金額，因此操作時請先把所有商品刷入再一一設定金額
+     */
+    this.setActivityProcessPrice = function () {
+      /**
+       * 暫存物件
+       * 
+       * @type {Object}
+       */
+      var tmp = {};
+
+      /**
+       * 可折扣商品於 $scope.goodsRepo 的索引值構成的陣列
+       * 
+       * @type {Array}
+       */
+      tmp.indexArr = [];
+
+      /**
+       * 可折扣商品的總售價
+       * 
+       * @type {Number}
+       */
+      tmp.allowTotal = 0;
+
+      /**
+       * 滿額贈送金額
+       * 
+       * @type {Number}
+       */
+      tmp.gift = 0;
+
+      // 暫存資料初始設置
+      setIndexAndAllowTotal(tmp);
+
+      // 無允許折扣商品, 不進行計算
+      if (tmp.indexArr.length === 0 || tmp.allowTotal === 0) {
+        return setWithOrgPrice();
+      }
+
+      // 檢查有無滿額贈活動，若有則進行滿額送處理
+      if (isHadExceedGift()) {
+        setExceedGift(tmp);
+        setAssignGift(tmp);
+
+        return;
+      }
+      
+      // 如果有折扣設定，則進行折扣運算處理
+      if (isHadDiscount()) {
+        return setAssignDiscount(tmp);
+      }
+
+      return false;
+    };
+  };
+
+  /**
+   * 取得今天的日期
+   * 
+   * @return {string}
+   */
+  var getTodayDate = function () {
+    var date = new Date();
+
+    return date.today();
+  };
+
+  /**
+   * 初始化取得商品資料api 的 post 參數值，其內涵為商品查詢條件
+   * 
+   * @param  {object} barcode [刷入的產編條碼]
+   * @return {object} post [會被送到server使用]
+   */
+  var getGoodsFilterPost = function (barcode) {
+    /**
+     * post 參數，用來取得結帳成功後的訂單資料
+     * 
+     * @type {object}
+     */
+    var post = {
+      Gsn: {}, // 產編
+    };
+
+    // 若存在條碼，則條件產編加入該條碼產編
+    if (barcode) {
+      post.Gsn.in = [barcode];
+    }
+
+    return post;
+  };
+
+  /**
+   * 初始化訂單
+   * 
+   * @param  {object} goods
+   * @return {object} orders
+   */
+  var getInitOrders = function (goods) {
+    /**
+     * 初始化訂單
+     * 
+     * @type {Object}
+     */
+    var orders = {
+      pay_type: PT_CARD,// 預設使用刷卡
+      custom: {
+        email: '' // 客戶電子郵件信箱
+      },
+      required: goods.price, // 售價等於商品優惠價
+      paid: goods.price // 已付金額預設為售價
+    }
+
+    return orders;
+  };
+
+  /**
+   * 取得初始化後的發票物件
+   * 
+   * @param  {object} orders
+   * @return {object} invoice
+   */
+  var getInitInvoice = function (orders) {
+    var invoice = {};
+
+    invoice.orders = {};
+    invoice.sn = orders.invoice.sn;
+    invoice.id = orders.invoice.id;
+    invoice.create_at = orders.invoice.create_at;
+    invoice.store = orders.invoice.store;
+    invoice.user = orders.invoice.user;
+    invoice.total = 0;
+
+    return invoice;
+  };
+
+  /**
+   * 初始化商品訂單
+   * 
+   * @param  {object} goods
+   */
+  var setGoodsOrders = function (goods) {
+    // 預設折扣 1 (1 = 10/10)
+    goods.discount = 10; 
+
+    // 設置商品訂單屬性
+    goods.orders = getInitOrders(goods);
+  };
+
+  /**
+   * 設置手風琴的敘述
+   *
+   * @param {object} goods
+   */
+  $scope.setHeading = function (goods) {
+    goods.heading = '';
+    goods.heading += goods.name + '  |  ' + goods.sn + '   |   ' + goods.brand.name + '  |  ';
+    goods.heading += '   成本:' + goods.cost + '元 ';
+    goods.heading += (goods.fake_price > 0) ? '   |   一般價:      ' + goods.fake_price + '元' : '';
+    goods.heading += '   |    優惠價(未含活動折扣):' + goods.price + '元';
+    goods.heading += (!goods.allow_discount) ? '    <不允許折扣>     ' : '';
+  };
+
+  /**
+   * 設置原總金額
+   */
+  var setTotal = function () {
+    $scope.total.org = 0;
+    $scope.total.sale = 0;
+
+    for (var key in $scope.goodsRepo) {
+      $scope.total.org += $scope.goodsRepo[key].org_price;
+      $scope.total.sale += $scope.goodsRepo[key].orders.required;
+    }
+  };
+
+  /**
+   * 設置 $scope.invoices 中的orders
+   *
+   * @param {object} orders
+   */
+  var setOrders = function (orders) {
+    var invoice = $scope.invoices[orders.invoice.id.toString()];
+
+    if (!invoice) {
+      invoice = $scope.invoices[orders.invoice.id.toString()] = getInitInvoice(orders);
+    }
+
+    invoice.orders[orders.id.toString()] = orders;
+  };
+
+  /**
+   * 成功結帳後的回呼函式
+   * 
+   * @param  {array} ordersIds [成功結帳的訂單id組成之陣列]
+   */
+  var successPayCallback = function (ordersIds) {
+    // 如果成功結帳，則清空刷件容器
+    $scope.goodsRepo = [];
+
+    /**
+     * 取得回傳訂單資料api的條件
+     * 
+     * @type {Object}
+     */
+    var condition = {
+      Oid: {
+        in: ordersIds
+      }
+    };
+
+    /**
+     * 將條件轉換成json字串已符合api 規定
+     * 
+     * @type {json}
+     */
+    var jCondition = JSON.stringify(condition);
+
+    /**
+     * 訂單api需要使用的參數，此為查詢條件的json字串
+     * 
+     * @type {Object}
+     */
+    var post = {
+      jsonCondition: jCondition
+    };
+    
+    $http.get(Routing.generate('api_orders_filter', post))
+      .success(function (ordersGroup) {
+        for (var key in ordersGroup) {
+          // 刷新小table
+          setDepartment(ordersGroup[key]);
+
+          // 刷新整個銷貨記錄的顯現
+          setInvoices(ordersGroup[key]);
+        }
+
+        isSuccess('結帳完成，成功取得訂單資料!');
+      })
+      .error(function (e) {
+        console.log(e);
+
+        isError('結帳完成，但訂單資料顯示發生錯誤，請透過訂單查詢檢視詳細資料');
+      });
+  };
+
+  /**
+   * 訂單更新成功的回呼函式
+   * 
+   * @param  {integer} id [訂單的id]
+   */
+  var ordersUpdateSuccessCallbak = function (id) {
+    $http.get(Routing.generate('api_orders_show', {id : id}))
+      .success(function (orders) {
+        // 預設為開啟
+        orders.isDisplay = true;
+        
+        // 設置發票陣列中的訂單資訊
+        setOrders(orders);
+        
+        isSuccess('更新訂單成功，已取得回傳資料!');
+      })
+      .error(function (e) {
+        console.log(e);
+        
+        isError('更新訂單成功，但取得回傳資料時發生錯誤，請至訂單查詢檢視訂單詳細資料!')
+      });
+  };
+
+  /**
+   * 刪除訂單成功的回呼函式
+   * 
+   * @param  {object || integer} data [成功返回訂單id, 失敗則會存在data.error，亦即錯誤訊息]
+   */
+  var ordersDeleteSuccessCallback = function (data) {
+    // 若存在錯誤訊息則印出錯誤訊息，終止動作
+    if (data.error) {
+      return isError(data.error);
+    }
+
+    var id = data;
+
+    // 更新訂單資訊
+    $http.get(Routing.generate('api_orders_show', {id : id}))
+      .success(function (orders) {
+        // 設置發票陣列中的訂單資訊
+        setOrders(orders);
+        
+        isSuccess('訂單取消完成!');
+      });
+  };
+
+  /**
+   * 將訂單陣列重組成鍵值為訂單id 的陣列 
+   * -> [{id: orders}]
+   * 
+   * @param  {object} orderses    [description]
+   * @param  {object} ordersGroup [description]
+   */
+  var rebuildOrderses = function (orderses, ordersGroup) {
+    for (var key in ordersGroup) {
+      orderses[ordersGroup[key].id.toString()] = ordersGroup[key];
+    }
+  };
+
+  /**
+   * 設置 $scope.invoices 內涵
+   *
+   * @param {object} orders
+   */
+  var setInvoices = function (orders) {
+    /**
+     * 每張發票物件，其中orderses[key].invoice.id 為該次迭代訂單的所屬發票之id,
+     * 用來當做發票陣列的鍵值
+     * 
+     * @type {object || boolean} boolean when non declared
+     */
+    var eachInvoice = $scope.invoices[(999999 - orders.invoice.id).toString()];
+
+    // 如果發票物件尚未宣告，
+    // 則初始化其各屬性
+    if (!eachInvoice) {
+      $scope.invoices[(999999 - orders.invoice.id).toString()] = eachInvoice = getInitInvoice(orders);
+    }
+
+    // 發票總金額
+    eachInvoice.total += orders.required;
+
+    // 若發票訂單屬性不存在，則宣告其為空物件
+    if (!eachInvoice.orders[orders.id.toString()]) {
+      eachInvoice.orders[orders.id.toString()] = {};
+    }
+
+    // 將訂單加入發票訂單屬性
+    eachInvoice.orders[orders.id.toString()] = orders;
+  };
+
+  var setDateSelected = function (callback) {
+    var date = new Date();
+    var today = date.today();
+    var isIn = false;
+
+    angular.forEach($scope.dateRepo, function (eachDate, index) {
+      if (today === eachDate.val) {
+        $scope.dateSelected = eachDate;
+
+        return isIn = true;
+      }
+    });
+
+    if (!isIn) {
+      $scope.dateSelected = {};
+      $scope.dateSelected = $scope.dateRepo[0];
+    }
+
+    if (!!callback && typeof callback === 'function') {
+      callback();
+    }
+  };
+
+  var setScopeDateRepo = function () {
+    var startAt = $filter('date')($scope.myActivity.start_at, 'yyyy-MM-dd') + ' 00:00:00';
+    var endAt = $filter('date')($scope.myActivity.end_at, 'yyyy-MM-dd') + ' 23:59:59';
+
+    var startDate = new Date(startAt);
+    var endDate = new Date(endAt);
+    var now = new Date(Date.now());
+
+    $scope.dateRepo = [];
+
+    for (startDate; startDate <= endDate; startDate.setDate(startDate.getDate() + 1)) {
+      $scope.dateRepo.push({val: startDate.today(), key: startDate.today()});
+    }
+  };
+
+  var selectConditionTime = function () {
+    if (isTodayInActivity) {
+      var date = new Date();
+
+      return date.today();
+    }
+
+    return $filter('date')($scope.myActivity.start_at, 'yyyy-MM-dd');
+  };
+
+  var isTodayInActivity = function () {
+    var startAt = $filter('date')($scope.myActivity.start_at, 'yyyy-MM-dd') + ' 00:00:00';
+    var endAt = $filter('date')($scope.myActivity.end_at, 'yyyy-MM-dd') + ' 23:59:59';
+
+    var startDate = new Date(startAt);
+    var endDate = new Date(endAt);
+    var todayDate = new Date();
+
+    return (todayDate >= startDate && todayDate <= endDate);
+  };
+
+  $scope.getActivityReocrdWithDate = function (assign) {
+    initThisActivityRecord(assign);
+  };
+
+  /**
+   * 初始化今日活動銷貨記錄
+   */
+  var initThisActivityRecord = function (assign) {
+    // 取得活動銷貨記錄
+    var condition = {
+      Gactivity: {
+        in: [$scope.myActivity]
+      },
+      Okind: {
+        in: [OK_SPECIAL_SOLDOUT]
+      },
+      Ostatus: {
+        notIn: [OS_CANCEL]
+      },
+      IcreateAt: {
+        gte: [$scope.dateSelected.val],
+        lte: [$scope.dateSelected.val]
+      }
+    };
+
+    /**
+     * 排序條件
+     * 
+     * @type {Object}
+     */
+    var orderBy = {
+      attr: 'invoice',
+      dir: 'DESC'
+    };
+
+    $http.get(Routing.generate('api_orders_filter', {
+      jsonCondition: JSON.stringify(condition), 
+      jsonOrderBy: JSON.stringify(orderBy),
+      page: 1,
+      perPage: 99999
+    }))
+    .success(function (ordersGroup) {
+      $scope.departments = {};
+      $scope.invoices = {};
+
+      if (ordersGroup.length === 0) {
+        return isSuccess('取得指定日期記錄完成');
+      }
+
+      /**
+       * 訂單陣列
+       * 
+       * @type {Array}
+       */
+      var orderses = [];
+
+      // 重組訂單陣列 [orderses]
+      rebuildOrderses(orderses, ordersGroup);
+
+      // 迭代每筆訂單已組成每個發票Group
+      for (var key in orderses) {
+        /**
+         * 每筆訂單物件, 其中key 為其id
+         * 
+         * @type {object}
+         */
+        var eachOrders = orderses[key];
+
+        setDepartment(eachOrders);
+        
+        // 設置訂單內涵
+        setInvoices(eachOrders);
+      }
+
+      isSuccess('取得指定日期記錄完成');
+    })
+    .error(function (e) {
+      console.log(e);
+
+      isError('取得指定日期記錄發生錯誤!');
+    });
+  };
+
+  /**
+   * 設置 $scope.deDpartment
+   * 
+   * @param {object} eachOrders
+   */
+  var setDepartment = function (eachOrders) {
+    if (typeof eachOrders === 'undefined') {
+      return false;
+    }
+
+    var department = $scope.departments[eachOrders.goods_passport.store.id.toString()];
+
+    if (!department) {
+      department = $scope.departments[eachOrders.goods_passport.store.id.toString()] = {
+        required: 0,
+        amount: 0,
+        name: eachOrders.goods_passport.store.name
+      };
+    }
+
+    if (eachOrders.status.id !== OS_CANCEL) {
+      department.required += parseInt(eachOrders.required);
+
+      department.amount += 1; 
+    }
+  };
+
+  $scope.isEmpty = function (obj) {
+    return Object.keys(obj).length === 0;
+  };    
+
+  $scope.countObj = function (obj) {
+    return Object.keys(obj).length;
+  }
+
+  $scope.getDepartmentsTotal = function (type) {
+    var sum = 0;
+
+    for (var key in $scope.departments) {
+      sum += $scope.departments[key][type];
+    }
+
+    return sum;
+  };
+
+  /**
+   * 清空回饋訊息
+   */
+  $scope.emptyMsg = function () {
+    isSuccess(null);
+    isError(null);
+  };
+
+  $scope.changeActivity = function () {
+    $scope.invoices = {};
+    $scope.departments = {};
+    
+    setScopeDateRepo();
+    setDateSelected(initThisActivityRecord);
+  };
+
+  /**
+   * 初始化需要用到的參數，
+   * 應該只會在剛開始時執行一次，
+   * 之後整個controller 不該在有任何地方呼叫它
+   */
+  $scope.init = function () {
+    // 發票
+    $scope.invoices = {};
+
+    // 部門群
+    $scope.departments = {};
+
+    $scope.dateRepo = [];
+
+    $scope.isOrderSpecial = true;
+
+    // 取得活動選項
+    Activity.query(function (res) {
+      $scope.activitys = res;
+      $scope.myActivity = $scope.activitys[0];
+
+      if ($routeParams.id > 0) {
+        for (var key in $scope.activitys) {
+          if (parseInt($scope.activitys[key].id) === parseInt($routeParams.id)) {
+            $scope.myActivity = $scope.activitys[key];
+
+            break;
+          }
+        }
+      }
+
+      setScopeDateRepo();
+      setDateSelected(initThisActivityRecord);
+    });
+
+    // 宣告商品刷件容器
+    $scope.goodsRepo = [];
+
+    // 取得付費方式選項
+    $scope.payTypes = PayType.query();
+
+    // 初始化客戶物件
+    $scope.custom = {
+      allowNull: true
+    };
+
+    // 初始化總金額物件
+    $scope.total = {
+      org: 0,
+      sale: 0
+    };
+
+    // 預設刷件銷貨區展開
+    $scope.isBrushPanelVisible = true;
+
+    // 排序依據
+    $scope.prop = 'id';
+
+    $scope.ActivityProcessor = new ActivityProcessor;
+
+    $scope.todayTotalGrade = 0;
+
+    $scope.dateSelected = {};
+  };
+
+  $scope.saveEditOpe = function () {
+    $http.put(Routing.generate('api_ope_update', {id: $scope.editOpe.id}), $scope.editOpe)
+      .success(function () {
+        isSuccess('操作記錄修改完成!');
+
+        $scope.setEditOpe(null);
+      })
+      .error(function (e) {
+        console.log(e);
+
+        isError('操作記錄修改失敗!');
+      });
+  };
+
+  $scope.setEditOpe = function (ope) {
+    $scope.editOpe = ope;
+
+    if (!ope) {
+      return;
+    }
+
+    for (var index in $scope.payTypes) {
+      if ($scope.editOpe.pay_type.id === $scope.payTypes[index].id) {
+        $scope.editOpe.pay_type = $scope.payTypes[index];
+
+        break;
+      }
+    }
+  };
+
+  /**
+   * 格式化時間
+   * 
+   * @param  {string} date   
+   * @param  {string} format [example: 'yyyy-mm-dd']
+   * @return {string} [格式化以後的時間]
+   */
+  $scope.formatDate = function (date, format) {
+    var format = format || 'yyyy-MM-dd';
+
+    return $filter('date')(date, format);
+  };
+
+  /**
+   * 根據刷入的條碼取得商品資料，
+   * 商品資料若成功取得則初始化相關訂單資訊，
+   * 將其加入刷件商品容器中。
+   * 
+   * @param  {string} barcode
+   */
+  $scope.get = function (barcode) {
+    for (var key in $scope.goodsRepo) {
+      if ($scope.goodsRepo[key].sn === barcode) {
+        return;
+      }
+    }
+
+    /**
+     * 訂單查詢條件
+     * 
+     * @type {object}
+     */
+    var post = getGoodsFilterPost(barcode);
+
+    var GS_ACTIVITY = 6;
+
+    $http.get(Routing.generate('api_goodsPassport_filter', {jsonCondition: JSON.stringify(post)}))
+      .success(function (goodsGroup) {
+        // 若商品資料為空，報錯終止後續動作
+        if (goodsGroup.length === 0) {
+          return isError(barcode + '資料無法取得，請確定該商品確實存在!'); 
+        }
+
+        if (parseInt(goodsGroup[0].status.id) !== GS_ACTIVITY) {
+          return isError(barcode + '狀態為' + goodsGroup[0].status.name + ', 活動銷貨僅允許活動狀態商品!')
+        }
+
+        if (!goodsGroup[0].activity || parseInt(goodsGroup[0].activity.id) !== parseInt($scope.myActivity.id)) {
+          return isError(barcode +  '為' + goodsGroup[0].activity.name  + '之商品，非' + $scope.myActivity.name + '之商品!');
+        }
+
+        // 初始化此商品的訂單屬性
+        setGoodsOrders(goodsGroup[0]);
+
+        // 設置該商品的標題，品名，產編, 品牌，價格等文字敘述
+        $scope.setHeading(goodsGroup[0]);
+
+        goodsGroup[0].org_price = goodsGroup[0].price;
+        
+        // 將該商品加入商品刷件容器中
+        $scope.goodsRepo.push(goodsGroup[0]);
+
+        // 刷件欄位清空，方便連續刷件
+        $scope.barcode = '';
+
+        // 根據活動設置商品訂單的金額
+        $scope.ActivityProcessor.setActivityProcessPrice();
+
+        // 計算總金額
+        setTotal();
+
+        isSuccess(barcode + '資料取得成功!');
+      })
+      .error(function (e) {
+        console.log('error');
+
+        isError(barcode + '資料取得發生錯誤!');
+      }); 
+  };
+
+  /**
+   * 取消該筆刷件
+   * 
+   * @param  {object} goods [刷入的商品]
+   */
+  $scope.cancel = function (goods) {
+    var index = $scope.goodsRepo.indexOf(goods);
+
+    // 若商品確實存在商品刷件容器中，將其移除
+    if (index !== -1) {
+      $scope.goodsRepo.splice(index, 1);
+    }
+
+    // 根據活動設置商品訂單的金額
+    $scope.ActivityProcessor.setActivityProcessPrice();
+
+    // 計算總金額
+    setTotal();
+  };
+
+  /**
+   * 付款
+   */
+  $scope.pay = function () {
+    /**
+     * 特殊銷貨api需要使用的參數
+     * 
+     * @type {Object}
+     */
+    var payPost = {
+      goods: $scope.goodsRepo, 
+      custom: $scope.custom
+    };
+
+    // 結帳，與server溝通交換資料
+    $http.post(Routing.generate('api_orders_special'), payPost)
+      .success(successPayCallback)
+      .error(function (e) {
+        console.log(e);
+
+        isError('結帳失敗!');
+      });
+  };
+
+  /**
+   * 取消此訂單
+   * 
+   * @param {integer} index [index of $scope.ordersGroup]
+   */
+  $scope._cancel = function (orders) {
+    // 刪除訂單(取銷售出)，與server溝通交換資料
+    $http.delete(Routing.generate('api_orders_cancel', {id: orders.id}))
+      .success(ordersDeleteSuccessCallback)
+      .error(function (e) {
+        console.log(e);
+
+        isError('訂單取消發生錯誤!');
+      });
+  };
+
+  /**
+   * 修改訂單資訊
+   * 
+   * @param {integer} index [index of $scope.ordersGroup]
+   */
+  $scope.update = function (orders) {
+    var post = {
+      paid: orders.paid,
+      pay_type: orders.pay_type,
+      memo: orders.memo,
+      diff: orders.diff, // 有一input欄位 name="diff", 其用途為方便記錄此次付款多少金額以利 ope 記錄
+      content: orders.content
+    };
+
+    $http.put(Routing.generate('api_orders_update',{id: orders.id}), post)
+      .success(ordersUpdateSuccessCallbak)
+      .error(function (e) {
+        console.log(e);
+
+        isError('更新訂單失敗');
+      });
+  };
+
+  /**
+   * 透過email取得客戶資料，
+   * 這邊關乎到訂單綁定的客戶
+   * 
+   * @param {string} email
+   */
+  $scope.getCustomByMail = function (email) {
+    /**
+     * 客戶查詢條件
+     * 
+     * @type {Object}
+     */
+    var con = {
+      'Cemail': {
+        'in': [email]
+      }
+    };
+
+    $http.get(Routing.generate('api_custom_filter', {jsonCondition: JSON.stringify(con)})).
+      success(function (res) {
+        $scope.custom.id = res.id;
+        $scope.custom.name = res.name + res.sex;
+        $scope.custom.isExist = (res.length === 0) ? 0 : 1;
+
+        isSuccess('取得客戶資料成功!');
+      })
+      .error(function (e) {
+        console.log(e);
+
+        isError('取得客戶資料發生錯誤!');
+      });
+  };
+
+  /**
+   * 清空客戶資料
+   */
+  $scope.setCustomToNull = function () {
+    if ($scope.custom.allowNull) {
+      $scope.custom.email = '';
+      $scope.custom.name = '';
+      $scope.custom.id = '';
+    }
+  };
+
+  /**
+   * 隱藏/顯示 切換
+   */
+  $scope.switchDisplay = function (orders) {
+    orders.isDisplay = !orders.isDisplay;
+  };
+
+  /**
+   * 檢查活動是否有折扣
+   * 
+   * @param  {object}  activity
+   * @return {Boolean}         
+   */
+  $scope.isDiscount = function (activity) {
+    return (typeof activity !== 'undefined' && activity.discount > 0);
+  };
+
+  /**
+   * 檢查活動是否有滿額贈活動
+   * 
+   * @param  {object}  activity 
+   * @return {Boolean}
+   */
+  $scope.isGiftWithPurchase = function (activity) {
+    return (typeof activity !== 'undefined' && activity.exceed > 0 &&  activity.minus > 0);
+  };
+
+  /**
+   * 計算目前總價及優惠金額
+   */
+  $scope.countActivitySale = function () {
+    // 根據活動設置商品訂單的金額
+    //$scope.ActivityProcessor.setActivityProcessPrice();
+
+    // 計算總金額
+    setTotal();
+  };
+
+  $scope.assignTotalToEachAndSepByPrice = function () {
+    if ($scope.goodsRepo.length === 0) {
+      return false;
+    }
+
+    var tmpTotal = 0;
+
+    for (var index in $scope.goodsRepo) {
+      var price = parseInt($scope.total.sale * $scope.goodsRepo[index].price/$scope.total.org);
+      setGoodsOrdersPaidAndRequired(index, price);
+
+      tmpTotal = tmpTotal + price;
+    }
+
+    return setGoodsOrdersPaidAndRequired(0, $scope.goodsRepo[0].orders.required + ($scope.total.sale - tmpTotal));
+  };
+
+  var setGoodsOrdersPaidAndRequired = function (index, price) {
+    $scope.goodsRepo[index].orders.required = price;
+    $scope.goodsRepo[index].orders.paid = price;
+
+    return this;
+  };
+
+  $scope.export = function (assign) {
+    var condition = {
+      Gactivity: {
+        in: [$scope.myActivity]
+      },
+      Okind: {
+        in: [OK_SPECIAL_SOLDOUT]
+      },
+      Ostatus: {
+        notIn: [OS_CANCEL]
+      }
+    };
+
+    if (assign) {
+      condition.IcreateAt = {
+        gte: [$scope.dateSelected.val],
+        lte: [$scope.dateSelected.val]
+      };
+    }
+    
+    window.location = Routing.generate('api_orders_export', {jsonCondition: JSON.stringify(condition)});
+  };
+
+  $scope.init();
+}]);
 'use strict';
 
 /* Controllers */
