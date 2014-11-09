@@ -1,0 +1,32 @@
+Server running on http://127.0.0.1:2626
+
+Server running on http://127.0.0.1
+
+Server running on http://127.0.0.1:2626
+
+
+
+                                                               
+  [InvalidArgumentException]                                   
+  There are no commands defined in the "127.0.0.1" namespace.  
+                                                               
+
+
+
+
+                                                               
+  [InvalidArgumentException]                                   
+  There are no commands defined in the "127.0.0.1" namespace.  
+                                                               
+
+
+
+
+                                                               
+  [InvalidArgumentException]                                   
+  There are no commands defined in the "127.0.0.1" namespace.  
+                                                               
+
+
+Server running on http://127.0.0.1:2626
+

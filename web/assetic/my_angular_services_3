@@ -145,6 +145,14 @@ backendServices.factory('Activity', ['$resource',
     });
 }]);
 
+backendServices.factory('ExchangeRate', ['$resource',
+  function ($resource) {
+  return $resource(Routing.generate('api_exchangeRate_list') + '/:id', null, 
+    {
+      update: {method: 'PUT'}
+    });
+}]);
+
 // For todays date;
 Date.prototype.today = function () { 
   return this.getFullYear() + '-' + (((this.getMonth() + 1) < 10) ? '0' : '') + (this.getMonth() + 1) + '-' + ((this.getDate() < 10) ? '0' : '') + this.getDate();

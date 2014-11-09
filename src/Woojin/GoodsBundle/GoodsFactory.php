@@ -70,7 +70,7 @@ class GoodsFactory implements \Woojin\BackendBundle\EntityFactory
         $em->getConnection()->beginTransaction();
 
         try {
-            $goodsCollection = $this->genGoodsVialoopWithAmount($amount, $settings, $em);
+            $goodsCollection = $this->setDefualtName($settings)->genGoodsVialoopWithAmount($amount, $settings, $em);
 
             $em->flush();
 
@@ -121,6 +121,8 @@ class GoodsFactory implements \Woojin\BackendBundle\EntityFactory
         // 使用交易機制
         $em->getConnection()->beginTransaction();
 
+        $this->setDefualtName($settings);
+
         try {
             // 根據傳入的設定進行屬性設置
             foreach ($settings as $key => $val) {
@@ -170,7 +172,8 @@ class GoodsFactory implements \Woojin\BackendBundle\EntityFactory
         // 先除去數量元素，以防接下來的迴圈處理發生錯誤
         unset($settings['amount']);
 
-        return $this->genGoodsVialoopWithAmount($amount, $settings, $em);
+        return $this->genGoodsVialoopWithAmount($amount, $settings, $em)
+        ;
     }
 
     /**
@@ -228,6 +231,20 @@ class GoodsFactory implements \Woojin\BackendBundle\EntityFactory
     {
         foreach ($settings as $key => $val) {
             $goodsCollection[$index]->$key($val);
+        }
+
+        return $this;
+    }
+
+    /**
+     * 如果名稱為空或是未設，自動用 sku 
+     * 
+     * @param [array] $settings
+     */
+    protected function setDefualtName(&$settings)
+    {
+        if (!array_key_exists('setName', $settings) || empty($settings['setName'])) {
+            $settings['setName'] = $settings['setOrgSn'];
         }
 
         return $this;

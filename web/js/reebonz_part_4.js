@@ -69,6 +69,10 @@ config(['$routeProvider', function ($routeProvider) {
       templateUrl: Routing.generate('brand_index'),
       controller: 'BrandCtrl'
     }).
+    when('/exchangeRate', {
+      templateUrl: Routing.generate('exchangeRate_index'),
+      controller: 'ExchangeRateCtrl'
+    }).
     when('/pattern', {
       templateUrl: Routing.generate('pattern_index'),
       controller: 'PatternCtrl'
@@ -131,14 +135,6 @@ config(['$routeProvider', function ($routeProvider) {
       },
       controller: 'ActivityPlatformCtrl'
     }).
-    // when('/pay_type', {
-    //   templateUrl: Routing.generate('payType_index'),
-    //   controller: 'PayTypeCtrl'
-    // }).
-    // when('/exchange_rate', {
-    //   templateUrl: Routing.generate('exchangeRate_index'),
-    //   controller: 'ExchangeRateCtrl'
-    // }).
     otherwise({
       redirectTo: '/backend'
     });
@@ -647,6 +643,14 @@ backendServices.factory('Move', ['$resource',
 backendServices.factory('Activity', ['$resource',
   function ($resource) {
   return $resource(Routing.generate('api_activity_list') + '/:id', null, 
+    {
+      update: {method: 'PUT'}
+    });
+}]);
+
+backendServices.factory('ExchangeRate', ['$resource',
+  function ($resource) {
+  return $resource(Routing.generate('api_exchangeRate_list') + '/:id', null, 
     {
       update: {method: 'PUT'}
     });
@@ -1341,6 +1345,78 @@ backendCtrls.controller('CustomCtrl', ['$scope', '$routeParams', '$http', '$filt
 }]);
 'use strict';
 
+backendCtrls.controller('ExchangeRateCtrl', ['$scope', '$routeParams', '$http', 'ExchangeRate',
+    function ($scope, $routeParams, $http, ExchangeRate) { 
+
+  $scope.init = function () {
+    $scope.exchangeRates = ExchangeRate.query();
+    $scope.successMsg = false;
+    $scope.errorMsg = false;
+    $scope.tmp = {}; // 檢查資料有無改動，依此結果判斷是否要和後端溝通
+    $scope.query = {};
+    $scope.query.name = '';
+  };
+
+  $scope.formatDate = function (date, format) {
+    var format = format || 'yyyy-MM-dd';
+
+    return $filter('date')(date, format);
+  };
+
+  $scope.create = function (query) {
+    ExchangeRate.save(query).
+        $promise.then(function () {
+            $scope.successMsg = query.name + ' 新增完成!';
+            $scope.exchangeRates = ExchangeRate.query();
+            $scope.errorMsg = null;
+            $scope.query.name = '';
+        }, function (error) {
+        $scope.successMsg = null;
+            $scope.errorMsg = query.name + 'm新增失敗，請確認是否有名稱重複!';
+        });
+  };
+
+  $scope.update = function (exchangeRate) {
+
+    if (exchangeRate.name === $scope.tmp.name) {
+        return;
+    }
+
+    ExchangeRate.update({ id: exchangeRate.id}, exchangeRate).
+        $promise.then(function () {
+            $scope.successMsg = exchangeRate.name + ' 修改完成!';
+            //$scope.exchangeRates = ExchangeRate.query();
+            $scope.query.name = '';
+        }, function () {
+            $scope.errorMsg = exchangeRate.name + '修改失敗，請確認是否有名稱重複!';
+        });
+  };
+
+  $scope.destroy = function (exchangeRate) {
+    ExchangeRate.delete({ id: exchangeRate.id}).
+        $promise.then(function () {
+            $scope.successMsg = exchangeRate.name + ' 刪除完成!';
+            $scope.exchangeRates = ExchangeRate.query();
+            $scope.query.name = '';
+        }, function (e) {
+            $scope.errorMsg = exchangeRate.name + '刪除失敗，請確認是否有綁定資料!';
+        });
+  };
+
+  $scope.clean = function () {
+    $scope.successMsg = false;
+    $scope.errorMsg = false;
+  };
+
+  $scope.setTmp = function (exchangeRate) {
+    $scope.tmp.id = exchangeRate.id;
+    $scope.tmp.name = exchangeRate.name;
+  };
+
+  $scope.init();
+}]);
+'use strict';
+
 /* Controllers */
 
 backendCtrls.controller('GoodsLevelCtrl',['$scope', '$routeParams', '$http', 'GoodsLevel',
@@ -1616,8 +1692,44 @@ backendCtrls.controller('GoodsKeyInCtrl', ['$scope', '$routeParams', '$http', '$
     }
   };
 
+  var validate = function () {
+    var errorMsg = [];
+
+    if ($scope.goods.price === '' || $scope.goods.price === 0) {
+      errorMsg.push('尚未輸入市場價');
+    }
+
+    if ($scope.goods.cost === '' || $scope.goods.cost === 0) {
+      errorMsg.push('尚未輸入成本');
+    }
+
+    if (!$scope.goods.brand.id) {
+      errorMsg.push('尚未選擇品牌');
+    }
+
+    if (!$scope.goods.supplier.id ) {
+      errorMsg.push('尚未選擇供應商'); 
+    }
+
+    if ($scope.goods.org_sn == '') {
+      errorMsg.push('尚未輸入sku'); 
+    }
+
+    if (errorMsg.length > 0) {
+      $scope.isError(errorMsg.join(', '));
+
+      return false;
+    }
+
+    return true;
+  };
+
   // 一般新增
-  $scope.save = function ($files) {    
+  $scope.save = function ($files) {   
+    if (!validate()) {
+      return;
+    }
+
     $http.post(Routing.generate("api_goodsPassport_create"), $scope.goods).
       success(function (goods) {    
         if (goods.error) {
@@ -1663,13 +1775,14 @@ backendCtrls.controller('GoodsKeyInCtrl', ['$scope', '$routeParams', '$http', '$
     $scope.goods.purchase_at = getToday();
     $scope.goods.paid = 0;
     $scope.goods.feedback = 0;
-    $scope.goods.pattern = {id: ''};
-    $scope.goods.source = {id: ''};
-    $scope.goods.brand = {id: ''};
-    $scope.goods.level = {id: ''};
-    $scope.goods.mt = {id: ''};
-    $scope.goods.supplier = {id: 1};
-    $scope.goods.color = {id: ''};
+    $scope.goods.pattern = {id: false};
+    $scope.goods.source = {id: false};
+    $scope.goods.brand = {id: false};
+    $scope.goods.level = {id: false};
+    $scope.goods.mt = {id: false};
+    $scope.goods.supplier = {id: false};
+    $scope.goods.color = {id: false};
+    $scope.goods.org_sn = '';
 
     $http.get(Routing.generate('api_user_current'))
       .success(function (user) {
@@ -3564,6 +3677,12 @@ backendCtrls.controller('OrdersNormalCtrl', ['$scope', '$routeParams', '$http', 
     // 排序依據
     $scope.prop = 'id';
 
+    $scope.query = {
+      store: {
+        name: 'F'
+      }
+    };
+
     $scope.months = [];
     $scope.years = [];
 
@@ -4627,6 +4746,12 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
 
     $scope.isOrderSpecial = true;
 
+    $scope.query = {
+      store: {
+        name: 'F'
+      }
+    };
+
     // 取得活動選項
     Activity.query(function (res) {
       $scope.activitys = res;
@@ -5073,834 +5198,6 @@ backendCtrls.controller('PatternCtrl', ['$scope', '$routeParams', '$http', 'Patt
 /* Controllers */
 
 backendCtrls.controller('PayTypeCtrl', [ function () {}]);
-'use strict';
-
-/* Controllers */
-
-backendCtrls.controller('GoodsImportCtrl', ['$scope', '$routeParams', '$http', '$timeout', '$upload', '$filter',
-  function ($scope, $routeParams, $http, $timeout, $upload, $filter) {
-  /**
-   * 檔案選擇時，馬上顯示圖片
-   */
-  $scope.onFileSelect = function ($files, type) {
-    $scope[type] = $files;
-    
-    // 取出第0個元素
-    var $file = $files[0];
-    
-    // 這段不是很懂... 總之就是將上傳的圖片透過 HTML5 的 API 立即顯示
-    if (window.FileReader && $file.type.indexOf('image') > -1) {
-      var fileReader = new FileReader();
-      
-      fileReader.readAsDataURL($files[0]);
-      
-      var loadFile = function(fileReader) {
-        fileReader.onload = function(e) {
-          $timeout(function() {
-            if (goods) {
-              goods.imgpath = e.target.result;
-            }
-          });
-        }
-      }(fileReader);
-    }
-  };
-
-  /**
-   * 批次上傳商品(匯入 excel )
-   */
-  $scope.import = function () {
-    if (!$scope.importfiles) {
-      return;
-    }
-
-    for (var i = 0; i < $scope.importfiles.length; i++) {
-      var file = $scope.importfiles[i];
-
-      $scope.upload = $upload.upload({
-        url: Routing.generate('api_goodsPassport_import'),
-        method: 'POST',
-        withCredentials: true,
-        data: { myObj: $scope.myModelObj}, // 這行坦白說我不知道意思@@
-        file: file, 
-      }).success(function(data, status, headers, config) {
-        if (data.error) {
-          var msg = data.error;
-
-          $scope.errorEntity = {};
-          $scope.errorEntity.resource = data.resource;
-          $scope.errorEntity.name = data.name;
-          
-          return $scope.isError(msg);
-        }
-
-        $scope.errorEntity = false;
-
-        for (var key in data) {
-          // 防止空實體造成錯誤
-          $scope.preventEntityError(data[key]);
-
-          // 將取得的資料放入scope
-          $scope.importGoods.push(data[key]);
-        }
-        // 清除要上傳的檔案
-        $scope.cleanFile('#import-file');
-
-        $scope.isSuccess('批次上傳成功');
-      }).error(function (e) {
-        $scope.errorEntity = false;
-        $scope.isError('批次上傳失敗');
-      });
-    }
-  };
-
-  $scope.addEntity = function () {
-    $http.post(Routing.generate('api_' + $scope.errorEntity.resource + '_create'), {name: $scope.errorEntity.name})
-      .success(function (res) {
-        $scope.isSuccess(res.name + '新增完成!');
-        $scope.errorEntity = false;
-      })
-      .error(function () {
-        $scope.isError($scope.errorEntity.name + '新增失敗!');
-      });
-  };
-}]);
-'use strict';
-
-/* Controllers */
-
-backendCtrls.controller('GoodsKeyInCtrl', ['$scope', '$routeParams', '$http', '$timeout', '$upload', '$filter',
-  function ($scope, $routeParams, $http, $timeout, $upload, $filter) { 
-  /**
-   * 取得目前的時間，並且格式化為 yyyy-mm-dd
-   * 
-   * @return {string}
-   */
-  var getToday = function () {
-    var today = new Date();
-
-    return today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
-  };
-
-  $scope.formatDate = function (date, format) {
-    var format = format || 'yyyy-MM-dd';
-    return $filter('date')(date, format);
-  };
-
-  /**
-   * 將圖片檔案透過 ajax 傳送到 server 儲存
-   */
-  $scope.uploadMulti = function ($files, ids, goodses) {
-    if (!$files) {
-      return;
-    }
-
-    //$files: an array of files selected, each file has name, size, and type.
-    for (var i = 0; i < $files.length; i++) {
-      var file = $files[i];
-
-      $scope.upload = $upload.upload({
-        url: Routing.generate('img_upload_multi', {ids: JSON.stringify(ids)}),
-        method: 'POST',
-        withCredentials: true,
-        data: { myObj: $scope.myModelObj},
-        file: file, 
-      }).success(function (data, status, headers, config) {
-        for (var key in goodses) {
-          goodses[key].imgpath = data;
-        }
-
-        // 加入成功訊息
-        $scope.isSuccess('新增成功');
-      }).error(function (e) {
-        $scope.isError('圖片上傳失敗');
-      });
-    }
-  };
-
-  // 一般新增
-  $scope.save = function ($files) {    
-    $http.post(Routing.generate("api_goodsPassport_create"), $scope.goods).
-      success(function (goods) {    
-        if (goods.error) {
-          return $scope.isError(goods.error);
-        }
-
-        // 上傳圖片會用到
-        var ids = [];
-
-        // 迴圈處理時間格式資料
-        for (var key in goods) {
-          // 防止空實體造成錯誤
-          $scope.preventEntityError(goods[key]);
-
-          // 加入新增成功的陣列
-          $scope.addGoods.push(goods[key]);
-
-          // 加入ids
-          ids.push(goods[key].id);
-        }
-
-        // 上傳圖片
-        $scope.uploadMulti($files, ids, $scope.addGoods);
-
-        $scope.isSuccess('新增商品完成!');
-      })
-      .error(function (e) {
-        $scope.isError('新增失敗!');
-      });
-  };
-
-  // 手動上傳完成後將表單相關的變數還原
-  $scope.initKeyInForm = function () {
-    $scope.successMsg = false;
-    $scope.errorMsg = false;
-    $scope.tmp = {}; // 檢查資料有無改動，依此結果判斷是否要和後端溝通
-    $scope.goods = {};
-    $scope.goods.amount = 1;
-    $scope.goods.imgpath = $scope.img404;
-    $scope.goods.allow_discount = 1;
-    $scope.goods.in_type = 0;
-    $scope.goods.is_web = 1;
-    $scope.goods.purchase_at = getToday();
-    $scope.goods.paid = 0;
-    $scope.goods.feedback = 0;
-    $scope.goods.pattern = {id: ''};
-    $scope.goods.source = {id: ''};
-    $scope.goods.brand = {id: ''};
-    $scope.goods.level = {id: ''};
-    $scope.goods.mt = {id: ''};
-    $scope.goods.supplier = {id: 1};
-    $scope.goods.color = {id: ''};
-
-    $http.get(Routing.generate('api_user_current'))
-      .success(function (user) {
-        $scope.goods.store = user.store;
-      })
-      .error(function (e) {
-        console.log(e);
-
-        $scope.goods.store = {};
-      });
-  };
-
-  $scope.initKeyInForm();
-}]);
-'use strict';
-
-/* Controllers */
-
-backendCtrls.controller('GoodsPassportCtrl', [ '$scope', '$http', '$filter', '$timeout', '$upload', '$sce', '$modal', '$log', 'Brand', 'Pattern', 'Color', 'GoodsLevel', 'GoodsSource', 'Supplier', 'PayType', 'GoodsMT', 'GoodsStatus', 'Store', 'Move', 'Activity',
- function ($scope, $http, $filter, $timeout, $upload, $sce, $modal, $log, Brand, Pattern, Color, GoodsLevel, GoodsSource, Supplier, PayType, GoodsMT, GoodsStatus, Store, Move, Activity) { 
-  
-  $scope.initMeta = function() {
-    $scope.entity = {};
-    $scope.entity.brands = Brand.query();
-    $scope.entity.patterns = Pattern.query();
-    $scope.entity.colors = Color.query();
-    $scope.entity.suppliers = Supplier.query();
-    $scope.entity.mts = GoodsMT.query();
-    $scope.entity.activitys = Activity.query();
-    $scope.entity.goodsSources = GoodsSource.query();
-    $scope.entity.goodsLevels = GoodsLevel.query();
-    $scope.entity.stores = Store.query();
-    $scope.entity.goodsStatuss = GoodsStatus.query();
-    $scope.entity.isWebRadios = [{text: '是', value: 1}, {text: '否', value: 0}];
-    $scope.entity.isAllowDiscountRadios = [{text: '是', value: 1}, {text: '否', value: 0}];
-    $scope.entity.isInTypeRadios = [{text: '一般', value: 0}, {text: '寄賣', value: 1}];
-    $scope.img404 = '/img/404.png';
-    $scope.importGoods = []; // 批次上傳後回傳的商品資料
-    $scope.addGoods = [];// 單筆上傳後回傳的商品資料( 回傳為陣列特別注意!!! )
-    $scope.successMsg = false;
-    $scope.errorMsg = false;
-    $scope.globalOrders = []; // 訂單modal要用的變數
-  };
-
-  $scope.goSell = function () {
-    window.location.href='#/normal';
-  };
-
-  $scope._formatDate = function (date, format) {
-    var format = format || 'yyyy-MM-dd';
-    return $filter('date')(date, format);
-  };
-
-  /**
-   * 檔案選擇時，馬上顯示圖片
-   */
-  $scope.onFileSelect = function ($files, type, goods) {
-    if (goods) {
-      goods[type] = $files;
-    } else {
-      $scope[type] = $files;
-    }
-    
-    // 取出第0個元素
-    var $file = $files[0];
-    
-    // 這段不是很懂... 總之就是將上傳的圖片透過 HTML5 的 API 立即顯示
-    if (window.FileReader && $file.type.indexOf('image') > -1) {
-      var fileReader = new FileReader();
-      
-      fileReader.readAsDataURL($files[0]);
-      
-      var loadFile = function(fileReader) {
-        fileReader.onload = function(e) {
-          $timeout(function() {
-            if (goods) {
-              goods.imgpath = e.target.result;
-            }
-          });
-        }
-      }(fileReader);
-    }
-  };
-
-  /**
-   * Lazy load 圖片(展開商品資料時才讀取)
-   */
-  $scope.setLazyImg = function (goods) {
-    goods.imgpathLazy = goods.imgpath;
-  };
-
-  /**
-   * 移除圖片
-   */
-  $scope.removeImg = function (goods) {
-    goods.imgpath = $scope.img404;
-    $scope.setLazyImg(goods);
-  };
-
-  $scope.isSuccess = function (msg, goods) {
-    $scope.successMsg = (goods) ?  goods.name + '(' + goods.sn + ')' + msg : '' + msg;
-    $scope.successMsg = $sce.trustAsHtml($scope.successMsg);
-    $scope.errorMsg = false;
-  };
-
-  $scope.isError = function (msg, goods) {
-    $scope.errorMsg = (goods) ? goods.name + '(' + goods.sn + ')' + msg : '' + msg;
-    $scope.errorMsg = $sce.trustAsHtml($scope.errorMsg);
-    $scope.successMsg = false;
-  };
-
-  $scope.emptyMsg = function () {
-    $scope.successMsg = false;
-    $scope.errorMsg = false;
-  }
-
-  // 清除上傳的圖片或檔案
-  $scope.cleanFile = function (selector) {
-    $(selector).val('');// 很無奈的只能先用jQuery處理了，angualr 對file 的支援好少喔
-  };
-
-  $scope.delete = function (goods) {
-    $http.delete(Routing.generate('api_goodsPassport_delete', {id: goods.id}), goods).
-      success(function (res) {
-      goods.isDelete = true;
-      $scope.isSuccess('刪除完成', goods);
-    });
-  };
-
-  $scope.splice = function (repo, elem) {
-    var index = repo.indexOf(elem);
-
-    if (index !== -1) {
-      repo.splice(index, 1);
-    }
-  };
-
-  /**
-   * 還原上傳操作
-   */
-  $scope.reverse = function (model, msg) {
-    var postId = [];
-
-    for (var key in $scope[model]) {
-      postId.push($scope[model][key].id);
-    }
-
-    // 這段api 要小心用，其實就是把商品不留痕跡的抹除，這東西太危險目前限制只在還原時使用，平常商品刪除就只能通過destroy 或下架
-    $http.delete(Routing.generate('api_goodsPassport_reverse', {jsonIds: JSON.stringify(postId)}))
-      .success(function () {      
-        $scope[model] = [];
-        $scope.isSuccess(msg + '還原完成!');
-      }).error(function () {
-        $scope.isError(msg + '還原失敗!');
-      });
-  };
-
-  $scope.put = function (index, repo) {
-    var goods = repo[index];
-
-    $http.put(Routing.generate("api_goodsPassport_update", {id: goods.id}), goods).
-      success(function (returnGoods) {
-        returnGoods.isSuccess = true;
-
-        repo[index] = returnGoods;
-        
-        $scope.setLazyImg(goods);
-        
-        $scope.isSuccess('修改成功', goods);
-      })
-      .error(function (e) {
-        $scope.isError('修改失敗', goods);
-      });
-  }
-
-  /**
-   * 更新商品資訊
-   * @param  {integer} index 
-   * @param  {array}
-   */
-  $scope.update = function (index, repo) {
-    var goods = repo[index];
-    var $files = goods.files;
-
-    if (typeof $files === 'undefined' || !$files) {
-      return $scope.put(index, repo);
-    }
-
-    for (var i = 0; i < $files.length; i++) {
-      var file = $files[i];
-      $scope.upload = $upload.upload({
-        url: Routing.generate('img_upload', {id: goods.id}),
-        method: 'POST',
-        withCredentials: true,
-        data: { myObj: $scope.myModelObj},
-        file: file, 
-      }).progress(function(evt) { // 可以監聽上傳過程，不過這邊我們用不到就是
-        //$scope.progress = parseInt(100.0 * evt.loaded / evt.total);
-      }).success(function(data, status, headers, config) {
-        goods.imgpath = data;
-        $scope.put(index, repo);
-      }).error(function (e) {
-        $scope.isError('圖片修改失敗');
-      });
-    }
-  };
-
-  $scope.move = function (goods) {
-    Move.save({id: goods.id}, function (res) {
-      if (res.msg) {
-        return $scope.isError(res.msg);
-      }
-
-      $scope.isSuccess('訂貨請求成功發送!');
-    });
-  };
-
-  $scope.preventEntityError = function (model) {
-    var r = ['brand', 'pattern', 'level', 'source', 'mt', 'supplier', 'color'];
-
-    for (var i in r) {// 防止不存在實體引起錯誤
-      if (typeof model[r[i]] === 'undefined') {
-        model[r[i]] = {id: ''};
-      }
-    }
-  };
-
-  $scope.open = function (goods) {
-    var post = {Gsn: {in: [goods.sn]}};
-
-    $http.get(Routing.generate('api_orders_filter', {jsonCondition: JSON.stringify(post)}))
-      .success(function (orderses) {
-        var modalInstance = $modal.open({
-          templateUrl: 'myModalContent.html',
-          controller: ModalInstanceCtrl,
-          size: false,
-          resolve: {
-            orderses: function () {
-              return $scope.globalOrders = orderses;
-            }
-          }
-        });
-
-        $scope.isSuccess(false);
-      }).error(function () {
-        $scope.isError('訂單讀取發生錯誤!');
-      });
-  };
-
-  $scope.initMeta();
-}]);
-'use strict';
-
-/* Controllers */
-
-/**
- * 商品搜尋及相關CRUD
- */
-backendCtrls.controller('GoodsSearchCtrl', ['$scope', '$routeParams', '$http', '$upload', '$timeout', '$filter',
-  function ($scope, $routeParams, $http, $upload, $timeout, $filter) { 
-  
-  var GoodsOperator;
-
-  /**
-   * 取得目前的時間，並且格式化為 yyyy-mm-dd
-   * 
-   * @return {string}
-   */
-  var getToday = function () {
-    var today = new Date();
-
-    return today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
-  };
-  
-  /**
-   * 初始化資料
-   */
-  $scope.initSearchMeta = function () {
-    $scope.goods = {};
-    $scope.repo = {};
-    $scope.successMsg = false;
-    $scope.errorMsg = false;
-    $scope.queryDes = false;
-    $scope.orderDir = 'ASC';
-    $scope.totalItems = 0;
-    $scope.currentPage = 1;
-    $scope.perPage = 10;
-    $scope.orderBy = {attr: 'id', name: '索引'};
-    $scope.orderDir = 'DESC';
-    $scope.searchRepo = [];
-    $scope.actType = '';
-    $scope.checkStatus = true;
-    $scope.punchActivity = {
-      description: "借出",
-      discount: 0,
-      end_at: "2016-04-09T00:00:00+0800",
-      exceed: 0,
-      id: 1,
-      minus: 0,
-      name: "借出",
-      start_at: "2014-08-01T00:00:00+0800",
-    };
-
-    $scope.startAt = getToday();
-    $scope.endAt = getToday();
-
-    $scope.isAllowEdit = true;
-
-    // 取得排序資料
-    $http.get('/bundles/woojinbackend/js/angular-seed/app/js/goods/order_conditions.json').
-      success(function (res) {
-        $scope.orderBys = res;
-      });
-
-    // 取得 mapping 設定
-    $http.get('/bundles/woojinbackend/js/angular-seed/app/js/mapping.json').
-      success(function (res) {
-        /**
-         * 查詢描述英中對應陣列
-         * @type {Object}
-         */
-        $scope.mapping = res;
-      });
-
-    GoodsOperator = new GoodsOperator;
-  };
-
-  $scope.addTimeCondition = function (type) {
-    var attr = type;
-
-    $scope.goods[attr] = $scope.startAt;
-    $scope.addInSearchRePo(type, 'gte');
-
-    $scope.goods[attr] = $scope.endAt;
-    $scope.addInSearchRePo(type, 'lte');
-  };
-
-  $scope.checkAll = function () {
-    for (var key in $scope.searchRepo) {
-      $scope.searchRepo[key].isCheck = $scope.checkStatus;
-    }
-  };
-  
-  $scope.doAct = function () {
-    GoodsOperator[$scope.actType]();
-  };
- 
-  /**
-   * 根據條件取得查詢結果
-   */
-  $scope.query = function () {
-    $http.get(
-      Routing.generate(
-        "api_goodsPassport_filter", 
-        {
-          jsonCondition: JSON.stringify($scope.repo), 
-          page: $scope.currentPage, 
-          perPage: $scope.perPage,
-          jsonOrderBy: JSON.stringify({attr: $scope.orderBy.attr, dir: $scope.orderDir})
-        }
-      )).
-      success(function (goods) {
-        for (var key in goods) {
-          $scope.preventEntityError(goods[key]);
-
-          $scope.switchPanelAndRes();
-        }
-
-        if (goods.length === 0) {
-          $scope.switchPanelAndRes();
-          $scope.isError('查無商品!');
-        }
-
-        $scope.searchRepo = goods;
-      }).
-      error(function () {
-        $scope.isError('Woops! 查詢發生錯誤！');
-      });
-  };
-
-  /**
-   * 結果區域及輸入區域切換顯示
-   */
-  $scope.switchPanelAndRes = function () {
-    $scope.isSearchPanelVisible = true;
-    $scope.isSearchResVisible = false;
-  };
-
-  /**
-   * 匯出檔案
-   */
-  $scope.export = function () {    
-    window.location = Routing.generate("api_goodsPassport_export", {jsonCondition: JSON.stringify($scope.repo)});
-  };
-
-  /**
-   * 查詢條件以及結果清空
-   */
-  $scope.reset = function () {
-    $scope.repo = {};
-    $scope.goods = {};
-    $scope.queryDes = false;
-  };
-
-  /**
-   * 初始化頁籤
-   */
-  $scope.pageInit = function () {
-    $http.get(Routing.generate("api_goodsPassport_filter_count", {jsonCondition: JSON.stringify($scope.repo)})).
-      success(function (total) {
-        $scope.totalItems = total;
-      });
-  };
-
-  /**
-   * 換頁時觸發動作，這邊是執行 query() 方法取得資料
-   */
-  $scope.pageChanged = function() {
-    $scope.query();
-  };
-
-  /**
-   * 加入搜尋條件陣列
-   * 
-   * @param {string} attr [資料屬性]
-   * @param {string type [邏輯類型{ notin, in, like ....}]
-   */
-  $scope.addInSearchRePo = function (attr, type) {
-    if (!$scope.goods[attr]) {
-      return;
-    }
-
-    if (!$scope.repo[attr]) {
-      $scope.repo[attr] = {};
-    }
-
-    if (!$scope.repo[attr][type]) {
-      $scope.repo[attr][type] = [];
-    }
-
-    $scope.repo[attr][type].push($scope.goods[attr]);
-    $scope.goods[attr] = '';
-    $scope.buildQueryDes();
-  };
-
-  /**
-   * 設置相等查詢條件
-   * 
-   * @param {string} attr [屬性]
-   * @param {string} type [邏輯類別]
-   */
-  $scope.setEqRepo = function (attr, type) {
-    if (!$scope.goods[attr]) {
-      $scope.repo[attr] = false;
-
-      return $scope.buildQueryDes();
-    }
-
-    if (!$scope.repo[attr]) {
-      $scope.repo[attr] = {};
-    }
-
-    if (!$scope.repo[attr][type]) {
-      $scope.repo[attr][type] = '';
-    }
-
-    $scope.repo[attr][type] = $scope.goods[attr];
-
-    return $scope.buildQueryDes();
-  };
-
-  /**
-   * 產生查詢的文字描述
-   */
-  $scope.buildQueryDes = function () {
-    var tailStr = '且';
-    iterateRepo(tailStr);
-
-    $scope.queryDes = $scope.queryDes.substring(0, $scope.queryDes.length - tailStr.length);
-  };
-
-  var iterateRepo = function (tailStr) {
-    $scope.queryDes = '';
-
-    for (var attr in $scope.repo) {
-      if (!$scope.repo[attr]) {
-        continue;
-      }
-
-      $scope.queryDes += $scope.mapping.attr[attr];
-
-      iterateRepoAttr(attr, tailStr);
-    };
-  };
-
-  var iterateRepoAttr = function (attr, tailStr) {
-    for (var type in $scope.repo[attr]) {
-      $scope.queryDes += $scope.mapping.type[type];
-
-      if (!Array.isArray($scope.repo[attr][type])) {
-        $scope.queryDes += $scope.repo[attr][type].name;
-        $scope.queryDes += tailStr;
-
-        continue;
-      }
-
-      iterateRepoType(attr, type);
-
-      $scope.queryDes += tailStr;
-    }
-  };
-
-  var iterateRepoType = function (attr, type) {
-    for (var i = 0; i < $scope.repo[attr][type].length; i ++) {
-      if (typeof $scope.repo[attr][type][i] === 'object') {
-        $scope.queryDes += $scope.repo[attr][type][i].name + ((i === $scope.repo[attr][type].length - 1) ? '': '或');          
-      } else {
-        $scope.queryDes += $scope.repo[attr][type][i] + ((i === $scope.repo[attr][type].length - 1) ? '':'或');
-      }
-    }
-  };
-
-  /**
-   * Goods Operator
-   */
-  var GoodsOperator = function () {
-    this.selectChecked = function () {
-      var tmp = [];
-
-      for (var key in $scope.searchRepo) {
-        if ($scope.searchRepo[key].isCheck) {
-          tmp.push({id: $scope.searchRepo[key].id});
-        }
-      }
-
-      return tmp;
-    };
-
-    this.onSaleChecked = function () {
-      $http.put(Routing.generate('api_goodsPassport_batchSetStatus', {id: 1}), {goodsPost: this.selectChecked()})
-        .success(function (res) {
-          $scope.isSuccess('批次上架完成！');
-
-          $scope.query();
-        })
-        .error(function (e) {
-          console.log(e);
-
-          $scope.isError('批次刪除發生錯誤!');
-        });
-    };
-
-    this.offSaleChecked = function () {
-      $http.put(Routing.generate('api_goodsPassport_batchSetStatus', {id: 4}), {goodsPost: this.selectChecked()})
-        .success(function (res) {
-          $scope.isSuccess('批次下架完成！');
-
-          $scope.query();
-        })
-        .error(function (e) {
-          console.log(e);
-
-          $scope.isError('批次下架發生錯誤！');
-        });
-    };
-    
-    this.deleteChecked = function () {
-      /**
-       * id 陣列
-       * 
-       * @type {Array}
-       */
-      var ids = [];
-
-      /**
-       * 商品實體陣列
-       * 
-       * @type {array}
-       */
-      var goodses = this.selectChecked();
-
-      for (var key in goodses) {
-        ids.push(goodses[key].id);
-      }
-
-      $http.delete(Routing.generate('api_goodsPassport_reverse', {jsonIds: JSON.stringify(ids)}))
-        .success(function (res) {
-          $scope.isSuccess('批次刪除完成！');
-
-          $scope.query();
-        })
-        .error(function (e) {
-          console.log(e);
-
-          $scope.isError('批次刪除發生錯誤！');
-        });
-    };
-    
-    this.punchOutChecked = function () {
-      $http.put(Routing.generate('api_activity_push', {id: $scope.punchActivity}), {goodsPost: this.selectChecked()})
-        .success(function (res) {
-          $scope.isSuccess('批次刷出完成！');
-
-          $scope.query();
-        })
-        .error(function (e) {
-          console.log(e);
-
-          $scope.isError('批次刷出發生錯誤！');
-        });
-    };
-    
-    this.punchInChecked = function () {
-      $http.put(Routing.generate('api_activity_pull', {id: $scope.punchActivity}), {goodsPost: this.selectChecked()})
-        .success(function (res) {
-          $scope.isSuccess('批次刷入完成！');
-
-          $scope.query();
-        })
-        .error(function (e) {
-          console.log(e);
-
-          $scope.isError('批次刷入發生錯誤！');
-        });
-    };
-  };
-
-  $scope.initSearchMeta();
-}]);
 'use strict';
 
 /* Controllers */

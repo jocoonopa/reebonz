@@ -496,6 +496,12 @@ backendCtrls.controller('OrdersNormalCtrl', ['$scope', '$routeParams', '$http', 
     // 排序依據
     $scope.prop = 'id';
 
+    $scope.query = {
+      store: {
+        name: 'F'
+      }
+    };
+
     $scope.months = [];
     $scope.years = [];
 

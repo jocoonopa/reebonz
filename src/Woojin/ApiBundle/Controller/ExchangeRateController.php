@@ -20,7 +20,7 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 
 // Entity
-use Woojin\OrderBundle\Entity\ExchangeRate;
+use Woojin\StoreBundle\Entity\ExchangeRate;
 
 /**
  * 關於 ExchangeRate(匯率) CRUD 動作，
@@ -57,7 +57,7 @@ class ExchangeRateController extends Controller
          * ExchangeRate entity array 
          * @var array{ object }
          */
-        $exchangeRates = $this->getDoctrine()->getRepository('WoojinOrderBundle:ExchangeRate')->findAll();
+        $exchangeRates = $this->getDoctrine()->getRepository('WoojinStoreBundle:ExchangeRate')->findAll();
 
         $serializer = \JMS\Serializer\SerializerBuilder::create()->build();
         
@@ -70,7 +70,7 @@ class ExchangeRateController extends Controller
      * 取得單一匯率實體
      * 
      * @Route("/{id}", requirements={"id" = "\d+"}, name="api_exchangeRate_show",options={"expose"=true})
-     * @ParamConverter("exchangeRate", class="WoojinOrderBundle:ExchangeRate")
+     * @ParamConverter("exchangeRate", class="WoojinStoreBundle:ExchangeRate")
      * @Method("GET")
      *
      * @ApiDoc(
@@ -102,7 +102,7 @@ class ExchangeRateController extends Controller
      * 
      * 
      * @Route("/{id}", requirements={"id" = "\d+"}, name="api_exchangeRate_update", options={"expose"=true})
-     * @ParamConverter("exchangeRate", class="WoojinOrderBundle:ExchangeRate")
+     * @ParamConverter("exchangeRate", class="WoojinStoreBundle:ExchangeRate")
      * @Method("PUT")
      * 
      * @ApiDoc(
@@ -123,8 +123,9 @@ class ExchangeRateController extends Controller
     public function updateAction(ExchangeRate $exchangeRate, Request $request)
     {
         $exchangeRate
-            ->setName($request->request->get('name'))
+            ->setName('新加坡幣')
             ->setRate($request->request->get('rate'))
+            ->setMonth(trim($request->request->get('month')))
         ;
 
         $em = $this->getDoctrine()->getManager();
@@ -158,8 +159,9 @@ class ExchangeRateController extends Controller
     {
         $exchangeRate = new ExchangeRate;
         $exchangeRate
-            ->setName($request->request->get('name'))
+            ->setName('新加坡幣')
             ->setRate($request->request->get('rate'))
+            ->setMonth(trim($request->request->get('month')))
         ;
         
         $em = $this->getDoctrine()->getManager();
@@ -174,7 +176,7 @@ class ExchangeRateController extends Controller
      * 
      * 
      * @Route("/{id}", requirements={"id" = "\d+"}, name="api_exchangeRate_delete", options={"expose"=true})
-     * @ParamConverter("exchangeRate", class="WoojinOrderBundle:ExchangeRate")
+     * @ParamConverter("exchangeRate", class="WoojinStoreBundle:ExchangeRate")
      * @Method("DELETE")
      * 
      * @ApiDoc(

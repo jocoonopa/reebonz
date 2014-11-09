@@ -783,6 +783,12 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
 
     $scope.isOrderSpecial = true;
 
+    $scope.query = {
+      store: {
+        name: 'F'
+      }
+    };
+
     // 取得活動選項
     Activity.query(function (res) {
       $scope.activitys = res;

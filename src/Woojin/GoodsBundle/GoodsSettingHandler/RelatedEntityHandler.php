@@ -97,7 +97,7 @@ class RelatedEntityHandler
         if ($status = $request->request->get('status', self::GS_ONSALE)) {
             $accessor->setValue($settings, '[setStatus]', $em->find('WoojinGoodsBundle:GoodsStatus', $status)); 
 
-            $accessor->setValue($settings, '[setActivity]', null);
+            //$accessor->setValue($settings, '[setActivity]', null);
         }
 
         return $this;

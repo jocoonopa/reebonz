@@ -69,6 +69,10 @@ config(['$routeProvider', function ($routeProvider) {
       templateUrl: Routing.generate('brand_index'),
       controller: 'BrandCtrl'
     }).
+    when('/exchangeRate', {
+      templateUrl: Routing.generate('exchangeRate_index'),
+      controller: 'ExchangeRateCtrl'
+    }).
     when('/pattern', {
       templateUrl: Routing.generate('pattern_index'),
       controller: 'PatternCtrl'
@@ -131,14 +135,6 @@ config(['$routeProvider', function ($routeProvider) {
       },
       controller: 'ActivityPlatformCtrl'
     }).
-    // when('/pay_type', {
-    //   templateUrl: Routing.generate('payType_index'),
-    //   controller: 'PayTypeCtrl'
-    // }).
-    // when('/exchange_rate', {
-    //   templateUrl: Routing.generate('exchangeRate_index'),
-    //   controller: 'ExchangeRateCtrl'
-    // }).
     otherwise({
       redirectTo: '/backend'
     });

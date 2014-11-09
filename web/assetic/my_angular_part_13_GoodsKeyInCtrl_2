@@ -51,8 +51,44 @@ backendCtrls.controller('GoodsKeyInCtrl', ['$scope', '$routeParams', '$http', '$
     }
   };
 
+  var validate = function () {
+    var errorMsg = [];
+
+    if ($scope.goods.price === '' || $scope.goods.price === 0) {
+      errorMsg.push('尚未輸入市場價');
+    }
+
+    if ($scope.goods.cost === '' || $scope.goods.cost === 0) {
+      errorMsg.push('尚未輸入成本');
+    }
+
+    if (!$scope.goods.brand.id) {
+      errorMsg.push('尚未選擇品牌');
+    }
+
+    if (!$scope.goods.supplier.id ) {
+      errorMsg.push('尚未選擇供應商'); 
+    }
+
+    if ($scope.goods.org_sn == '') {
+      errorMsg.push('尚未輸入sku'); 
+    }
+
+    if (errorMsg.length > 0) {
+      $scope.isError(errorMsg.join(', '));
+
+      return false;
+    }
+
+    return true;
+  };
+
   // 一般新增
-  $scope.save = function ($files) {    
+  $scope.save = function ($files) {   
+    if (!validate()) {
+      return;
+    }
+
     $http.post(Routing.generate("api_goodsPassport_create"), $scope.goods).
       success(function (goods) {    
         if (goods.error) {
@@ -98,13 +134,14 @@ backendCtrls.controller('GoodsKeyInCtrl', ['$scope', '$routeParams', '$http', '$
     $scope.goods.purchase_at = getToday();
     $scope.goods.paid = 0;
     $scope.goods.feedback = 0;
-    $scope.goods.pattern = {id: ''};
-    $scope.goods.source = {id: ''};
-    $scope.goods.brand = {id: ''};
-    $scope.goods.level = {id: ''};
-    $scope.goods.mt = {id: ''};
-    $scope.goods.supplier = {id: 1};
-    $scope.goods.color = {id: ''};
+    $scope.goods.pattern = {id: false};
+    $scope.goods.source = {id: false};
+    $scope.goods.brand = {id: false};
+    $scope.goods.level = {id: false};
+    $scope.goods.mt = {id: false};
+    $scope.goods.supplier = {id: false};
+    $scope.goods.color = {id: false};
+    $scope.goods.org_sn = '';
 
     $http.get(Routing.generate('api_user_current'))
       .success(function (user) {

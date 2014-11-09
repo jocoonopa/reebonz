@@ -332,7 +332,7 @@ class UserController extends Controller
         $userNow = $this->container->get('security.context')->getToken()->getUser();
 
         if ($userNow === $user) {
-            return new Exception('Suicide is now allow');
+            return new Response('Suicide is not allowed');
         }
 
         try {

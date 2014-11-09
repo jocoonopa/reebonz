@@ -24,9 +24,7 @@
 		<tr>
 			<td ng-click="orderProp='id'; reverse=!reverse;" class="pointer">id</td>
 			<td ng-click="orderProp='name'; reverse=!reverse;" class="pointer">品牌</td>
-			<td>
-				動作
-			</td>
+			<td>動作</td>
 		</tr>
 
 		<tr ng-repeat="brand in brands | filter:query | orderBy:orderProp:reverse" class="listing">

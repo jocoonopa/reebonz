@@ -31,6 +31,13 @@ class GoodsExporter
 	 */
 	protected $phpExcelObj;
 
+    /**
+     * exGetter
+     * 
+     * @var [serviceObject]
+     */
+    protected $exGetter;
+
     public function __construct(ContainerInterface $container, SecurityContext $context)
     {
         $this->container = $container;
@@ -38,6 +45,8 @@ class GoodsExporter
         $this->context = $context;
 
         $this->phpExcelObj = $this->container->get('phpexcel')->createPHPExcelObject();
+
+        $this->exGetter = $this->container->get('exchangeRate.getter');
     }
 
     /**
@@ -105,15 +114,16 @@ class GoodsExporter
             ->setCellValue('J1', '商品狀況')
             ->setCellValue('K1', 'DPO#') // 系統內部編號
             ->setCellValue('L1', '單價成本*(含稅)')
-            ->setCellValue('M1', '市價')
-            ->setCellValue('N1', '優惠價*') // 真實顯示價格為此
-            ->setCellValue('O1', '備註')
-            ->setCellValue('P1', '允許折扣')// {0: 否,1: 是}
-            ->setCellValue('Q1', '允許網路販售')// {0: 否,1: 是}
-            ->setCellValue('R1', '進貨類型') // {0: 否,1: 是}
-            ->setCellValue('S1', '對應圖片') // 請將對應的圖片丟到 /img/yy-mm-dd/ 裡
-            ->setCellValue('T1', '狀態')
-            ->setCellValue('U1', '產編')
+            ->setCellValue('M1', '成本(新幣)')
+            ->setCellValue('N1', '市價')
+            ->setCellValue('O1', '優惠價*') // 真實顯示價格為此
+            ->setCellValue('P1', '備註')
+            ->setCellValue('Q1', '允許折扣')// {0: 否,1: 是}
+            ->setCellValue('R1', '允許網路販售')// {0: 否,1: 是}
+            ->setCellValue('S1', '進貨類型') // {0: 否,1: 是}
+            ->setCellValue('T1', '對應圖片') // 請將對應的圖片丟到 /img/yy-mm-dd/ 裡
+            ->setCellValue('U1', '狀態')
+            ->setCellValue('V1', '產編')
         ;
 
         return $this;
@@ -131,6 +141,8 @@ class GoodsExporter
     	// 迭代商品陣列，逐行->逐格填入對應資訊
         foreach ($goodsGroup as $key => $eachOne) {
 
+            $purchaseAt = $EntityProGetter->getDate($eachOne->getPurchaseAt());
+
             $this->phpExcelObj
             	->setActiveSheetIndex(0)
                 ->setCellValue('A' . ($key + 2), $EntityProGetter->getName($eachOne->getStore())) // 部門
@@ -145,15 +157,16 @@ class GoodsExporter
                 ->setCellValue('J' . ($key + 2), $EntityProGetter->getName($eachOne->getLevel())) // 商品狀況名稱
                 ->setCellValue('K' . ($key + 2), $eachOne->getDpo()) // 系統內部編號
                 ->setCellValue('L' . ($key + 2), $eachOne->getCost()) // 成本
-                ->setCellValue('M' . ($key + 2), $eachOne->getFakePrice()) // 市場價
-                ->setCellValue('N' . ($key + 2), $eachOne->getPrice()) // 真實顯示價格為此
-                ->setCellValue('O' . ($key + 2), $eachOne->getMemo()) // 備註
-                ->setCellValue('P' . ($key + 2), $EntityProGetter->getTrueFalseDes($eachOne->getAllowDiscount()))// {0: 否,1: 是}
-                ->setCellValue('Q' . ($key + 2), $EntityProGetter->getTrueFalseDes($eachOne->getIsWeb()))// {0: 否,1: 是}
-                ->setCellValue('R' . ($key + 2), $this->getInTypeCellValue($eachOne)) // {0: 否,1: 是}
-                ->setCellValue('S' . ($key + 2), $eachOne->getImgpath()) // 請將對應的圖片丟到 /img/yy-mm-dd/ 裡
-                ->setCellValue('T' . ($key + 2), $eachOne->getStatus()->getName()) // 商品狀態, ex: 上架
-                ->setCellValue('U' . ($key + 2), $eachOne->getSn()) // 產編
+                ->setCellValue('M' . ($key + 2), ($eachOne->getCost() / $this->exGetter->getExchangeRateByDate($purchaseAt)))
+                ->setCellValue('N' . ($key + 2), $eachOne->getFakePrice()) // 市場價
+                ->setCellValue('O' . ($key + 2), $eachOne->getPrice()) // 真實顯示價格為此
+                ->setCellValue('P' . ($key + 2), $eachOne->getMemo()) // 備註
+                ->setCellValue('Q' . ($key + 2), $EntityProGetter->getTrueFalseDes($eachOne->getAllowDiscount()))// {0: 否,1: 是}
+                ->setCellValue('R' . ($key + 2), $EntityProGetter->getTrueFalseDes($eachOne->getIsWeb()))// {0: 否,1: 是}
+                ->setCellValue('S' . ($key + 2), $this->getInTypeCellValue($eachOne)) // {0: 否,1: 是}
+                ->setCellValue('T' . ($key + 2), $eachOne->getImgpath()) // 請將對應的圖片丟到 /img/yy-mm-dd/ 裡
+                ->setCellValue('U' . ($key + 2), $eachOne->getStatus()->getName()) // 商品狀態, ex: 上架
+                ->setCellValue('V' . ($key + 2), $eachOne->getSn()) // 產編
             ;
         }
 

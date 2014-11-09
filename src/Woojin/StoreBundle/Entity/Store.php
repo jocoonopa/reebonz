@@ -47,13 +47,6 @@ class Store
     protected $invoices;
 
     /**
-    * @ORM\ManyToOne(targetEntity="\Woojin\StoreBundle\Entity\ExchangeRate", inversedBy="stores")
-    * @ORM\JoinColumn(name="exchange_rate_id", referencedColumnName="id")
-    * @var ExchangeRate
-    */
-    protected $exchange_rate;
-
-    /**
     * @Exclude
     * @ORM\OneToMany(targetEntity="\Woojin\GoodsBundle\Entity\GoodsPassport", mappedBy="store")
     * @var GoodsPassport[]
@@ -239,29 +232,6 @@ class Store
     public function getInvoices()
     {
         return $this->invoices;
-    }
-
-    /**
-     * Set exchange_rate
-     *
-     * @param \Woojin\StoreBundle\Entity\ExchangeRate $exchangeRate
-     * @return Store
-     */
-    public function setExchangeRate(\Woojin\StoreBundle\Entity\ExchangeRate $exchangeRate = null)
-    {
-        $this->exchange_rate = $exchangeRate;
-    
-        return $this;
-    }
-
-    /**
-     * Get exchange_rate
-     *
-     * @return \Woojin\StoreBundle\Entity\ExchangeRate 
-     */
-    public function getExchangeRate()
-    {
-        return $this->exchange_rate;
     }
 
     /**

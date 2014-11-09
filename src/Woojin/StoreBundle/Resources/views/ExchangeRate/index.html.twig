@@ -1,43 +1,57 @@
-{% extends ':reebonz:base.html.twig' %}
+{% verbatim %}
+<div class="row">
+    <div ng-show="successMsg || errorMsg;" class="msgFix">
+        <div ng-if="successMsg;" class="alert alert-success no-margin" role="alert">{{ successMsg }}</div>
+        <div ng-if="errorMsg;" class="alert alert-danger no-margin" role="alert">{{ errorMsg }}</div>
+    </div>
 
-{% block title %}匯率設定{% endblock %}
+    <form class="form-inline" role="form">
+        <div class="form-group">
+            <label class="col-md-2">匯率</label>
 
-{% block head %} 
+            <div class="col-md-10">
+                <input ng-model="query.rate" type="text" name="filter" class="form-control" placeholder="匯率" />
+            </div>
+        </div>
 
-{{ parent() }}
+        <div class="form-group">
+            <label class="col-md-2">開始</label>
 
-<script src="{{ asset('/js/jquery.numeric.js') }}"></script>
+            <div class="col-md-10">
+                <input ng-model="query.month" type="text" class="form-control" placeholder="格式:xxxx-xx" >
+            </div>           
+        </div>
 
-<script src="/bundles/woojinstore/js/angular/angular-cookies.js"></script>
+        <div class="form-group">
+            <label class="col-md-2">&nbsp;</label>
 
-<script src="/bundles/woojinstore/js/exchange_rate/app.js"></script>
+            <div class="col-md-10">
+                 <button ng-click="clean(); create(query);" class="btn btn-primary btn-sm pull-left" type="button">新增</button>
+            </div>
+        </div>
+    </form>
+    
+    <p>&nbsp;</p>
 
-<script src="/bundles/woojinstore/js/exchange_rate/directive.js"></script>
-	
-<script src="/bundles/woojinstore/js/exchange_rate/service.js"></script>
+    <table class="table table-hover">
+        <tr>
+            <td ng-click="orderProp='id'; reverse=!reverse;" class="pointer">id</td>
+            <td>匯率</td>
+            <td>時間</td>
+            <td>動作</td>
+        </tr>
 
-<script src="/bundles/woojinstore/js/exchange_rate/controller.js"></script>
-
-<style>
-
-input {
-	color: #ffffff;
-	background-color: #222222;
-	text-align: center;
-}
-
-input:focus {
-	color: #222222;
-	background-color: #ffffff;
-}
-
-</style>
-
-{% endblock %}
-
-{% block body -%}
-
-<div ng-controller="exchangeRateCtrl">
-{% include 'WoojinStoreBundle:ExchangeRate:list.html.twig' %}
+        <tr ng-repeat="exchangeRate in exchangeRates | orderBy:orderProp:reverse" class="listing">
+            <td>{{ exchangeRate.id }}</td>
+            <td><input ng-model="exchangeRate.rate" type="text" class="input-sm no-border"></td>
+            <td>
+                <input ng-model="exchangeRate.month" type="text" class="form-control">
+            </td>
+            <td>
+                <button ng-click="update(exchangeRate);" class="btn btn-primary btn-sm">儲存</button>
+                <button ng-click="clean(); destroy(exchangeRate);" class="btn btn-danger btn-sm">刪除</button>
+            </td>
+        </tr>
+    </table>
 </div>
-{% endblock %}
+{% endverbatim %}

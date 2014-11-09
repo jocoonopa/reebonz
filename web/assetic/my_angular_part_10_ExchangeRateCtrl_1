@@ -1,0 +1,72 @@
+'use strict';
+
+backendCtrls.controller('ExchangeRateCtrl', ['$scope', '$routeParams', '$http', 'ExchangeRate',
+    function ($scope, $routeParams, $http, ExchangeRate) { 
+
+  $scope.init = function () {
+    $scope.exchangeRates = ExchangeRate.query();
+    $scope.successMsg = false;
+    $scope.errorMsg = false;
+    $scope.tmp = {}; // 檢查資料有無改動，依此結果判斷是否要和後端溝通
+    $scope.query = {};
+    $scope.query.name = '';
+  };
+
+  $scope.formatDate = function (date, format) {
+    var format = format || 'yyyy-MM-dd';
+
+    return $filter('date')(date, format);
+  };
+
+  $scope.create = function (query) {
+    ExchangeRate.save(query).
+        $promise.then(function () {
+            $scope.successMsg = query.name + ' 新增完成!';
+            $scope.exchangeRates = ExchangeRate.query();
+            $scope.errorMsg = null;
+            $scope.query.name = '';
+        }, function (error) {
+        $scope.successMsg = null;
+            $scope.errorMsg = query.name + 'm新增失敗，請確認是否有名稱重複!';
+        });
+  };
+
+  $scope.update = function (exchangeRate) {
+
+    if (exchangeRate.name === $scope.tmp.name) {
+        return;
+    }
+
+    ExchangeRate.update({ id: exchangeRate.id}, exchangeRate).
+        $promise.then(function () {
+            $scope.successMsg = exchangeRate.name + ' 修改完成!';
+            //$scope.exchangeRates = ExchangeRate.query();
+            $scope.query.name = '';
+        }, function () {
+            $scope.errorMsg = exchangeRate.name + '修改失敗，請確認是否有名稱重複!';
+        });
+  };
+
+  $scope.destroy = function (exchangeRate) {
+    ExchangeRate.delete({ id: exchangeRate.id}).
+        $promise.then(function () {
+            $scope.successMsg = exchangeRate.name + ' 刪除完成!';
+            $scope.exchangeRates = ExchangeRate.query();
+            $scope.query.name = '';
+        }, function (e) {
+            $scope.errorMsg = exchangeRate.name + '刪除失敗，請確認是否有綁定資料!';
+        });
+  };
+
+  $scope.clean = function () {
+    $scope.successMsg = false;
+    $scope.errorMsg = false;
+  };
+
+  $scope.setTmp = function (exchangeRate) {
+    $scope.tmp.id = exchangeRate.id;
+    $scope.tmp.name = exchangeRate.name;
+  };
+
+  $scope.init();
+}]);

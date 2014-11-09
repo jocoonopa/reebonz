@@ -632,26 +632,29 @@ class OrderController extends Controller
          */
         $diff = $request->request->get('diff', 0);
 
-        /**
-         * 訂單狀態id
-         * 
-         * @var integer
-         */
-        $statusId = ($orders->getRequired() <= ($orders->getPaid() + $diff) ) ? self::OS_COMPLETE: self::OS_HANDLING;
+        $orders->setMemo($request->request->get('memo'));
 
-        /**
-         * 訂單實體
-         * 
-         * @var \Woojin\OrderBundle\Entity\Orders
-         */
-        $status = $em->find('WoojinOrderBundle:OrdersStatus', $statusId); 
+        if ($orders->getStatus()->getId() === self::OS_HANDLING) {
+            /**
+             * 訂單狀態id
+             * 
+             * @var integer
+             */
+            $statusId = ($orders->getRequired() <= ($orders->getPaid() + $diff) ) ? self::OS_COMPLETE: self::OS_HANDLING;
 
-        $orders
-            ->setPaid($orders->getPaid() + $diff)
-            ->setMemo($request->request->get('memo'))
-            ->setStatus($status)
-        ;
+            /**
+             * 訂單實體
+             * 
+             * @var \Woojin\OrderBundle\Entity\Orders
+             */
+            $status = $em->find('WoojinOrderBundle:OrdersStatus', $statusId); 
 
+            $orders
+                ->setPaid($orders->getPaid() + $diff)
+                ->setStatus($status)
+            ;
+        } 
+        
         $em->persist($orders);
         $em->flush();
 

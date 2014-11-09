@@ -69,6 +69,7 @@ assetic:
                 - '@WoojinBackendBundle/Resources/public/js/angular-seed/app/js/controller/Brand/*'
                 - '@WoojinBackendBundle/Resources/public/js/angular-seed/app/js/controller/Color/*'
                 - '@WoojinBackendBundle/Resources/public/js/angular-seed/app/js/controller/Custom/*'
+                - '@WoojinBackendBundle/Resources/public/js/angular-seed/app/js/controller/ExchangeRate/*'
                 - '@WoojinBackendBundle/Resources/public/js/angular-seed/app/js/controller/GoodsLevel/*'
                 - '@WoojinBackendBundle/Resources/public/js/angular-seed/app/js/controller/GoodsMt/*'
                 - '@WoojinBackendBundle/Resources/public/js/angular-seed/app/js/controller/GoodsPassport/*'
@@ -76,7 +77,6 @@ assetic:
                 - '@WoojinBackendBundle/Resources/public/js/angular-seed/app/js/controller/Orders/*'
                 - '@WoojinBackendBundle/Resources/public/js/angular-seed/app/js/controller/Pattern/*'
                 - '@WoojinBackendBundle/Resources/public/js/angular-seed/app/js/controller/PayType/*'
-                - '@WoojinBackendBundle/Resources/public/js/angular-seed/app/js/controller/GoodsPassport/*'
                 - '@WoojinBackendBundle/Resources/public/js/angular-seed/app/js/controller/Supplier/*'
                 - '@WoojinBackendBundle/Resources/public/js/angular-seed/app/js/controller/User/*'
 
@@ -109,6 +109,10 @@ swiftmailer:
 nelmio_api_doc: ~
 
 services: 
+    exchangeRate.getter:
+        class: Woojin\Utility\ExchangeRate\ExchangeRateGetter
+        arguments: ['@doctrine']
+
     orders.exporter:
         class: Woojin\OrderBundle\OrdersExporter
         arguments: ['@service_container', '@security.context']

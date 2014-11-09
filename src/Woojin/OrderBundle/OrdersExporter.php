@@ -33,6 +33,13 @@ class OrdersExporter
      */
     protected $phpExcelObj;
 
+    /**
+     * exGetter
+     * 
+     * @var [serviceObject]
+     */
+    protected $exGetter;
+
     public function __construct(ContainerInterface $container, SecurityContext $context)
     {
         $this->container = $container;
@@ -40,6 +47,8 @@ class OrdersExporter
         $this->context = $context;
 
         $this->phpExcelObj = $this->container->get('phpexcel')->createPHPExcelObject();
+
+        $this->exGetter = $this->container->get('exchangeRate.getter');
     }
 
     /**
@@ -254,14 +263,17 @@ class OrdersExporter
             ->setCellValue('D1', '品牌')
             ->setCellValue('E1', '品名')
             ->setCellValue('F1', '成本')
-            ->setCellValue('G1', 'Margin')
-            ->setCellValue('H1', '原價')
-            ->setCellValue('I1', '折扣金額')
-            ->setCellValue('J1', '實付')
-			->setCellValue('K1', '發票號碼')
-			->setCellValue('L1', '備註')
-			->setCellValue('M1', '信用卡號')  
-            ->setCellValue('N1', '時間')     
+            ->setCellValue('G1', '成本(新加坡幣)')
+            ->setCellValue('H1', 'Margin')
+            ->setCellValue('I1', '原價')
+            ->setCellValue('J1', '折扣金額')
+            ->setCellValue('K1', '實付')
+            ->setCellValue('L1', '實付(新加坡幣)')
+            ->setCellValue('M1', '現金')
+			->setCellValue('N1', '發票號碼')
+			->setCellValue('O1', '備註')
+			->setCellValue('P1', '信用卡號')  
+            ->setCellValue('Q1', '時間')     
 		;
 
         return $this;
@@ -405,6 +417,13 @@ class OrdersExporter
         $sku = $orders->getGoodsPassport()->getOrgSn();
 
         /**
+         * 進貨時間
+         *
+         * @var string
+         */
+        $purchaseAt = $orders->getGoodsPassport()->getPurchaseAt()->format('Y-m');
+
+        /**
          * 操作記錄實體陣列
          * 
          * @var [\Woojin\OrderBundle\Entity\Ope]
@@ -416,27 +435,42 @@ class OrdersExporter
          */
         $cardSnOfAll = false;
 
-        array_map(function ($ope) use (&$cardSnOfAll) {
-            if ($cardSn = $ope->getCardSn()) {
-                $cardSnOfAll += $ope->getCardSn() . ',';
-            }
-        }, $opes->toArray());
+        /**
+         * 品牌
+         * 
+         * @var \Woojin\GoodsBundle\Entity\Brand 
+         */
+        $brand = $orders->getGoodsPassport()->getBrand();
+
+        /**
+         * 支付現金總額
+         */
+        $cashPaid = 0;
+
+        foreach ($opes as $ope) {
+            $cardSnOfAll .= $ope->addCardSnInList();
+
+            $cashPaid += $ope->addCashPaid();
+        }
 
         return array(
             'A' => $sn,
             'B' => $sku,
             'C' => $orders->getGoodsPassport()->getSupplier()->getName(),
-            'D' => $orders->getGoodsPassport()->getBrand()->getName(),
+            'D' => ($brand) ? $brand->getName() : '',
             'E' => $orders->getGoodsPassport()->getName(),
-            'F' => $orders->getGoodsPassport()->getCost(),
-            'G' => ($orders->getPaid() - $orders->getGoodsPassport()->getCost())/$orders->getPaid(),
-            'H' => $orders->getGoodsPassport()->getPrice(),
-            'I' => $orders->getGoodsPassport()->getPrice() - $orders->getPaid(),
-            'J' => $orders->getPaid(),
-            'K' => $orders->getInvoice()->getSn(), 
-            'L' => $orders->getMemo(),
-            'M' => ($cardSnOfAll) ? substr($cardSnOfAll, 0, -1) : '',
-            'N' => $orders->getCreateAt()->format('Y-m-d H:i:s')
+            'F' => $cost,
+            'G' => ($cost / $this->exGetter->getExchangeRateByDate($purchaseAt)),
+            'H' => ($orders->getPaid() === 0) ? 0 : ($orders->getPaid() - $orders->getGoodsPassport()->getCost())/$orders->getPaid(),
+            'I' => $orders->getGoodsPassport()->getPrice(),
+            'J' => $orders->getGoodsPassport()->getPrice() - $orders->getPaid(),
+            'K' => $paid,
+            'L' => ($paid / $this->exGetter->getExchangeRateByDate($purchaseAt)),
+            'M' => $cashPaid,
+            'N' => $orders->getInvoice()->getSn(), 
+            'O' => $orders->getMemo(),
+            'P' => ($cardSnOfAll) ? substr($cardSnOfAll, 0, -1) : '',
+            'Q' => $orders->getCreateAt()->format('Y-m-d H:i:s')
         );
     }
 

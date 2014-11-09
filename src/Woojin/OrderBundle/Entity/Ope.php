@@ -15,6 +15,8 @@ use Woojin\OrderBundle\NullEntity\NullPayType;
  */
 class Ope
 {
+    const PAY_TYPE_CASH = 1;
+
     /**
      * @Exclude
      * @ORM\ManyToOne(targetEntity="Orders", inversedBy="opes", cascade={"persist"})
@@ -337,5 +339,15 @@ class Ope
     public function getCardSn()
     {
         return $this->card_sn;
+    }
+
+    public function addCardSnInList()
+    {
+        return ($this->getCardSn()) ? (string) $this->getCardSn() . ',' : '';
+    }
+
+    public function addCashPaid()
+    {
+        return (self::PAY_TYPE_CASH === $this->getPayType()->getId()) ? $this->getMoney() : 0;
     }
 }
