@@ -124,6 +124,7 @@ class GoodsExporter
             ->setCellValue('T1', '對應圖片') // 請將對應的圖片丟到 /img/yy-mm-dd/ 裡
             ->setCellValue('U1', '狀態')
             ->setCellValue('V1', '產編')
+            ->setCellValue('W1', '活動')
         ;
 
         return $this;
@@ -167,6 +168,7 @@ class GoodsExporter
                 ->setCellValue('T' . ($key + 2), $eachOne->getImgpath()) // 請將對應的圖片丟到 /img/yy-mm-dd/ 裡
                 ->setCellValue('U' . ($key + 2), $eachOne->getStatus()->getName()) // 商品狀態, ex: 上架
                 ->setCellValue('V' . ($key + 2), $eachOne->getSn()) // 產編
+                ->setCellValue('W' . ($key + 2), $EntityProGetter->getName($eachOne->getActivity())) // 活動
             ;
         }
 

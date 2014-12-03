@@ -30,3 +30,22 @@ Server running on http://127.0.0.1:2626
 
 Server running on http://127.0.0.1:2626
 
+Server running on http://127.0.0.1:2626
+
+Server running on http://127.0.0.1:2626
+
+Server running on http://127.0.0.1:2626
+
+
+
+                                                          
+  [Symfony\Component\Process\Exception\RuntimeException]  
+  The process has been signaled with signal "10".         
+                                                          
+
+
+server:run [-d|--docroot="..."] [-r|--router="..."] [address]
+
+
+Server running on http://127.0.0.1:7000
+

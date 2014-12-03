@@ -273,7 +273,7 @@ class OrdersExporter
 			->setCellValue('N1', '發票號碼')
 			->setCellValue('O1', '備註')
 			->setCellValue('P1', '信用卡號')  
-            ->setCellValue('Q1', '時間')     
+            ->setCellValue('Q1', '時間')   
 		;
 
         return $this;

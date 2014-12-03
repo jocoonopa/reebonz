@@ -4534,15 +4534,18 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
 
     angular.forEach($scope.dateRepo, function (eachDate, index) {
       if (today === eachDate.val) {
-        $scope.dateSelected = eachDate;
+        $scope.dateStart = eachDate;
+        $scope.dateEnd = eachDate;
 
         return isIn = true;
       }
     });
 
     if (!isIn) {
-      $scope.dateSelected = {};
-      $scope.dateSelected = $scope.dateRepo[0];
+      $scope.dateStart = {};
+      $scope.dateEnd = {};
+      $scope.dateStart = $scope.dateRepo[0];
+      $scope.dateEnd = $scope.dateRepo[0];
     }
 
     if (!!callback && typeof callback === 'function') {
@@ -4590,8 +4593,14 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
     initThisActivityRecord(assign);
   };
 
+  $scope.getActivityReocrdDateRegion = function (assign) {
+    initThisActivityRecord(assign);
+  };
+
   /**
    * 初始化今日活動銷貨記錄
+   *
+   * @param {boolean} assign 看起來是個沒用的變數
    */
   var initThisActivityRecord = function (assign) {
     // 取得活動銷貨記錄
@@ -4606,8 +4615,8 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
         notIn: [OS_CANCEL]
       },
       IcreateAt: {
-        gte: [$scope.dateSelected.val],
-        lte: [$scope.dateSelected.val]
+        gte: [$scope.dateStart.val],
+        lte: [$scope.dateEnd.val]
       }
     };
 
@@ -4632,6 +4641,8 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
       $scope.invoices = {};
 
       if (ordersGroup.length === 0) {
+        $scope.isRecordPanelVisible = true;
+
         return isSuccess('取得指定日期記錄完成');
       }
 
@@ -4659,6 +4670,16 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
         // 設置訂單內涵
         setInvoices(eachOrders);
       }
+
+      var arr = $.map($scope.invoices, function(value, index) {
+        return [value];
+      });
+
+      $scope.invoices = null;
+
+      $scope.invoices = arr;
+
+      console.log($scope.invoices);
 
       isSuccess('取得指定日期記錄完成');
     })
@@ -4798,7 +4819,9 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
 
     $scope.todayTotalGrade = 0;
 
-    $scope.dateSelected = {};
+    $scope.dateStart = {};
+
+    $scope.dateEnd = {};
   };
 
   $scope.saveEditOpe = function () {
@@ -5115,8 +5138,8 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
 
     if (assign) {
       condition.IcreateAt = {
-        gte: [$scope.dateSelected.val],
-        lte: [$scope.dateSelected.val]
+        gte: [$scope.dateStart.val],
+        lte: [$scope.dateEnd.val]
       };
     }
     
