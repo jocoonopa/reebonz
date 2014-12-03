@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Reebonz管理系統密碼取回</title>
+
+    <!--/ CSS -->
+    <!-- <link rel="stylesheet" href="/bundles/woojinbackend/css/bootstrap.yeti.min.css"> -->
+    <link rel="stylesheet" href="/bundles/woojinbackend/css/backend.layout.css">
+    <link rel="stylesheet" href="/bundles/woojinbackend/css/bootstrap.yeti.min.css">
+    <link rel="stylesheet" href="/bundles/woojinbackend/css/yeti.custom.fix.css">
+    
+    <link rel="stylesheet" href="/bundles/woojinbackend/css/bootstrap.yeti.min.css">
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}" />
+    <!-- CSS /-->
+    
+    <script src="/js/reebonz.js"></script>
+</head>
+<body>
+    <div class="row">
+        <div class="col-xs-12 col-sm-12">
+            <p>
+                Hello {{ user.username }} ，請點擊以下連結重新設定您的密碼喔!
+                <a href="{{ url('password_edit', {id: user.id, csrf: csrf}) }}">密碼設定連結</a>
+            </p>
+        </div>
+    </div>
+    
+</body>
+</html>

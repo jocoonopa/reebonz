@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <title>Reebonz系統登入頁面</title>
   <link rel="stylesheet" href="/bundles/woojinbackend/css/bootstrap.yeti.min.css">
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+  <script src="/js/reebonz.js"></script>
 </head>
 <body>
 
@@ -37,15 +37,15 @@
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="btn btn-default">忘記密碼</button>
-        <button type="button" class="btn btn-primary">登入</button>
+        <a class="btn btn-default forgot" href="{{ path('forgotten') }}">忘記密碼</a>
+        <button type="button" class="btn btn-primary submit">登入</button>
       </div>
     </div>
   </div>
 </div>
 <script>
 $(function () {
-  $('button').click(function () {
+  $('button.submit').click(function () {
     $('form').submit();
   });
 });
