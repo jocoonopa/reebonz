@@ -654,7 +654,7 @@ backendCtrls.controller('OrdersNormalCtrl', ['$scope', '$routeParams', '$http', 
   /**
    * 取消此訂單
    * 
-   * @param {integer} index [index of $scope.ordersGroup]
+   * @param {object} orders
    */
   $scope._cancel = function (orders) {
     // 刪除訂單(取銷售出)，與server溝通交換資料

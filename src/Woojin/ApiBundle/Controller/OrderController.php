@@ -52,6 +52,7 @@ class OrderController extends Controller
     const OS_HANDLING       = 1;
     const OS_COMPLETE       = 2;
     const OS_CANCEL         = 3;
+    const OK_TYPE_OUT       = 2;
 
     /**
      * 販售一般商品
@@ -793,6 +794,99 @@ class OrderController extends Controller
             default:
                 return new Response(json_encode(array('error' => '訂單種類不在白名單內')));
         }
+    }
+
+    /**
+     * @Route("/{id}/reverse/sold/cancel", requirements={"id" = "\d+"}, name="api_orders_reverse_sold_cancel",options={"expose"=true})
+     * @ParamConverter(class="orders", class="WoojinOrderBundle:Orders")
+     * @Method("PUT")
+     *
+     * @ApiDoc(
+     *  resource=true,
+     *  description="
+     * ---------------還原取消訂單--------------     
+     * 
+     * 1. 檢查訂單狀態是否為取消且種類類行為出->若否 return error
+     * 2. 檢查訂單關連商品是否仍為上架或是活動狀態->若否 return error
+     * 3. 若狀態為上述之一，進行訂單還原動作
+     * -> Orders setStatus(self::GS_HANDLING || self::GS_COMPLETED) [狀態由已付和實付是否相等判斷]
+     * -> GoodsPassport setStatus(self::GS_SOLDOUT)
+     * 
+     * -------------------------------------
+     * ",
+     *  statusCodes={
+     *    200="Returned when successful",
+     *    403="Returned when the ApiKey is not matched to say hello",
+     *    404={
+     *     "Returned when the ApiKey is not matched",
+     *     "Returned when something else is not found"
+     *    },
+     *    500={
+     *     "Please contact author to fix it"
+     *    }
+     *  }
+     * )
+     */
+    public function reverseCancelAction(Orders $order)
+    {
+        if ($order->getKind()->getType() !== self::OK_TYPE_OUT) {
+            return new Response(json_encode(array('error' => '訂單種類不是售出或特殊活動')));
+        }
+
+        if ($order->getStatus()->getId() !== self::OS_CANCEL) {
+            return new Response(json_encode(array('error' => '訂單狀態非取消狀態')));
+        }
+
+        // 訂單判斷結束，開始判斷商品是否合法
+
+        /**
+         * 訂單關連的商品實體
+         * 
+         * @var \Woojin\GoodsBundle\Entity\GoodsPassport
+         */
+        $goods = $order->getGoodsPassport();
+
+        if (in_array($goods->getStatus()->getId(), array(self::GS_ACTIVITY, self::GS_ACTIVITY))) {
+            return new Response(json_encode(array('error' => '商品狀態非預期的上架或是活動')));
+        }
+
+        if ($goods->getStatus()->getId() !== self::GS_ACTIVITY && $order->getKind()->getId() === self::OK_SPECIAL_SELL) {
+            return new Response(json_encode(array('error' => '訂單種類為特殊活動但商品狀態非活動')));
+        }
+
+        if ($goods->getStatus()->getId() !== self::GS_ON_SALE && $order->getKind()->getId() === self::OK_OUT) {
+            return new Response(json_encode(array('error' => '訂單種類為售出但商品狀態非店內上架')));
+        }
+
+        $em = $this->getDoctrine()->getManager();
+
+        /**
+         * 欲還原的訂單狀態主鍵
+         *
+         * 由訂單的實付和已付是否相等來判斷
+         * 
+         * @var integer
+         */
+        $osId = ($order->getRequired() <= $order->getPaid()) ? self::OS_COMPLETE : self::OS_HANDLING;
+
+        $order->setStatus($em->find('WoojinOrderBundle:OrdersStatus', $osId));
+        $goods->setStatus($em->find('WoojinGoodsBundle:GoodsStatus', self::GS_SOLDOUT));
+
+        $em->persist($order);
+        $em->persist($goods);
+
+        $em->flush();
+
+        /**
+         * serializer
+         * 
+         * @var object
+         */
+        $serializer = \JMS\Serializer\SerializerBuilder::create()->build();
+
+        $jsonResponse = $serializer->serialize($order, 'json');
+
+        return new Response($jsonResponse);
     }
 
     /**

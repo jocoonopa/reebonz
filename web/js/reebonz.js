@@ -28734,6 +28734,30 @@ backendCtrls.controller('OrdersCtrl', ['$scope', '$routeParams', '$http', '$filt
   };
 
   /**
+   * 還原取消的訂單
+   * 
+   * @param {integer} index of $scope.ordersRepo
+   */
+  $scope.reverseCancel = function (index) {
+    $http.put(Routing.generate('api_orders_reverse_sold_cancel', {id: $scope.ordersRepo[index].id}))
+      .success(function (data) {
+        // 若存在錯誤訊息則印出錯誤訊息，終止動作
+        if (data.error) {
+          return isError(data.error);
+        }
+
+        $scope.ordersRepo[index] = data;
+            
+        isSuccess('訂單還原完成!');
+      })
+      .error(function (e) {
+        console.log(e);
+
+        isError('訂單還原發生錯誤!');
+      });
+  }
+
+  /**
    * 修改訂單資訊
    * @param {integer} index of $scope.ordersRepo
    */
@@ -29653,7 +29677,7 @@ backendCtrls.controller('OrdersNormalCtrl', ['$scope', '$routeParams', '$http', 
   /**
    * 取消此訂單
    * 
-   * @param {integer} index [index of $scope.ordersGroup]
+   * @param {object} orders
    */
   $scope._cancel = function (orders) {
     // 刪除訂單(取銷售出)，與server溝通交換資料
