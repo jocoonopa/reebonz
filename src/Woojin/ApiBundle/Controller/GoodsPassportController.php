@@ -31,6 +31,7 @@ class GoodsPassportController extends Controller
     const API_KEY = '17201810cc';
     const GS_ONSALE = 1;
     const GS_OFFSALE = 4;
+    const GS_ACTIVITY = 6;
 
     /**
      * 取得商品列表
@@ -668,10 +669,14 @@ class GoodsPassportController extends Controller
     protected function setEachGoodsStatusToOnOfSale($goodses, $status, $em)
     {
         array_map(function ($goods) use (&$em, $status) {
-            // update 商品屬性
-            $goods->setStatus($status);
+            // 商品狀態不為售出或是活動才可以進行狀態更換
+            if (!in_array($goods->getStatus()->getId(), array(self::GS_OFFSALE, self::GS_ACTIVITY))) {
+                 // update 商品屬性
+                $goods->setStatus($status);
 
-            $em->persist($goods);
+                $em->persist($goods);
+            }
+           
         }, $goodses);
 
         $em->flush();
