@@ -1,11 +1,10 @@
-{% if is_granted('ROLE_BOSS_ADMIN')	%}
-{% verbatim %}
 <div ng-controller="UserCtrl">
-	
+	{% verbatim %}
 	<div ng-show="successMsg || errorMsg;" class="msgFix">
 		<div ng-if="successMsg;" class="alert alert-success no-margin" role="alert">{{ successMsg }}</div>
 		<div ng-if="errorMsg;" class="alert alert-danger no-margin" role="alert">{{ errorMsg }}</div>
 	</div>
+	{% endverbatim %}
 
 	<div class="panel panel-default">
 	  <div class="panel-heading">
@@ -117,7 +116,11 @@
 				<select ng-change="update(user);" ng-model="user.store.id" ng-options="store.id as store.name for store in stores"></select>
 			</td>
 			<td>
-				<select ng-change="update(user);" ng-model="user.roles[0].id" ng-options="role.id as role.name for role in roles"></select>
+				{% if is_granted('ROLE_BOSS_ADMIN')%}
+				<select ng-change="update(user);" ng-model="user.roles[0].id" ng-options="role.id as role.name for role in roles" ></select>
+				{% else %}
+				{{ app.user.roles[0].name }}
+				{% endif %}
 			</td>
 			<td>
 				<input ng-focus="setTmp(user);" ng-blur="update(user);" ng-model="user.realname" type="text" class="input-sm no-border">
@@ -140,7 +143,3 @@
 		</tr>
 	</table>
 </div>
-{% endverbatim %}
-{% else %}
-<div class="alert alert-warning" role="alert">您的權限不足</div>
-{% endif %}

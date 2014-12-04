@@ -55,12 +55,20 @@ class UserController extends Controller
      * )
      */
     public function listAction()
-    {
+    {    
         /**
          * User entity array 
          * @var array{ object }
          */
-        $users = $this->getDoctrine()->getRepository('WoojinUserBundle:User')->findAll();
+        $users;
+
+        $securityContext = $this->get('security.context');
+
+        if ($securityContext->isGranted('ROLE_CHIEF_ADMIN')) {
+            $users = $this->getDoctrine()->getRepository('WoojinUserBundle:User')->findAll();
+        } else {
+            $users[] = $securityContext->getToken()->getUser();
+        }
 
         $serializer = \JMS\Serializer\SerializerBuilder::create()->build();
         
