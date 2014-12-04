@@ -105,6 +105,10 @@ config(['$routeProvider', function ($routeProvider) {
       templateUrl: Routing.generate('user_index'),
       controller: 'UserCtrl'
     }).
+    when('/password', {
+      templateUrl: Routing.generate('user_password_edit'),
+      controller: 'PasswordCtrl'
+    }).
     when('/custom', {
       templateUrl: Routing.generate('custom_index'),
       controller: 'CustomCtrl'

@@ -105,6 +105,10 @@ config(['$routeProvider', function ($routeProvider) {
       templateUrl: Routing.generate('user_index'),
       controller: 'UserCtrl'
     }).
+    when('/password', {
+      templateUrl: Routing.generate('user_password_edit'),
+      controller: 'PasswordCtrl'
+    }).
     when('/custom', {
       templateUrl: Routing.generate('custom_index'),
       controller: 'CustomCtrl'
@@ -3648,12 +3652,30 @@ backendCtrls.controller('OrdersNormalCtrl', ['$scope', '$routeParams', '$http', 
       }
 
       isSuccess('取得指定月份內銷記錄完成');
+
+      $scope.isRecordPanelVisible = true;
     })
     .error(function (e) {
       console.log(e);
 
       isError('取得今日記錄時發生錯誤!');
     });
+  };
+
+  $scope.turnback = function (orders) {
+    $http.put(Routing.generate('api_orders_turnback', {id: orders.id}))
+      .success(function (res) {
+        if (res.error) {
+          return isError(res.error)
+        }
+
+        isSuccess('退貨完成!');
+
+        initTodayRecord();
+      })
+      .error(function () {
+        isError('退貨失敗! 請聯絡工程師');
+      })
   };
 
   /**
@@ -4621,6 +4643,22 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
     initThisActivityRecord(assign);
   };
 
+  $scope.turnback = function (orders) {
+    $http.put(Routing.generate('api_orders_turnback', {id: orders.id}))
+      .success(function (res) {
+        if (res.error) {
+          return isError(res.error)
+        }
+
+        isSuccess('退貨完成!');
+
+        $scope.getActivityReocrdWithDate();
+      })
+      .error(function () {
+        isError('退貨失敗! 請聯絡工程師');
+      })
+  };
+
   /**
    * 初始化今日活動銷貨記錄
    *
@@ -4703,9 +4741,9 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
 
       $scope.invoices = arr;
 
-      console.log($scope.invoices);
-
       isSuccess('取得指定日期記錄完成');
+
+      $scope.isRecordPanelVisible = true;
     })
     .error(function (e) {
       console.log(e);
@@ -5312,6 +5350,35 @@ backendCtrls.controller('SupplierCtrl', ['$scope', '$routeParams', '$http', 'Sup
   };
 
   $scope.init();
+}]);
+'use strict';
+
+/* Controllers */
+
+backendCtrls.controller('PasswordCtrl', ['$scope', '$routeParams', '$http', 'User', 'Store', 'Role',
+  function ($scope, $routeParams, $http, User, Store, Role) { 
+
+  var isSuccess = function (str) {
+    $scope.successMsg = str;
+    $scope.errorMsg = false;
+  };
+
+  var isFailed = function (str) {
+    $scope.errorMsg = str;
+    $scope.successMsg = false;
+  };
+
+  $http.put(Routing.generate('api_user_password_edit'))
+    .success(function (res) {
+      if (res.error) {
+        isFailed(str);
+      } else {
+        isSuccess('修改密碼完成!');
+      }
+    })
+    .error(function () {
+      isFailed('Woops, 程式發生錯誤');
+    });
 }]);
 'use strict';
 

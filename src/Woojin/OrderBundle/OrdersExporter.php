@@ -274,6 +274,7 @@ class OrdersExporter
 			->setCellValue('O1', '備註')
 			->setCellValue('P1', '信用卡號')  
             ->setCellValue('Q1', '時間')   
+            ->setCellValue('R1', '狀態')
 		;
 
         return $this;
@@ -303,10 +304,42 @@ class OrdersExporter
 
             // 設置該行所有cell值
             // $key + 1 (phpExcel 從 1 開始算) + 1( 第一行欄位介紹跳過 )
-            $this->setEachRow($cellMap, $key + 2, $page);
+            $this->setEachRow($cellMap, $rowNum = ($key + 2), $page);
+
+            // 如果是已經退貨的單，已顏色標註
+            if ($this->isTurnBack($cellMap)) {
+                $this->setColumnColor($rowNum);
+            }
         }
 
         return $this;
+    }
+
+    /**
+     * 檢查是否有退貨
+     * 
+     * @param  array  $cellMap
+     * @return boolean        
+     */
+    protected function isTurnBack($cellMap)
+    {
+        return array_key_exists('R', $cellMap) && ($cellMap['R'] == '已退貨');
+    }
+
+    /**
+     * 設置該列顏色
+     * 
+     * @param integer $rowNum
+     */
+    protected function setColumnColor($rowNum)
+    {
+        return $this->phpExcelObj->getActiveSheet()->getStyle('A' . $rowNum .':R' . $rowNum)->getFill()->applyFromArray(
+            array(
+                'type'       => \PHPExcel_Style_Fill::FILL_SOLID,
+                'startcolor' => array('rgb' => 'E9E9E9'),
+                'endcolor'   => array('rgb' => 'E9E9E9')
+            )
+        );
     }
 
     /**
@@ -470,7 +503,8 @@ class OrdersExporter
             'N' => $orders->getInvoice()->getSn(), 
             'O' => $orders->getMemo(),
             'P' => ($cardSnOfAll) ? substr($cardSnOfAll, 0, -1) : '',
-            'Q' => $orders->getCreateAt()->format('Y-m-d H:i:s')
+            'Q' => $orders->getCreateAt()->format('Y-m-d H:i:s'),
+            'R' => (count($orders->getChildrens()) === 0) ? $orders->getStatus()->getName() : '已退貨'
         );
     }
 

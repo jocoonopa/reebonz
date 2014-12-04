@@ -27,4 +27,16 @@ class UserController extends Controller
 	{
 		return array();
 	}
+
+    /**
+     * 更改目前使用者的密碼
+     * 
+     * @Route("/password_edit", name="user_password_edit", options={"expose"=true})
+     * @Method("GET")
+     * @Template()
+     */
+    public function editPasswordAction()
+    {
+        return array();
+    }
 }

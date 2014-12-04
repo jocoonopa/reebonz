@@ -2,7 +2,7 @@
 	<label class="col-sm-2 control-label">&nbsp;</label>
 
 	<div class="col-sm-10">
-		<button confirmed-click="delete();" ng-confirm-click="確定刪除嘛?" class="btn btn-danger pull-right">
+		<button ng-show="model.status.id === 1" confirmed-click="delete();" ng-confirm-click="確定刪除嘛?" class="btn btn-danger pull-right">
 			<span class="glyphicon glyphicon-remove-circle"></span>刪除
 		</button>
 		

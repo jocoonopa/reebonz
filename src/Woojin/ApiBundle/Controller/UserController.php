@@ -402,6 +402,70 @@ class UserController extends Controller
     }
 
     /**
+     * 更改目前使用者的密碼
+     * 
+     * @Route("/password_edit", name="api_user_password_edit", options={"expose"=true})
+     * @Method("PUT")
+     * 
+     * @ApiDoc(
+     *  resource=true,
+     *  description="修改目前使用者密碼",
+     *  requirements={{"name"="id", "dataType"="integer", "required"=true, "description"="後台使用者的 id "}},
+     *  statusCodes={
+     *    200="Returned when successful",
+     *    404={
+     *     "Returned when something else is not found"
+     *    },
+     *    500={
+     *     "Please contact author to fix it"
+     *    }
+     *  }
+     * )
+     */
+    public function editPasswordAction(Request $request)
+    {
+        /**
+         * 使用者
+         * 
+         * @var Woojin\UserBundle\Entity\User
+         */
+        $user = $this->get('security.context')->getToken()->getUser();
+
+        if ($request->request->get('csrf') !== $user->getCsrf()) {
+            return new Response(json_encode(array('error' => '驗證過期，請重新申請密碼更改')));
+        }
+
+        if ($request->request->get('password', false) && ($request->request->get('password') === $request->request->get('confirm-password'))) {
+            /**
+             * Encoder
+             * @var object
+             */
+            $encoder = $this->container->get('security.encoder_factory')->getEncoder($user);
+
+             /**
+             * 加密後的密碼
+             * 
+             * @var string
+             */
+            $password = $encoder->encodePassword($request->request->get('password'), $user->getSalt());
+
+            $user
+                ->setPassword($password)
+                ->setCsrf(uniqid())
+            ;
+
+            $em = $this->getDoctrine()->getManager();
+
+            $em->persist($user);
+            $em->flush();
+        } else {
+            return new Response(json_encode(array('error' => '兩次密碼輸入不同')));
+        }
+
+        return new Response('ok');
+    }
+
+    /**
      * 取得外部api key
      *
      * @param  [string] $apiKey [客戶端送來的api key]

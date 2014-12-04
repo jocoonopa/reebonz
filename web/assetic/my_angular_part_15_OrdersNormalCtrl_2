@@ -443,12 +443,30 @@ backendCtrls.controller('OrdersNormalCtrl', ['$scope', '$routeParams', '$http', 
       }
 
       isSuccess('取得指定月份內銷記錄完成');
+
+      $scope.isRecordPanelVisible = true;
     })
     .error(function (e) {
       console.log(e);
 
       isError('取得今日記錄時發生錯誤!');
     });
+  };
+
+  $scope.turnback = function (orders) {
+    $http.put(Routing.generate('api_orders_turnback', {id: orders.id}))
+      .success(function (res) {
+        if (res.error) {
+          return isError(res.error)
+        }
+
+        isSuccess('退貨完成!');
+
+        initTodayRecord();
+      })
+      .error(function () {
+        isError('退貨失敗! 請聯絡工程師');
+      })
   };
 
   /**

@@ -15,20 +15,20 @@
 		</small>
 	</b>
 	
-	<span ng-show="goods.activity" class="label label-warning">{{ goods.activity.name }}</span>
+	<span ng-show="goods.activity" class="label label-warning hidden-xs">{{ goods.activity.name }}</span>
 	
 	<b ng-class="{success_bgc: goods.isSuccess, error_bgc: goods.isError}">{{ goods.name }}</b>
 	
-	<span ng-show="goods.brand" class="label label-default">{{ goods.brand.name }}</span>&nbsp;&nbsp;
+	<span ng-show="goods.brand" class="label label-default hidden-xs">{{ goods.brand.name }}</span>&nbsp;&nbsp;
 	
 	<i>{{ goods.sn }} </i>&nbsp;&nbsp;
 
-	<i>{{ goods.org_sn }}</i>&nbsp;&nbsp;
+	<i class="hidden-xs">{{ goods.org_sn }}</i>&nbsp;&nbsp;
 	
-	<span ng-show="goods.fake_price && goods.fake_price > 0;" class="pull-right small-font">|&nbsp;一般價:{{ goods.fake_price }}元</span>&nbsp;&nbsp;
+	<span ng-show="goods.fake_price && goods.fake_price > 0;" class="pull-right small-font hidden-xs">|&nbsp;一般價:{{ goods.fake_price }}元</span>&nbsp;&nbsp;
 	
-	<span class="pull-right small-font">|&nbsp;優惠價:{{ goods.price }}元</span>&nbsp;&nbsp;
+	<span class="pull-right small-font hidden-xs">|&nbsp;優惠價:{{ goods.price }}元</span>&nbsp;&nbsp;
 	
-	<span class="pull-right small-font">|&nbsp;成本:{{ goods.cost }}元&nbsp;&nbsp;</span>
+	<span class="pull-right small-font hidden-xs">|&nbsp;成本:{{ goods.cost }}元&nbsp;&nbsp;</span>
 </h4>
 {% endverbatim %}

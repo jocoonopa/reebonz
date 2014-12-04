@@ -546,16 +546,23 @@ class GoodsPassportController extends Controller
      */
     public function destroyAction(GoodsPassport $goodsPassport)
     {
+        /**
+         * 回傳訊息
+         * @var array
+         */
+        $returnMsg;
+
         try {
             $em = $this->getDoctrine()->getManager();
-            $em->remove($goodsPassport);
-            $em->flush();
+            
+            if ($goodsPassport->getStatus()->getId() !== self::GS_ONSALE) {
+                $returnMsg = array('error' => '非上架狀態');
+            } else {
+                $em->remove($goodsPassport);
+                $em->flush();
 
-            /**
-             * 回傳訊息
-             * @var array
-             */
-            $returnMsg = array('status' => 'OK');
+                $returnMsg = array('status' => 'OK');
+            }
 
             return new Response(json_encode($returnMsg));
         } catch (\Exception $e) {
@@ -590,7 +597,9 @@ class GoodsPassportController extends Controller
             $em = $this->getDoctrine()->getManager();
             
             foreach ($goodsGroup as $goods) {
-                $em->remove($goods);
+                if ($goods->getStatus()->getId() === self::GS_ONSALE) {
+                    $em->remove($goods);
+                }
             }
 
             $em->flush();

@@ -53,6 +53,7 @@ class OrderController extends Controller
     const OS_COMPLETE       = 2;
     const OS_CANCEL         = 3;
     const OK_TYPE_OUT       = 2;
+    const PT_CASH           = 1;
 
     /**
      * 販售一般商品
@@ -887,6 +888,94 @@ class OrderController extends Controller
         $jsonResponse = $serializer->serialize($order, 'json');
 
         return new Response($jsonResponse);
+    }
+
+    /**
+     * @Route("/{id}/turnback", requirements={"id" = "\d+"}, name="api_orders_turnback",options={"expose"=true})
+     * @ParamConverter(class="orders", class="WoojinOrderBundle:Orders")
+     * @Method("PUT")
+     *
+     * @ApiDoc(
+     *  resource=true,
+     *  description="
+     * ---------------退貨--------------     
+     * 
+     * 1. 檢查訂單種類是否為特殊活動或是售出->若否則 return error
+     * 2. 若是，根據訂單種類還原為商品狀態為活動 or 上架
+     * 3. 新增退貨訂單，狀態完成，綁定在該商品上，同時也綁定在該發票上。
+     * 
+     * -------------------------------------
+     * ",
+     *  statusCodes={
+     *    200="Returned when successful",
+     *    403="Returned when the ApiKey is not matched to say hello",
+     *    404={
+     *     "Returned when the ApiKey is not matched",
+     *     "Returned when something else is not found"
+     *    },
+     *    500={
+     *     "Please contact author to fix it"
+     *    }
+     *  }
+     * )
+     */
+    public function turnbackAction(Orders $order)
+    {
+        if (!in_array($order->getKind()->getId(), array(self::OK_SPECIAL_SELL, self::OK_OUT))) {
+            return new Response(json_encode(array('error' => '訂單種類必須要是售出或特殊活動才可進行退貨')));
+        }
+
+        if ($order->getStatus()->getId() === self::OS_CANCEL) {
+            return new Response(json_encode(array('error' => '訂單已經取消囉無法退貨')));
+        }
+
+        if ($order->getParent()) {
+            return new Response(json_encode(array('error' => '此訂單已經退貨過了喔!')));
+        }
+
+        $em = $this->getDoctrine()->getManager();
+
+        $gsId = ($order->getKind()->getId() === self::OK_SPECIAL_SELL) ? self::GS_ACTIVITY : self::GS_ON_SALE;
+
+        /**
+         * 商品狀態
+         * 
+         * @var \Woojin\GoodsBundle\Entity\GoodsStatus
+         */
+        $goodsStatus = $em->find('WoojinGoodsBundle:GoodsStatus', $gsId);
+
+        /**
+         * 退貨商品
+         * 
+         * @var \Woojin\GoodsBundle\Entity\GoodsPassport
+         */
+        $goods = $order->getGoodsPassport();
+
+        $goods->setStatus($goodsStatus);
+
+        $em->persist($goods);
+
+        /**
+         * 退貨訂單
+         * 
+         * @var \Woojin\OrderBundle\Entity\Orders
+         */
+        $turnBackOrder = new Orders;
+        $turnBackOrder
+            ->setInvoice($order->getInvoice())
+            ->setGoodsPassport($goods)
+            ->setParent($order)
+            ->setRequired($order->getPaid())
+            ->setPaid($order->getPaid())
+            ->setStatus($em->find('WoojinOrderBundle:OrdersStatus', self::OS_COMPLETE))
+            ->setKind($em->find('WoojinOrderBundle:OrdersKind', self::OK_TURN_IN))
+            ->setPayType($em->find('WoojinOrderBundle:PayType', self::PT_CASH))
+        ;
+
+        $em->persist($turnBackOrder);
+        $em->flush();
+
+        return new Response('ok');
     }
 
     /**
