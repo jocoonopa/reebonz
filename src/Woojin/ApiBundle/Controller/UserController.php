@@ -186,6 +186,12 @@ class UserController extends Controller
             ->setCsrf(uniqid())
         ;
 
+        foreach ($user->getRoles() as $eachRole) {
+            $user->removeRole($eachRole);
+        }
+        
+        $user->addRole($role);
+
         $em->persist($user);
         $em->flush();
 

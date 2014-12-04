@@ -1,3 +1,4 @@
+{% if is_granted('ROLE_BOSS_ADMIN')	%}
 {% verbatim %}
 <div ng-controller="UserCtrl">
 	
@@ -140,3 +141,6 @@
 	</table>
 </div>
 {% endverbatim %}
+{% else %}
+<div class="alert alert-warning" role="alert">您的權限不足</div>
+{% endif %}

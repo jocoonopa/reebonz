@@ -120,7 +120,7 @@ class Role implements RoleInterface
      */
     public function removeUser(\Woojin\UserBundle\Entity\User $user)
     {
-        $this->user->removeElement($user);
+        $this->users->removeElement($user);
     }
 
     /**
