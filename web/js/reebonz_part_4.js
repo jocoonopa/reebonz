@@ -5368,17 +5368,29 @@ backendCtrls.controller('PasswordCtrl', ['$scope', '$routeParams', '$http', 'Use
     $scope.successMsg = false;
   };
 
-  $http.put(Routing.generate('api_user_password_edit'))
+  $scope.password = '';
+  $scope.confirmPassword = '';
+
+  $scope.update = function () {
+    if ($scope.password.length < 7) {
+      return isFailed('密碼長度至少要七個字元喔!');
+    }
+
+    $http.put(Routing.generate('api_user_password_edit'), {password: $scope.password, 'confirmPassword': $scope.confirmPassword})
     .success(function (res) {
       if (res.error) {
-        isFailed(str);
-      } else {
-        isSuccess('修改密碼完成!');
+        return isFailed(res.error);
+      } 
+
+      if (res.length > 0) {
+        return isSuccess('修改密碼完成!');
       }
     })
     .error(function () {
       isFailed('Woops, 程式發生錯誤');
     });
+  };
+  
 }]);
 'use strict';
 

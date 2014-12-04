@@ -217,6 +217,8 @@ class UserController extends Controller
      */
     public function createAction(Request $request)
     {
+        $em = $this->getDoctrine()->getManager();
+
         /**
          * 提供給工廠的參數陣列
          * 
@@ -431,11 +433,11 @@ class UserController extends Controller
          */
         $user = $this->get('security.context')->getToken()->getUser();
 
-        if ($request->request->get('csrf') !== $user->getCsrf()) {
-            return new Response(json_encode(array('error' => '驗證過期，請重新申請密碼更改')));
-        }
+        // if ($csrf !== $user->getCsrf()) {
+        //     return new Response(json_encode(array('error' => '驗證過期，請重新申請密碼更改')));
+        // }
 
-        if ($request->request->get('password', false) && ($request->request->get('password') === $request->request->get('confirm-password'))) {
+        if (($password = $request->request->get('password', false)) && ($password === $request->request->get('confirmPassword'))) {
             /**
              * Encoder
              * @var object
@@ -447,10 +449,10 @@ class UserController extends Controller
              * 
              * @var string
              */
-            $password = $encoder->encodePassword($request->request->get('password'), $user->getSalt());
+            $saltPassword = $encoder->encodePassword($password, $user->getSalt());
 
             $user
-                ->setPassword($password)
+                ->setPassword($saltPassword)
                 ->setCsrf(uniqid())
             ;
 
@@ -459,7 +461,11 @@ class UserController extends Controller
             $em->persist($user);
             $em->flush();
         } else {
-            return new Response(json_encode(array('error' => '兩次密碼輸入不同')));
+            if (strlen($password) > 0) {
+                return new Response(json_encode(array('error' => '兩次密碼輸入不同')));
+            } else {
+                return new Response();
+            }
         }
 
         return new Response('ok');

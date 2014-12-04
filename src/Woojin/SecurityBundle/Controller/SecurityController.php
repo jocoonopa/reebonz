@@ -62,7 +62,7 @@ class SecurityController extends Controller
 
 			$message = \Swift_Message::newInstance()
 				->setSubject('Reebonz密碼設定')
-				->setFrom('jocoonopa@gmail.com')
+				->setFrom('reebonz.tw.marketing@gmail.com')
 				->setTo($request->request->get('email'))
 				->setBody(
 					$this->renderView(
