@@ -367,6 +367,7 @@ class OrderController extends Controller
                 ->setCustom($custom)
                 ->setRequired($accessor->getValue($eachGoods, '[orders][required]'))
                 ->setPaid($accessor->getValue($eachGoods, '[orders][paid]'))
+                ->setActivity($goods->getActivity())
                 ->setMemo($accessor->getValue($eachGoods, '[orders][memo]'))
             ;
 

@@ -21,6 +21,13 @@ class Orders
     const PT_CARD = 2;
 
     /**
+    * @ORM\ManyToOne(targetEntity="\Woojin\StoreBundle\Entity\Activity", inversedBy="orderses")
+    * @ORM\JoinColumn(name="activity_id", referencedColumnName="id")
+    * @var Activity
+    */
+    protected $activity;
+
+    /**
      * @Exclude
      * @ORM\ManyToOne(targetEntity="Orders", inversedBy="childrens")
      * @ORM\JoinColumn(name="parent_id", referencedColumnName="id", onDelete="SET NULL")
@@ -625,5 +632,28 @@ class Orders
         }
 
         return $total;
+    }
+
+    /**
+     * Set activity
+     *
+     * @param \Woojin\StoreBundle\Entity\Activity $activity
+     * @return Orders
+     */
+    public function setActivity(\Woojin\StoreBundle\Entity\Activity $activity = null)
+    {
+        $this->activity = $activity;
+    
+        return $this;
+    }
+
+    /**
+     * Get activity
+     *
+     * @return \Woojin\StoreBundle\Entity\Activity 
+     */
+    public function getActivity()
+    {
+        return $this->activity;
     }
 }

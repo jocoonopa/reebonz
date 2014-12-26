@@ -114,13 +114,15 @@
 				ng-class="{dropup: !orders.isDisplay}" 
 			>
 				<span class="caret"></span>
-					<span>{{ orders.kind.name }} 
+					<span>{{ orders.kind.name }}
 						<small ng-show="orders.childrens.length == 0"><mark>{{ orders.status.name }}</mark></small>
 						<small ng-show="orders.childrens.length > 0"><mark>已退貨</mark></small>
 						&nbsp;&nbsp;
 					</span>
 
-					<span ng-show="orders.goods_passport.activity" class="label label-warning hidden-xs">{{ orders.goods_passport.activity.name }}</span>
+					<span ng-show="orders.goods_passport.activity && !orders.activity" class="label label-warning hidden-xs">{{ orders.goods_passport.activity.name }}</span>
+
+					<span ng-show="orders.activity" class="label label-warning hidden-xs">{{ orders.activity.name }}</span>
 					
 					<b>{{ orders.goods_passport.name }}&nbsp;&nbsp;</b>
 

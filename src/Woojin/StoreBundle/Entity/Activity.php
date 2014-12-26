@@ -22,6 +22,13 @@ class Activity
     protected $goods_passports;
 
     /**
+    * @Exclude
+    * @ORM\OneToMany(targetEntity="\Woojin\OrderBundle\Entity\Orders", mappedBy="activity")
+    * @var Orders[]
+    */
+    protected $orderses;
+
+    /**
     * @var integer
     *
     * @ORM\Column(name="id", type="integer")
@@ -304,5 +311,38 @@ class Activity
     	if ($this->exceed > 0 && $this->discount > 0) {
     		return '滿' . $this->exceed . '送' . $this->discount;
     	}
+    }
+
+    /**
+     * Add orderses
+     *
+     * @param \Woojin\OrderBundle\Entity\Orders $orderses
+     * @return Activity
+     */
+    public function addOrderse(\Woojin\OrderBundle\Entity\Orders $orderses)
+    {
+        $this->orderses[] = $orderses;
+    
+        return $this;
+    }
+
+    /**
+     * Remove orderses
+     *
+     * @param \Woojin\OrderBundle\Entity\Orders $orderses
+     */
+    public function removeOrderse(\Woojin\OrderBundle\Entity\Orders $orderses)
+    {
+        $this->orderses->removeElement($orderses);
+    }
+
+    /**
+     * Get orderses
+     *
+     * @return \Doctrine\Common\Collections\Collection 
+     */
+    public function getOrderses()
+    {
+        return $this->orderses;
     }
 }

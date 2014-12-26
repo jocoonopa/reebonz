@@ -14,70 +14,77 @@ use JMS\Serializer\Annotation\Exclude;
  */
 class Activity
 {
-  /**
-   * @Exclude
-   * @ORM\OneToMany(targetEntity="\Woojin\GoodsBundle\Entity\GoodsPassport", mappedBy="activity")
-   * @var GoodsPassport[]
-   */
-  protected $goods_passports;
+    /**
+    * @Exclude
+    * @ORM\OneToMany(targetEntity="\Woojin\GoodsBundle\Entity\GoodsPassport", mappedBy="activity")
+    * @var GoodsPassport[]
+    */
+    protected $goods_passports;
 
-  /**
-   * @var integer
-   *
-   * @ORM\Column(name="id", type="integer")
-   * @ORM\Id
-   * @ORM\GeneratedValue(strategy="AUTO")
-   */
-  private $id;
+    /**
+    * @Exclude
+    * @ORM\OneToMany(targetEntity="\Woojin\OrderBundle\Entity\Orders", mappedBy="activity")
+    * @var Orders[]
+    */
+    protected $orderses;
 
-  /**
-   * @var string
-   *
-   * @ORM\Column(name="name", type="string", length=255, unique=true)
-   */
-  private $name;
+    /**
+    * @var integer
+    *
+    * @ORM\Column(name="id", type="integer")
+    * @ORM\Id
+    * @ORM\GeneratedValue(strategy="AUTO")
+    */
+    private $id;
 
-  /**
-   * @var string
-   *
-   * @ORM\Column(name="discount", type="float", nullable=true)
-   */
-  private $discount;
+    /**
+    * @var string
+    *
+    * @ORM\Column(name="name", type="string", length=255, unique=true)
+    */
+    private $name;
 
-  /**
-   * @var string
-   *
-   * @ORM\Column(name="exceed", type="integer", nullable=true)
-   */
-  private $exceed;
+    /**
+    * @var string
+    *
+    * @ORM\Column(name="discount", type="integer", nullable=true)
+    */
+    private $discount;
 
-  /**
-   * @var string
-   *
-   * @ORM\Column(name="minus", type="integer", nullable=true)
-   */
-  private $minus;
+    /**
+    * @var string
+    *
+    * @ORM\Column(name="exceed", type="integer", nullable=true)
+    */
+    private $exceed;
 
-  /**
-   * @var \DateTime
-   *
-   * @ORM\Column(name="start_at", type="datetime")
-   */
-  private $startAt;
+    /**
+    * @var string
+    *
+    * @ORM\Column(name="minus", type="integer", nullable=true)
+    */
+    private $minus;
 
-  /**
-   * @var \DateTime
-   *
-   * @ORM\Column(name="end_at", type="datetime")
-   */
-  private $endAt;
+    /**
+    * @var \DateTime
+    *
+    * @ORM\Column(name="start_at", type="datetime")
+    */
+    private $start_at;
 
-  /**
-   * @var string
-   *
-   * @ORM\Column(name="description", type="text")
-   */
-  private $description;
+    /**
+    * @var \DateTime
+    *
+    * @ORM\Column(name="end_at", type="datetime")
+    */
+    private $end_at;
+
+    /**
+    * @var string
+    *
+    * @ORM\Column(name="description", type="text", nullable=true)
+    */
+    private $description;
     /**
      * Constructor
      */
@@ -127,7 +134,7 @@ class Activity
      */
     public function setStartAt($startAt)
     {
-        $this->startAt = $startAt;
+        $this->start_at = $startAt;
     
         return $this;
     }
@@ -139,7 +146,7 @@ class Activity
      */
     public function getStartAt()
     {
-        return $this->startAt;
+        return $this->start_at;
     }
 
     /**
@@ -150,7 +157,7 @@ class Activity
      */
     public function setEndAt($endAt)
     {
-        $this->endAt = $endAt;
+        $this->end_at = $endAt;
     
         return $this;
     }
@@ -162,7 +169,7 @@ class Activity
      */
     public function getEndAt()
     {
-        return $this->endAt;
+        return $this->end_at;
     }
 
     /**
@@ -219,5 +226,90 @@ class Activity
     public function getGoodsPassports()
     {
         return $this->goods_passports;
+    }
+
+    /**
+     * Set discount
+     *
+     * @param float $discount
+     * @return Activity
+     */
+    public function setDiscount($discount)
+    {
+        $this->discount = $discount;
+    
+        return $this;
+    }
+
+    /**
+     * Get discount
+     *
+     * @return float 
+     */
+    public function getDiscount()
+    {
+        return $this->discount;
+    }
+
+    /**
+     * Set exceed
+     *
+     * @param integer $exceed
+     * @return Activity
+     */
+    public function setExceed($exceed)
+    {
+        $this->exceed = $exceed;
+    
+        return $this;
+    }
+
+    /**
+     * Get exceed
+     *
+     * @return integer 
+     */
+    public function getExceed()
+    {
+        return $this->exceed;
+    }
+
+    /**
+     * Set minus
+     *
+     * @param integer $minus
+     * @return Activity
+     */
+    public function setMinus($minus)
+    {
+        $this->minus = $minus;
+    
+        return $this;
+    }
+
+    /**
+     * Get minus
+     *
+     * @return integer 
+     */
+    public function getMinus()
+    {
+        return $this->minus;
+    }
+
+    /**
+     * 取得活動優惠內容描述
+     * 
+     * @return string
+     */
+    public function getActivityGiffDes()
+    {
+    	if ($this->minus > 0 && $this->exceed > 0) {
+    		return '滿' . $this->exceed . '送'. $this->minus;
+    	} 
+
+    	if ($this->exceed > 0 && $this->discount > 0) {
+    		return '滿' . $this->exceed . '送' . $this->discount;
+    	}
     }
 }
