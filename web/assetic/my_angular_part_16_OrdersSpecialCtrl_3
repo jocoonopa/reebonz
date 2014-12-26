@@ -424,13 +424,22 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
    * @param {object} orders
    */
   var setOrders = function (orders) {
-    var invoice = $scope.invoices[orders.invoice.id.toString()];
+    angular.forEach($scope.invoices, function (invoice, key) {
+      if (invoice.id == orders.invoice.id) {
+        if (invoice.orders[orders.id.toString()]) {
+          invoice.orders[orders.id.toString()] = orders;
+        } else {
+          console.log('該訂單找不到對應發票');
+        }
+      }
+    });
+    // var invoice = $scope.invoices[orders.invoice.id];
 
-    if (!invoice) {
-      invoice = $scope.invoices[orders.invoice.id.toString()] = getInitInvoice(orders);
-    }
+    // if (!invoice) {
+    //   invoice = $scope.invoices[orders.invoice.id] = getInitInvoice(orders);
+    // }
 
-    invoice.orders[orders.id.toString()] = orders;
+    // invoice.orders[orders.id.toString()] = orders;
   };
 
   /**
