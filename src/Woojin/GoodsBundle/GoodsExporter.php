@@ -158,7 +158,7 @@ class GoodsExporter
                 ->setCellValue('J' . ($key + 2), $EntityProGetter->getName($eachOne->getLevel())) // 商品狀況名稱
                 ->setCellValue('K' . ($key + 2), $eachOne->getDpo()) // 系統內部編號
                 ->setCellValue('L' . ($key + 2), $eachOne->getCost()) // 成本
-                ->setCellValue('M' . ($key + 2), ($eachOne->getCost() / $this->exGetter->getExchangeRateByDate($purchaseAt)))
+                ->setCellValue('M' . ($key + 2), ($eachOne->getCost() / $this->exGetter->getCostExchangeRateByDate($purchaseAt)))
                 ->setCellValue('N' . ($key + 2), $eachOne->getFakePrice()) // 市場價
                 ->setCellValue('O' . ($key + 2), $eachOne->getPrice()) // 真實顯示價格為此
                 ->setCellValue('P' . ($key + 2), $eachOne->getMemo()) // 備註

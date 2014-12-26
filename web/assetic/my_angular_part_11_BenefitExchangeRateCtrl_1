@@ -1,10 +1,10 @@
 'use strict';
 
-backendCtrls.controller('ExchangeRateCtrl', ['$scope', '$routeParams', '$http', 'ExchangeRate',
-    function ($scope, $routeParams, $http, ExchangeRate) { 
+backendCtrls.controller('BenefitExchangeRateCtrl', ['$scope', '$routeParams', '$http', 'BenefitExchangeRate',
+    function ($scope, $routeParams, $http, BenefitExchangeRate) { 
 
   $scope.init = function () {
-    $scope.exchangeRates = ExchangeRate.query();
+    $scope.benefitExchangeRates = BenefitExchangeRate.query();
     $scope.successMsg = false;
     $scope.errorMsg = false;
     $scope.tmp = {}; // 檢查資料有無改動，依此結果判斷是否要和後端溝通
@@ -19,10 +19,10 @@ backendCtrls.controller('ExchangeRateCtrl', ['$scope', '$routeParams', '$http', 
   };
 
   $scope.create = function (query) {
-    ExchangeRate.save(query).
+    BenefitExchangeRate.save(query).
         $promise.then(function () {
             $scope.successMsg = query.name + ' 新增完成!';
-            $scope.exchangeRates = ExchangeRate.query();
+            $scope.benefitExchangeRates = BenefitExchangeRate.query();
             $scope.errorMsg = null;
             $scope.query.name = '';
         }, function (error) {
@@ -37,11 +37,11 @@ backendCtrls.controller('ExchangeRateCtrl', ['$scope', '$routeParams', '$http', 
         return;
     }
 
-    ExchangeRate.update({ id: exchangeRate.id}, exchangeRate).
+    BenefitExchangeRate.update({ id: exchangeRate.id}, exchangeRate).
         $promise.then(function () {
             $scope.successMsg = exchangeRate.name + ' 修改完成!';
             $scope.errorMsg = null;
-            //$scope.exchangeRates = ExchangeRate.query();
+            //$scope.benefitExchangeRates = BenefitExchangeRate.query();
             $scope.query.name = '';
         }, function () {
             $scope.errorMsg = exchangeRate.name + '修改失敗，請確認是否有名稱重複!';
@@ -49,11 +49,11 @@ backendCtrls.controller('ExchangeRateCtrl', ['$scope', '$routeParams', '$http', 
   };
 
   $scope.destroy = function (exchangeRate) {
-    ExchangeRate.delete({ id: exchangeRate.id}).
+    BenefitExchangeRate.delete({ id: exchangeRate.id}).
         $promise.then(function () {
             $scope.successMsg = exchangeRate.name + ' 刪除完成!';
             $scope.errorMsg = null;
-            $scope.exchangeRates = ExchangeRate.query();
+            $scope.benefitExchangeRates = BenefitExchangeRate.query();
             $scope.query.name = '';
         }, function (e) {
             $scope.errorMsg = exchangeRate.name + '刪除失敗，請確認是否有綁定資料!';

@@ -818,6 +818,8 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
     $scope.invoices = {};
     $scope.departments = {};
     
+    // 很麻煩，但沒辦法，因為要掠過 name
+    POST_ACTIVITY.id = $scope.myActivity.id;
     setScopeDateRepo();
     setDateSelected(initThisActivityRecord);
   };
@@ -848,6 +850,7 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
     Activity.query(function (res) {
       $scope.activitys = res;
       $scope.myActivity = $scope.activitys[0];
+      POST_ACTIVITY.id = $scope.myActivity.id;
 
       if ($routeParams.id > 0) {
         for (var key in $scope.activitys) {

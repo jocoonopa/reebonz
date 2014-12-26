@@ -1,0 +1,378 @@
+'use strict';
+
+/* Controllers */
+
+/**
+ * 商品搜尋及相關CRUD
+ */
+backendCtrls.controller('GoodsSearchCtrl', ['$scope', '$routeParams', '$http', '$upload', '$timeout', '$filter',
+  function ($scope, $routeParams, $http, $upload, $timeout, $filter) { 
+  
+  var GoodsOperator;
+
+  /**
+   * 取得目前的時間，並且格式化為 yyyy-mm-dd
+   * 
+   * @return {string}
+   */
+  var getToday = function () {
+    var today = new Date();
+
+    return today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+  };
+  
+  /**
+   * 初始化資料
+   */
+  $scope.initSearchMeta = function () {
+    $scope.goods = {};
+    $scope.repo = {};
+    $scope.successMsg = false;
+    $scope.errorMsg = false;
+    $scope.queryDes = false;
+    $scope.orderDir = 'ASC';
+    $scope.totalItems = 0;
+    $scope.currentPage = 1;
+    $scope.perPage = 10;
+    $scope.orderBy = {attr: 'id', name: '索引'};
+    $scope.orderDir = 'DESC';
+    $scope.searchRepo = [];
+    $scope.actType = '';
+    $scope.checkStatus = true;
+    $scope.punchActivity = {
+      description: "借出",
+      discount: 0,
+      end_at: "2016-04-09T00:00:00+0800",
+      exceed: 0,
+      id: 1,
+      minus: 0,
+      name: "借出",
+      start_at: "2014-08-01T00:00:00+0800",
+    };
+
+    $scope.startAt = getToday();
+    $scope.endAt = getToday();
+
+    $scope.isAllowEdit = true;
+
+    // 取得排序資料
+    $http.get('/bundles/woojinbackend/js/angular-seed/app/js/goods/order_conditions.json').
+      success(function (res) {
+        $scope.orderBys = res;
+      });
+
+    // 取得 mapping 設定
+    $http.get('/bundles/woojinbackend/js/angular-seed/app/js/mapping.json').
+      success(function (res) {
+        /**
+         * 查詢描述英中對應陣列
+         * @type {Object}
+         */
+        $scope.mapping = res;
+      });
+
+    GoodsOperator = new GoodsOperator;
+  };
+
+  $scope.addTimeCondition = function (type) {
+    var attr = type;
+
+    $scope.goods[attr] = $scope.startAt;
+    $scope.addInSearchRePo(type, 'gte');
+
+    $scope.goods[attr] = $scope.endAt;
+    $scope.addInSearchRePo(type, 'lte');
+  };
+
+  $scope.checkAll = function () {
+    for (var key in $scope.searchRepo) {
+      $scope.searchRepo[key].isCheck = $scope.checkStatus;
+    }
+  };
+  
+  $scope.doAct = function () {
+    GoodsOperator[$scope.actType]();
+  };
+ 
+  /**
+   * 根據條件取得查詢結果
+   */
+  $scope.query = function () {
+    $http.get(
+      Routing.generate(
+        "api_goodsPassport_filter", 
+        {
+          jsonCondition: JSON.stringify($scope.repo), 
+          page: $scope.currentPage, 
+          perPage: $scope.perPage,
+          jsonOrderBy: JSON.stringify({attr: $scope.orderBy.attr, dir: $scope.orderDir})
+        }
+      )).
+      success(function (goods) {
+        for (var key in goods) {
+          $scope.preventEntityError(goods[key]);
+
+          $scope.switchPanelAndRes();
+        }
+
+        if (goods.length === 0) {
+          $scope.switchPanelAndRes();
+          $scope.isError('查無商品!');
+        }
+
+        $scope.searchRepo = goods;
+      }).
+      error(function () {
+        $scope.isError('Woops! 查詢發生錯誤！');
+      });
+  };
+
+  /**
+   * 結果區域及輸入區域切換顯示
+   */
+  $scope.switchPanelAndRes = function () {
+    $scope.isSearchPanelVisible = true;
+    $scope.isSearchResVisible = false;
+  };
+
+  /**
+   * 匯出檔案
+   */
+  $scope.export = function () {    
+    window.location = Routing.generate("api_goodsPassport_export", {jsonCondition: JSON.stringify($scope.repo)});
+  };
+
+  /**
+   * 查詢條件以及結果清空
+   */
+  $scope.reset = function () {
+    $scope.repo = {};
+    $scope.goods = {};
+    $scope.queryDes = false;
+  };
+
+  /**
+   * 初始化頁籤
+   */
+  $scope.pageInit = function () {
+    $http.get(Routing.generate("api_goodsPassport_filter_count", {jsonCondition: JSON.stringify($scope.repo)})).
+      success(function (total) {
+        $scope.totalItems = total;
+      });
+  };
+
+  /**
+   * 換頁時觸發動作，這邊是執行 query() 方法取得資料
+   */
+  $scope.pageChanged = function() {
+    $scope.query();
+  };
+
+  /**
+   * 加入搜尋條件陣列
+   * 
+   * @param {string} attr [資料屬性]
+   * @param {string type [邏輯類型{ notin, in, like ....}]
+   */
+  $scope.addInSearchRePo = function (attr, type) {
+    if (!$scope.goods[attr]) {
+      return;
+    }
+
+    if (!$scope.repo[attr]) {
+      $scope.repo[attr] = {};
+    }
+
+    if (!$scope.repo[attr][type]) {
+      $scope.repo[attr][type] = [];
+    }
+
+    $scope.repo[attr][type].push($scope.goods[attr]);
+    $scope.goods[attr] = '';
+    $scope.buildQueryDes();
+  };
+
+  /**
+   * 設置相等查詢條件
+   * 
+   * @param {string} attr [屬性]
+   * @param {string} type [邏輯類別]
+   */
+  $scope.setEqRepo = function (attr, type) {
+    if (!$scope.goods[attr]) {
+      $scope.repo[attr] = false;
+
+      return $scope.buildQueryDes();
+    }
+
+    if (!$scope.repo[attr]) {
+      $scope.repo[attr] = {};
+    }
+
+    if (!$scope.repo[attr][type]) {
+      $scope.repo[attr][type] = '';
+    }
+
+    $scope.repo[attr][type] = $scope.goods[attr];
+
+    return $scope.buildQueryDes();
+  };
+
+  /**
+   * 產生查詢的文字描述
+   */
+  $scope.buildQueryDes = function () {
+    var tailStr = '且';
+    iterateRepo(tailStr);
+
+    $scope.queryDes = $scope.queryDes.substring(0, $scope.queryDes.length - tailStr.length);
+  };
+
+  var iterateRepo = function (tailStr) {
+    $scope.queryDes = '';
+
+    for (var attr in $scope.repo) {
+      if (!$scope.repo[attr]) {
+        continue;
+      }
+
+      $scope.queryDes += $scope.mapping.attr[attr];
+
+      iterateRepoAttr(attr, tailStr);
+    };
+  };
+
+  var iterateRepoAttr = function (attr, tailStr) {
+    for (var type in $scope.repo[attr]) {
+      $scope.queryDes += $scope.mapping.type[type];
+
+      if (!Array.isArray($scope.repo[attr][type])) {
+        $scope.queryDes += $scope.repo[attr][type].name;
+        $scope.queryDes += tailStr;
+
+        continue;
+      }
+
+      iterateRepoType(attr, type);
+
+      $scope.queryDes += tailStr;
+    }
+  };
+
+  var iterateRepoType = function (attr, type) {
+    for (var i = 0; i < $scope.repo[attr][type].length; i ++) {
+      if (typeof $scope.repo[attr][type][i] === 'object') {
+        $scope.queryDes += $scope.repo[attr][type][i].name + ((i === $scope.repo[attr][type].length - 1) ? '': '或');          
+      } else {
+        $scope.queryDes += $scope.repo[attr][type][i] + ((i === $scope.repo[attr][type].length - 1) ? '':'或');
+      }
+    }
+  };
+
+  /**
+   * Goods Operator
+   */
+  var GoodsOperator = function () {
+    this.selectChecked = function () {
+      var tmp = [];
+
+      for (var key in $scope.searchRepo) {
+        if ($scope.searchRepo[key].isCheck) {
+          tmp.push({id: $scope.searchRepo[key].id});
+        }
+      }
+
+      return tmp;
+    };
+
+    this.onSaleChecked = function () {
+      $http.put(Routing.generate('api_goodsPassport_batchSetStatus', {id: 1}), {goodsPost: this.selectChecked()})
+        .success(function (res) {
+          $scope.isSuccess('批次上架完成！');
+
+          $scope.query();
+        })
+        .error(function (e) {
+          console.log(e);
+
+          $scope.isError('批次刪除發生錯誤!');
+        });
+    };
+
+    this.offSaleChecked = function () {
+      $http.put(Routing.generate('api_goodsPassport_batchSetStatus', {id: 4}), {goodsPost: this.selectChecked()})
+        .success(function (res) {
+          $scope.isSuccess('批次下架完成！');
+
+          $scope.query();
+        })
+        .error(function (e) {
+          console.log(e);
+
+          $scope.isError('批次下架發生錯誤！');
+        });
+    };
+    
+    this.deleteChecked = function () {
+      /**
+       * id 陣列
+       * 
+       * @type {Array}
+       */
+      var ids = [];
+
+      /**
+       * 商品實體陣列
+       * 
+       * @type {array}
+       */
+      var goodses = this.selectChecked();
+
+      for (var key in goodses) {
+        ids.push(goodses[key].id);
+      }
+
+      $http.delete(Routing.generate('api_goodsPassport_reverse', {jsonIds: JSON.stringify(ids)}))
+        .success(function (res) {
+          $scope.isSuccess('批次刪除完成！');
+
+          $scope.query();
+        })
+        .error(function (e) {
+          console.log(e);
+
+          $scope.isError('批次刪除發生錯誤！');
+        });
+    };
+    
+    this.punchOutChecked = function () {
+      $http.put(Routing.generate('api_activity_push', {id: $scope.punchActivity}), {goodsPost: this.selectChecked()})
+        .success(function (res) {
+          $scope.isSuccess('批次刷出完成！');
+
+          $scope.query();
+        })
+        .error(function (e) {
+          console.log(e);
+
+          $scope.isError('批次刷出發生錯誤！');
+        });
+    };
+    
+    this.punchInChecked = function () {
+      $http.put(Routing.generate('api_activity_pull', {id: $scope.punchActivity}), {goodsPost: this.selectChecked()})
+        .success(function (res) {
+          $scope.isSuccess('批次刷入完成！');
+
+          $scope.query();
+        })
+        .error(function (e) {
+          console.log(e);
+
+          $scope.isError('批次刷入發生錯誤！');
+        });
+    };
+  };
+
+  $scope.initSearchMeta();
+}]);

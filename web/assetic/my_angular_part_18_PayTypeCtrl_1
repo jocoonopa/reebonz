@@ -1,0 +1,5 @@
+'use strict';
+
+/* Controllers */
+
+backendCtrls.controller('PayTypeCtrl', [ function () {}]);

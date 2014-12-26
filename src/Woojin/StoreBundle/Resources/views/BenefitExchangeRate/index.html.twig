@@ -7,7 +7,7 @@
 
     <form class="form-inline" role="form">
         <div class="form-group">
-            <label class="col-md-2">成本匯率</label>
+            <label class="col-md-2">銷貨匯率</label>
 
             <div class="col-md-10">
                 <input ng-model="query.rate" type="text" name="filter" class="form-control" placeholder="匯率" />
@@ -36,20 +36,20 @@
     <table class="table table-hover">
         <tr>
             <td ng-click="orderProp='id'; reverse=!reverse;" class="pointer">id</td>
-            <td>成本匯率</td>
+            <td>銷貨匯率</td>
             <td>時間</td>
             <td>動作</td>
         </tr>
 
-        <tr ng-repeat="exchangeRate in exchangeRates | orderBy:orderProp:reverse" class="listing">
-            <td>{{ exchangeRate.id }}</td>
-            <td><input ng-model="exchangeRate.rate" type="text" class="input-sm no-border"></td>
+        <tr ng-repeat="benefitExchangeRate in benefitExchangeRates | orderBy:orderProp:reverse" class="listing">
+            <td>{{ benefitExchangeRate.id }}</td>
+            <td><input ng-model="benefitExchangeRate.rate" type="text" class="input-sm no-border"></td>
             <td>
-                <input ng-model="exchangeRate.month" type="text" class="form-control">
+                <input ng-model="benefitExchangeRate.month" type="text" class="form-control">
             </td>
             <td>
-                <button ng-click="update(exchangeRate);" class="btn btn-primary btn-sm">儲存</button>
-                <button ng-click="clean(); destroy(exchangeRate);" class="btn btn-danger btn-sm">刪除</button>
+                <button ng-click="update(benefitExchangeRate);" class="btn btn-primary btn-sm">儲存</button>
+                <button ng-click="clean(); destroy(benefitExchangeRate);" class="btn btn-danger btn-sm">刪除</button>
             </td>
         </tr>
     </table>

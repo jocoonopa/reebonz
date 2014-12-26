@@ -20,7 +20,7 @@ class ExchangeRateGetter
         $this->registry = $registry;
     }
 
-    public function getExchangeRateByDate($datetime)
+    public function getCostExchangeRateByDate($datetime)
     {
         $month = substr($datetime, 0, 7);
         
@@ -39,6 +39,33 @@ class ExchangeRateGetter
 
         $exchangeRate = $qb->select('ex')
             ->from('WoojinStoreBundle:ExchangeRate', 'ex')
+            ->where($qb->expr()->eq('ex.month', $qb->expr()->literal($month)))
+            ->getQuery()
+            ->getResult()
+        ;
+
+        return $this->map[$month] = ($exchangeRate) ? $exchangeRate[0]->getRate() : 1;
+    }
+
+    public function getSaleExchangeRateByDate($datetime)
+    {
+        $month = substr($datetime, 0, 7);
+        
+        if (array_key_exists($month, $this->map)) {
+            return $this->map[$month];
+        }
+
+        /**
+         * Entity Manager
+         * 
+         * @var object
+         */
+        $em = $this->registry->getManager();
+
+        $qb = $em->createQueryBuilder();
+
+        $exchangeRate = $qb->select('ex')
+            ->from('WoojinStoreBundle:BenefitExchangeRate', 'ex')
             ->where($qb->expr()->eq('ex.month', $qb->expr()->literal($month)))
             ->getQuery()
             ->getResult()

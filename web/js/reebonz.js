@@ -25891,6 +25891,10 @@ config(['$routeProvider', function ($routeProvider) {
       templateUrl: Routing.generate('exchangeRate_index'),
       controller: 'ExchangeRateCtrl'
     }).
+    when('/benefitExchangeRate', {
+      templateUrl: Routing.generate('benefitExchangeRate_index'),
+      controller: 'BenefitExchangeRateCtrl'
+    }).
     when('/pattern', {
       templateUrl: Routing.generate('pattern_index'),
       controller: 'PatternCtrl'
@@ -26473,6 +26477,14 @@ backendServices.factory('Activity', ['$resource',
 backendServices.factory('ExchangeRate', ['$resource',
   function ($resource) {
   return $resource(Routing.generate('api_exchangeRate_list') + '/:id', null, 
+    {
+      update: {method: 'PUT'}
+    });
+}]);
+
+backendServices.factory('BenefitExchangeRate', ['$resource',
+  function ($resource) {
+  return $resource(Routing.generate('api_benefitExchangeRate_list') + '/:id', null, 
     {
       update: {method: 'PUT'}
     });
@@ -27207,6 +27219,7 @@ backendCtrls.controller('ExchangeRateCtrl', ['$scope', '$routeParams', '$http', 
     ExchangeRate.update({ id: exchangeRate.id}, exchangeRate).
         $promise.then(function () {
             $scope.successMsg = exchangeRate.name + ' 修改完成!';
+            $scope.errorMsg = null;
             //$scope.exchangeRates = ExchangeRate.query();
             $scope.query.name = '';
         }, function () {
@@ -27218,7 +27231,82 @@ backendCtrls.controller('ExchangeRateCtrl', ['$scope', '$routeParams', '$http', 
     ExchangeRate.delete({ id: exchangeRate.id}).
         $promise.then(function () {
             $scope.successMsg = exchangeRate.name + ' 刪除完成!';
+            $scope.errorMsg = null;
             $scope.exchangeRates = ExchangeRate.query();
+            $scope.query.name = '';
+        }, function (e) {
+            $scope.errorMsg = exchangeRate.name + '刪除失敗，請確認是否有綁定資料!';
+        });
+  };
+
+  $scope.clean = function () {
+    $scope.successMsg = false;
+    $scope.errorMsg = false;
+  };
+
+  $scope.setTmp = function (exchangeRate) {
+    $scope.tmp.id = exchangeRate.id;
+    $scope.tmp.name = exchangeRate.name;
+  };
+
+  $scope.init();
+}]);
+'use strict';
+
+backendCtrls.controller('BenefitExchangeRateCtrl', ['$scope', '$routeParams', '$http', 'BenefitExchangeRate',
+    function ($scope, $routeParams, $http, BenefitExchangeRate) { 
+
+  $scope.init = function () {
+    $scope.benefitExchangeRates = BenefitExchangeRate.query();
+    $scope.successMsg = false;
+    $scope.errorMsg = false;
+    $scope.tmp = {}; // 檢查資料有無改動，依此結果判斷是否要和後端溝通
+    $scope.query = {};
+    $scope.query.name = '';
+  };
+
+  $scope.formatDate = function (date, format) {
+    var format = format || 'yyyy-MM-dd';
+
+    return $filter('date')(date, format);
+  };
+
+  $scope.create = function (query) {
+    BenefitExchangeRate.save(query).
+        $promise.then(function () {
+            $scope.successMsg = query.name + ' 新增完成!';
+            $scope.benefitExchangeRates = BenefitExchangeRate.query();
+            $scope.errorMsg = null;
+            $scope.query.name = '';
+        }, function (error) {
+        $scope.successMsg = null;
+            $scope.errorMsg = query.name + 'm新增失敗，請確認是否有名稱重複!';
+        });
+  };
+
+  $scope.update = function (exchangeRate) {
+
+    if (exchangeRate.name === $scope.tmp.name) {
+        return;
+    }
+
+    BenefitExchangeRate.update({ id: exchangeRate.id}, exchangeRate).
+        $promise.then(function () {
+            $scope.successMsg = exchangeRate.name + ' 修改完成!';
+            $scope.errorMsg = null;
+            //$scope.benefitExchangeRates = BenefitExchangeRate.query();
+            $scope.query.name = '';
+        }, function () {
+            $scope.errorMsg = exchangeRate.name + '修改失敗，請確認是否有名稱重複!';
+        });
+  };
+
+  $scope.destroy = function (exchangeRate) {
+    BenefitExchangeRate.delete({ id: exchangeRate.id}).
+        $promise.then(function () {
+            $scope.successMsg = exchangeRate.name + ' 刪除完成!';
+            $scope.errorMsg = null;
+            $scope.benefitExchangeRates = BenefitExchangeRate.query();
             $scope.query.name = '';
         }, function (e) {
             $scope.errorMsg = exchangeRate.name + '刪除失敗，請確認是否有綁定資料!';
@@ -29834,6 +29922,8 @@ backendCtrls.controller('OrdersNormalCtrl', ['$scope', '$routeParams', '$http', 
  */
 backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http', '$filter', 'PayType', 'Activity',
   function ($scope, $routeParams, $http, $filter, PayType, Activity) { 
+  var POST_ACTIVITY = {};
+
   /**
    * 商品狀態:活動
    * 
@@ -30017,11 +30107,24 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
         var goods = $scope.goodsRepo[index];
 
         // 訂單的售價設置為 (商品優惠價 * 活動折扣)
-        goods.orders.required = Math.round(goods.price * $scope.myActivity.discount / 10);
+        goods.orders.required = Math.round(goods.price * convertDiscountLte_10($scope.myActivity.discount));
         
         // 訂單的已付金額預設為訂單的售價
         goods.orders.paid = goods.orders.required;
       }
+    };
+
+    /**
+     * 折扣值自動轉換
+     *
+     * @example
+     * 9 -> 0.9
+     * 88 -> 0.88
+     * 
+     * @return {float} 
+     */
+    var convertDiscountLte_10 = function (discount) {
+      return (discount > 10) ? discount/100 : discount/10;
     };
 
     /**
@@ -30283,6 +30386,8 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
     
     $http.get(Routing.generate('api_orders_filter', post))
       .success(function (ordersGroup) {
+        $scope.invoices.reverse();
+
         for (var key in ordersGroup) {
           // 刷新小table
           setDepartment(ordersGroup[key]);
@@ -30290,6 +30395,8 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
           // 刷新整個銷貨記錄的顯現
           setInvoices(ordersGroup[key]);
         }
+
+        $scope.invoices.reverse();
 
         isSuccess('結帳完成，成功取得訂單資料!');
       })
@@ -30371,24 +30478,24 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
      * 
      * @type {object || boolean} boolean when non declared
      */
-    var eachInvoice = $scope.invoices[(999999 - orders.invoice.id).toString()];
+    var eachInvoice = $scope.invoices[orders.invoice.id];
 
-    // 如果發票物件尚未宣告，
+    // 如果發票不存在(尚未宣告)，
     // 則初始化其各屬性
     if (!eachInvoice) {
-      $scope.invoices[(999999 - orders.invoice.id).toString()] = eachInvoice = getInitInvoice(orders);
+      $scope.invoices[orders.invoice.id] = eachInvoice = getInitInvoice(orders);
     }
 
     // 發票總金額
     eachInvoice.total += orders.required;
 
-    // 若發票訂單屬性不存在，則宣告其為空物件
-    if (!eachInvoice.orders[orders.id.toString()]) {
-      eachInvoice.orders[orders.id.toString()] = {};
+    // 若發票的訂單屬性不存在，則宣告其為空物件
+    if (!eachInvoice.orders[orders.id]) {
+      eachInvoice.orders[orders.id] = {};
     }
 
     // 將訂單加入發票訂單屬性
-    eachInvoice.orders[orders.id.toString()] = orders;
+    eachInvoice.orders[orders.id] = orders;
   };
 
   var setDateSelected = function (callback) {
@@ -30486,7 +30593,7 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
     // 取得活動銷貨記錄
     var condition = {
       Gactivity: {
-        in: [$scope.myActivity]
+        in: [POST_ACTIVITY]
       },
       Okind: {
         in: [OK_SPECIAL_SOLDOUT]
@@ -30518,7 +30625,7 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
     }))
     .success(function (ordersGroup) {
       $scope.departments = {};
-      $scope.invoices = {};
+      $scope.invoices = [];
 
       if (ordersGroup.length === 0) {
         $scope.isRecordPanelVisible = true;
@@ -30551,13 +30658,12 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
         setInvoices(eachOrders);
       }
 
-      var arr = $.map($scope.invoices, function(value, index) {
-        return [value];
-      });
+      // var arr = $.map($scope.invoices, function(value, index) {
+      //   return [value];
+      // });
 
-      $scope.invoices = null;
-
-      $scope.invoices = arr;
+      //$scope.invoices = arr;
+      $scope.invoices.reverse();
 
       isSuccess('取得指定日期記錄完成');
 
@@ -30627,6 +30733,8 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
     $scope.invoices = {};
     $scope.departments = {};
     
+    // 很麻煩，但沒辦法，因為要掠過 name
+    POST_ACTIVITY.id = $scope.myActivity.id;
     setScopeDateRepo();
     setDateSelected(initThisActivityRecord);
   };
@@ -30657,12 +30765,13 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
     Activity.query(function (res) {
       $scope.activitys = res;
       $scope.myActivity = $scope.activitys[0];
+      POST_ACTIVITY.id = $scope.myActivity.id;
 
       if ($routeParams.id > 0) {
         for (var key in $scope.activitys) {
           if (parseInt($scope.activitys[key].id) === parseInt($routeParams.id)) {
             $scope.myActivity = $scope.activitys[key];
-
+            POST_ACTIVITY.id = $scope.myActivity.id;
             break;
           }
         }
@@ -31006,7 +31115,7 @@ backendCtrls.controller('OrdersSpecialCtrl', ['$scope', '$routeParams', '$http',
   $scope.export = function (assign) {
     var condition = {
       Gactivity: {
-        in: [$scope.myActivity]
+        in: [POST_ACTIVITY]
       },
       Okind: {
         in: [OK_SPECIAL_SOLDOUT]

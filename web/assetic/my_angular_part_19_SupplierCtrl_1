@@ -1,0 +1,68 @@
+'use strict';
+
+/* Controllers */
+
+backendCtrls.controller('SupplierCtrl', ['$scope', '$routeParams', '$http', 'Supplier',
+  function ($scope, $routeParams, $http, Supplier) { 
+
+  $scope.init = function () {
+    $scope.suppliers = Supplier.query();
+    $scope.successMsg = false;
+    $scope.errorMsg = false;
+    $scope.tmp = {}; // 檢查資料有無改動，依此結果判斷是否要和後端溝通
+    $scope.query = {};
+    $scope.query.name = '';
+  };
+
+  $scope.create = function (query) {
+    Supplier.save(query).
+      $promise.then(function () {
+        $scope.successMsg = query.name + ' 新增完成!';
+        $scope.errorMsg = null;
+        $scope.suppliers = Supplier.query();
+        $scope.query.name = '';
+      }, function (error) {
+        $scope.successMsg = null;
+        $scope.errorMsg = query.name + '新增失敗，請確認是否有名稱重複!';
+      });
+  };
+
+  $scope.update = function (supplier) {
+
+    if (supplier.name === $scope.tmp.name) {
+      return;
+    }
+
+    Supplier.update({ id: supplier.id}, supplier).
+      $promise.then(function () {
+        $scope.successMsg = supplier.name + ' 修改完成!';
+        //$scope.suppliers = Supplier.query();
+        $scope.query.name = '';
+      }, function () {
+        $scope.errorMsg = supplier.name + '修改失敗，請確認是否有名稱重複!';
+      });
+  };
+
+  $scope.destroy = function (supplier) {
+    Supplier.delete({ id: supplier.id}).
+      $promise.then(function () {
+        $scope.successMsg = supplier.name + ' 刪除完成!';
+        $scope.suppliers = Supplier.query();
+        $scope.query.name = '';
+      }, function (e) {
+        $scope.errorMsg = supplier.name + '刪除失敗，請確認是否有綁定資料!';
+      });
+  };
+
+  $scope.clean = function () {
+    $scope.successMsg = false;
+    $scope.errorMsg = false;
+  };
+
+  $scope.setTmp = function (supplier) {
+    $scope.tmp.id = supplier.id;
+    $scope.tmp.name = supplier.name;
+  };
+
+  $scope.init();
+}]);

@@ -73,6 +73,10 @@ config(['$routeProvider', function ($routeProvider) {
       templateUrl: Routing.generate('exchangeRate_index'),
       controller: 'ExchangeRateCtrl'
     }).
+    when('/benefitExchangeRate', {
+      templateUrl: Routing.generate('benefitExchangeRate_index'),
+      controller: 'BenefitExchangeRateCtrl'
+    }).
     when('/pattern', {
       templateUrl: Routing.generate('pattern_index'),
       controller: 'PatternCtrl'

@@ -312,7 +312,7 @@ class ActivityController extends Controller
          */
         $goodses = $qb->getQuery()->getResult();
 
-        array_map(function ($goods) use ($em, $activity, $activityStatus) {
+        foreach ($goodses as $goods) {
             if ($goods->getStatus()->getId() !== self::GS_OFFSALE) {
                 // update 商品屬性
                 $goods
@@ -322,7 +322,7 @@ class ActivityController extends Controller
 
                 $em->persist($goods);
             }
-        }, $goodses);
+        }
 
         $em->flush();
 
@@ -406,7 +406,7 @@ class ActivityController extends Controller
         $goodses = $qb->getQuery()->getResult();
 
         // 逐一update活動為目標活動
-        array_map(function ($goods) use ($em, $onSaleStatus) {
+        foreach ($goodses as $goods) {
             if ($goods->getStatus()->getId() !== self::GS_OFFSALE) {
                 // update 商品屬性
                 $goods
@@ -416,7 +416,7 @@ class ActivityController extends Controller
 
                 $em->persist($goods);
             }
-        }, $goodses);
+        }
 
         $em->flush();
 

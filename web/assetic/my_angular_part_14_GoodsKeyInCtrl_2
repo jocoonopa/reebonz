@@ -1,0 +1,158 @@
+'use strict';
+
+/* Controllers */
+
+backendCtrls.controller('GoodsKeyInCtrl', ['$scope', '$routeParams', '$http', '$timeout', '$upload', '$filter',
+  function ($scope, $routeParams, $http, $timeout, $upload, $filter) { 
+  /**
+   * 取得目前的時間，並且格式化為 yyyy-mm-dd
+   * 
+   * @return {string}
+   */
+  var getToday = function () {
+    var today = new Date();
+
+    return today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+  };
+
+  $scope.formatDate = function (date, format) {
+    var format = format || 'yyyy-MM-dd';
+    return $filter('date')(date, format);
+  };
+
+  /**
+   * 將圖片檔案透過 ajax 傳送到 server 儲存
+   */
+  $scope.uploadMulti = function ($files, ids, goodses) {
+    if (!$files) {
+      return;
+    }
+
+    //$files: an array of files selected, each file has name, size, and type.
+    for (var i = 0; i < $files.length; i++) {
+      var file = $files[i];
+
+      $scope.upload = $upload.upload({
+        url: Routing.generate('img_upload_multi', {ids: JSON.stringify(ids)}),
+        method: 'POST',
+        withCredentials: true,
+        data: { myObj: $scope.myModelObj},
+        file: file, 
+      }).success(function (data, status, headers, config) {
+        for (var key in goodses) {
+          goodses[key].imgpath = data;
+        }
+
+        // 加入成功訊息
+        $scope.isSuccess('新增成功');
+      }).error(function (e) {
+        $scope.isError('圖片上傳失敗');
+      });
+    }
+  };
+
+  var validate = function () {
+    var errorMsg = [];
+
+    if ($scope.goods.price === '' || $scope.goods.price === 0) {
+      errorMsg.push('尚未輸入市場價');
+    }
+
+    if ($scope.goods.cost === '' || $scope.goods.cost === 0) {
+      errorMsg.push('尚未輸入成本');
+    }
+
+    if (!$scope.goods.brand.id) {
+      errorMsg.push('尚未選擇品牌');
+    }
+
+    if (!$scope.goods.supplier.id ) {
+      errorMsg.push('尚未選擇供應商'); 
+    }
+
+    if ($scope.goods.org_sn == '') {
+      errorMsg.push('尚未輸入sku'); 
+    }
+
+    if (errorMsg.length > 0) {
+      $scope.isError(errorMsg.join(', '));
+
+      return false;
+    }
+
+    return true;
+  };
+
+  // 一般新增
+  $scope.save = function ($files) {   
+    if (!validate()) {
+      return;
+    }
+
+    $http.post(Routing.generate("api_goodsPassport_create"), $scope.goods).
+      success(function (goods) {    
+        if (goods.error) {
+          return $scope.isError(goods.error);
+        }
+
+        // 上傳圖片會用到
+        var ids = [];
+
+        // 迴圈處理時間格式資料
+        for (var key in goods) {
+          // 防止空實體造成錯誤
+          $scope.preventEntityError(goods[key]);
+
+          // 加入新增成功的陣列
+          $scope.addGoods.push(goods[key]);
+
+          // 加入ids
+          ids.push(goods[key].id);
+        }
+
+        // 上傳圖片
+        $scope.uploadMulti($files, ids, $scope.addGoods);
+
+        $scope.isSuccess('新增商品完成!');
+      })
+      .error(function (e) {
+        $scope.isError('新增失敗!');
+      });
+  };
+
+  // 手動上傳完成後將表單相關的變數還原
+  $scope.initKeyInForm = function () {
+    $scope.successMsg = false;
+    $scope.errorMsg = false;
+    $scope.tmp = {}; // 檢查資料有無改動，依此結果判斷是否要和後端溝通
+    $scope.goods = {};
+    $scope.goods.amount = 1;
+    $scope.goods.imgpath = $scope.img404;
+    $scope.goods.allow_discount = 1;
+    $scope.goods.in_type = 0;
+    $scope.goods.is_web = 1;
+    $scope.goods.purchase_at = getToday();
+    $scope.goods.paid = 0;
+    $scope.goods.feedback = 0;
+    $scope.goods.pattern = {id: false};
+    $scope.goods.source = {id: false};
+    $scope.goods.brand = {id: false};
+    $scope.goods.level = {id: false};
+    $scope.goods.mt = {id: false};
+    $scope.goods.supplier = {id: false};
+    $scope.goods.color = {id: false};
+    $scope.goods.org_sn = '';
+
+    $http.get(Routing.generate('api_user_current'))
+      .success(function (user) {
+        $scope.goods.store = user.store;
+      })
+      .error(function (e) {
+        console.log(e);
+
+        $scope.goods.store = {};
+      });
+  };
+
+  $scope.initKeyInForm();
+}]);

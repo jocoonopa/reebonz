@@ -1,0 +1,66 @@
+'use strict';
+
+/* Controllers */
+
+backendCtrls.controller('GoodsLevelCtrl',['$scope', '$routeParams', '$http', 'GoodsLevel',
+	function ($scope, $routeParams, $http, GoodsLevel) { 
+
+  $scope.init = function () {
+    $scope.goodsLevels = GoodsLevel.query();
+    $scope.successMsg = false;
+    $scope.errorMsg = false;
+    $scope.tmp = {}; // 檢查資料有無改動，依此結果判斷是否要和後端溝通
+    $scope.query = {};
+    $scope.query.name = '';
+  };
+
+  $scope.create = function (query) {
+  	GoodsLevel.save(query).
+	  	$promise.then(function () {
+	  		$scope.successMsg = query.name + ' 新增完成!';
+	  		$scope.goodsLevels = GoodsLevel.query();
+	  		$scope.query.name = '';
+	  	}, function (error) {
+	  		$scope.errorMsg = query.name + '新增失敗，請確認是否有名稱重複!';
+	  	});
+  };
+
+  $scope.update = function (goodsLevel) {
+
+  	if (goodsLevel.name === $scope.tmp.name) {
+  		return;
+  	}
+
+  	GoodsLevel.update({ id: goodsLevel.id}, goodsLevel).
+  		$promise.then(function () {
+  			$scope.successMsg = goodsLevel.name + ' 修改完成!';
+  			//$scope.goodsLevels = GoodsLevel.query();
+  			$scope.query.name = '';
+  		}, function () {
+  			$scope.errorMsg = goodsLevel.name + '修改失敗，請確認是否有名稱重複!';
+  		});
+  };
+
+  $scope.destroy = function (goodsLevel) {
+  	GoodsLevel.delete({ id: goodsLevel.id}).
+  		$promise.then(function () {
+  			$scope.successMsg = goodsLevel.name + ' 刪除完成!';
+  			$scope.goodsLevels = GoodsLevel.query();
+  			$scope.query.name = '';
+  		}, function (e) {
+  			$scope.errorMsg = goodsLevel.name + '刪除失敗，請確認是否有綁定資料!';
+  		});
+  };
+
+  $scope.clean = function () {
+  	$scope.successMsg = false;
+  	$scope.errorMsg = false;
+  };
+
+  $scope.setTmp = function (goodsLevel) {
+  	$scope.tmp.id = goodsLevel.id;
+  	$scope.tmp.name = goodsLevel.name;
+  };
+
+  $scope.init();
+}]);

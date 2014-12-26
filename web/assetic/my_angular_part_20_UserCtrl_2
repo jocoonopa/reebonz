@@ -1,0 +1,106 @@
+'use strict';
+
+/* Controllers */
+
+backendCtrls.controller('UserCtrl', ['$scope', '$routeParams', '$http', 'User', 'Store', 'Role',
+  function ($scope, $routeParams, $http, User, Store, Role) { 
+
+  var isSuccess = function (user) {
+    $scope.successMsg = '';
+    $scope.successMsg += user.username + ' 新增完成';
+    $scope.errorMsg = false;
+  };
+
+  var isFailed = function () {
+    $scope.errorMsg = ($scope.user.username) ? $scope.user.username + '新增失敗' : '新增失敗';
+    $scope.successMsg = false;
+  };
+
+  $scope.initData = function () {
+    $scope.query = {};
+    $scope.query.role = {};
+    $scope.query.store = {};
+    $scope.tmp = {}; // 檢查資料有無改動，依此結果判斷是否要和後端溝通
+    $scope.users = User.query();
+    $scope.query.is_active = true;
+    $scope.query.store.id = 1;
+    $scope.query.role.id = 3;
+    $scope.successMsg = false;
+    $scope.errorMsg = false;
+    $scope.stores = Store.query();
+    $scope.roles = Role.query();
+  };
+
+  $scope.save = function () {   
+    
+    $scope.clean();
+
+    $http.post(Routing.generate("api_user_create"), $scope.query).
+      success(function (user) {
+        $scope.initData();
+        isSuccess(user);
+      })
+      .error(function (e) {
+        isFailed();
+        console.log(e);
+      });
+  };
+
+  $scope.update = function (user) {
+    if (
+      ($scope.tmp.id === user.id) &&
+      ($scope.tmp.realname === user.realname) &&
+      ($scope.tmp.username === user.username) &&
+      ($scope.tmp.email === user.email) &&
+      ($scope.tmp.mobil === user.mobil) &&
+      ($scope.tmp.address === user.address) &&
+      ($scope.tmp.is_active === user.is_active) &&
+      ($scope.tmp.store === user.store) 
+    ) {
+      return;
+    }
+
+    $scope.clean();
+
+    User.update({ id: user.id}, user).
+      $promise.then(function () {
+        $scope.successMsg = user.username + ' 修改完成!';
+        //$scope.users = User.query();
+      }, function (e) {
+        $scope.errorMsg = user.username + '修改失敗，請確認是否有名稱重複!';
+        console.log(e);
+      });
+  };
+
+  $scope.destroy = function (user) {
+    
+    $scope.clean();
+
+    User.delete({ id: user.id}).
+      $promise.then(function () {
+        $scope.successMsg = user.username + ' 刪除完成!';
+        $scope.users = User.query();
+      }, function (e) {
+        $scope.errorMsg = user.username + '刪除失敗，請確認是否有綁定資料!';
+        console.log(e);
+      });
+  };
+
+  $scope.clean = function () {
+    $scope.successMsg = false;
+    $scope.errorMsg = false;
+  };
+
+  $scope.setTmp = function (user) {
+    $scope.tmp.id = user.id;
+    $scope.tmp.realname = user.realname;
+    $scope.tmp.username = user.username;
+    $scope.tmp.email = user.email;
+    $scope.tmp.mobil = user.mobil;
+    $scope.tmp.address = user.address;
+    $scope.tmp.is_active = user.is_active;
+    $scope.tmp.store = user.store;
+  };
+
+  $scope.initData();
+}]);

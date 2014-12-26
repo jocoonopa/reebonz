@@ -70,6 +70,7 @@ assetic:
                 - '@WoojinBackendBundle/Resources/public/js/angular-seed/app/js/controller/Color/*'
                 - '@WoojinBackendBundle/Resources/public/js/angular-seed/app/js/controller/Custom/*'
                 - '@WoojinBackendBundle/Resources/public/js/angular-seed/app/js/controller/ExchangeRate/*'
+                - '@WoojinBackendBundle/Resources/public/js/angular-seed/app/js/controller/BenefitExchangeRate/*'
                 - '@WoojinBackendBundle/Resources/public/js/angular-seed/app/js/controller/GoodsLevel/*'
                 - '@WoojinBackendBundle/Resources/public/js/angular-seed/app/js/controller/GoodsMt/*'
                 - '@WoojinBackendBundle/Resources/public/js/angular-seed/app/js/controller/GoodsPassport/*'

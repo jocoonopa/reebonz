@@ -511,12 +511,8 @@ class GoodsPassportController extends Controller
          * @var array
          */
         $settings = $GoodsSettingHandler->run($request, $accessor, $em)->get();
-        
-        var_dump($settings); exit();
 
         $jsonGoodsPassports = $serializer->serialize($GoodsFactory->update($settings, $goodsPassport), 'json');
-
-
 
         return new Response($jsonGoodsPassports);
     }
