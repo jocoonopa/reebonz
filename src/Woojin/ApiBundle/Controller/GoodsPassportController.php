@@ -520,7 +520,6 @@ class GoodsPassportController extends Controller
     /**
      * 刪除商品
      * 
-     * 
      * @Route("/{id}", requirements={"id" = "\d+"}, name="api_goodsPassport_delete", options={"expose"=true})
      * @ParamConverter("goodsPassport", class="WoojinGoodsBundle:GoodsPassport")
      * @Method("DELETE")
@@ -588,12 +587,11 @@ class GoodsPassportController extends Controller
          */
         $goodsGroup = $this->getDoctrine()->getRepository('WoojinGoodsBundle:GoodsPassport')->findByIds($ids);
 
-
         try {
             $em = $this->getDoctrine()->getManager();
             
             foreach ($goodsGroup as $goods) {
-                if ($goods->getStatus()->getId() === self::GS_ONSALE) {
+                if (in_array($goods->getStatus()->getId(), array(self::GS_ONSALE, self::GS_ACTIVITY))) {
                     $em->remove($goods);
                 }
             }
